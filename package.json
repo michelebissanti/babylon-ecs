@@ -20,6 +20,7 @@
     "webpack-dev-server": "^4.15.0"
   },
   "dependencies": {
-    "@babylonjs/core": "^6.3.1"
+    "@babylonjs/core": "^6.3.1",
+    "tick-knock": "^4.2.0"
   }
 }
