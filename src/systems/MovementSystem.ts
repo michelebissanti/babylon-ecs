@@ -32,51 +32,31 @@ export class MovementSystem extends IterativeSystem {
 
         let body = phComponent.phAggregate.body;
 
+
         this.scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case "a":
                         case "A":
-                            body.applyForce(new Vector3(-dt, 0, 0), position);
-                            //position.x -= this.constant * dt;
+                            body.applyImpulse(new Vector3(-dt, 0, 0), position);
                             break
                         case "d":
                         case "D":
-                            body.applyForce(new Vector3(dt, 0, 0), position);
-                            //position.x += this.constant * dt;
+                            body.applyImpulse(new Vector3(dt, 0, 0), position);
                             break
                         case "w":
                         case "W":
-                            body.applyForce(new Vector3(0, 0, dt), position);
-                            //position.z += this.constant * dt;
+                            body.applyImpulse(new Vector3(0, 0, dt), position);
                             break
                         case "s":
                         case "S":
-                            body.applyForce(new Vector3(0, 0, -dt), position);
-                            //position.z -= this.constant * dt;
+                            body.applyImpulse(new Vector3(0, 0, -dt), position);
                             break
                     }
                     break;
             }
         })
 
-
-
-        /* // Move left or right
-        if (moveComponent.goingLeft) {
-            position.x -= dt;
-        } else {
-            position.x += dt;
-        }
-        if (position.x > 2) {
-            moveComponent.goingLeft = true;
-        }
-        else if (position.x < -2) {
-            moveComponent.goingLeft = false;
-        } */
-
-        //attach the position component to the mesh position
-        meshComponent.mesh.position = position;
     }
 }

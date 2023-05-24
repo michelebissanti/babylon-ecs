@@ -1,14 +1,22 @@
+import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
-import HavokPhysics from "@babylonjs/havok";
 
 import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug methods
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
-import { ArcRotateCamera, CreateGround, CreateSphere, HavokPlugin, PhysicsBody, PhysicsMotionType, PhysicsShapeBox, PhysicsShapeSphere } from '@babylonjs/core';
-import { Engine as EngineECS } from "tick-knock";
+import { Engine as EngineECS, Entity } from "tick-knock";
+import { HavokPlugin, MeshBuilder, PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core';
+import { PlayerMeshComponent } from './components/PlayerMeshComponent';
+import { MovingComponent } from './components/MovingComponent';
+import { MovementSystem } from './systems/MovementSystem';
+import { PositionComponent } from './components/PositionComponent';
+import { PhysicSistem } from './systems/PhysicSystem';
+import { PhysicComponent } from './components/PhysicComponent';
+import HavokPhysics from '@babylonjs/havok';
+import { PositionSystem } from './systems/PositionSystem';
 
 class App {
     engine: Engine;
@@ -26,70 +34,56 @@ class App {
 
     async setup() {
         // This creates and positions a free camera (non-mesh)
-        const camera = new ArcRotateCamera("my first camera", 0, Math.PI / 3, 10, new Vector3(0, 0, 0), this.scene);
+        var camera = new FreeCamera("camera1", new Vector3(0, 5, -10), this.scene);
 
         // This targets the camera to scene origin
         camera.setTarget(Vector3.Zero());
 
         // This attaches the camera to the canvas
-        camera.attachControl(true);
+        camera.attachControl();
 
         // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-        const light = new HemisphericLight("light", new Vector3(0, 1, 0), this.scene);
+        var light = new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene);
 
         // Default intensity is 1. Let's dim the light a small amount
         light.intensity = 0.7;
 
-        // Our built-in 'sphere' shape.
-        const sphere = CreateSphere("sphere", { diameter: 2, segments: 32 }, this.scene);
+        this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin(true, await HavokPhysics()));
 
-        // Move the sphere upward at 4 units
-        sphere.position.y = 4;
 
-        // Our built-in 'ground' shape.
-        const ground = CreateGround("ground", { width: 10, height: 10 }, this.scene);
 
-        // PHYSICS!
-        this.scene.enablePhysics(null, new HavokPlugin(true, await HavokPhysics()));
-        // Create a sphere shape
-        const sphereShape = new PhysicsShapeSphere(new Vector3(0, 0, 0)
-            , 1
-            , this.scene);
+        // Set up a simple ground
+        let ground = MeshBuilder.CreateGround('ground', { width: 5, height: 5 });
+        let groundAggregate = new PhysicsAggregate(ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene);
 
-        // Sphere body
-        const sphereBody = new PhysicsBody(sphere, PhysicsMotionType.DYNAMIC, false, this.scene);
 
-        // Set shape material properties
-        sphereShape.material = { friction: 0.2, restitution: 0.6 };
 
-        // Associate shape and body
-        sphereBody.shape = sphereShape;
+        // Create the player entity and attach all the component
+        let player = new Entity();
+        player
+            .add(new PlayerMeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)))
+            .add(new MovingComponent())
+            .add(new PhysicComponent(new PhysicsAggregate(player.get(PlayerMeshComponent).mesh, PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 })));
 
-        // And body mass
-        sphereBody.setMassProperties({ mass: 1 });
 
-        // Create a static box shape
-        const groundShape = new PhysicsShapeBox(new Vector3(0, 0, 0)
-            , Quaternion.Identity()
-            , new Vector3(10, 0.1, 10)
-            , this.scene);
 
-        // Create a body and attach it to the ground. Set it as Static.
-        const groundBody = new PhysicsBody(ground, PhysicsMotionType.STATIC, false, this.scene);
 
-        // Set material properties
-        groundShape.material = { friction: 0.2, restitution: 0.8 };
 
-        // Associate the body and the shape
-        groundBody.shape = groundShape;
+        this.ecs.addSystem(new PhysicSistem(this.scene));
 
-        // Set the mass to 0
-        groundBody.setMassProperties({ mass: 0 });
+        //this.ecs.addSystem(new PositionSystem());
+
+        this.ecs.addSystem(new MovementSystem(this.scene));
+
+        // Add out player entity
+        this.ecs.addEntity(player);
     }
 
     run() {
         // Run the engine render loop, update the ECS engine before the scene renders
         this.engine.runRenderLoop(() => {
+            let dt = (this.scene.deltaTime / 1000) || 0;
+            this.ecs.update(dt);
             this.scene.render();
         });
     }
