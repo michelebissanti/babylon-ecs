@@ -2,7 +2,7 @@
   "name": "babylon-fisica",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
+  "main": "index.js",
   "scripts": {
     "start": "webpack serve --mode=development --https",
     "build": "webpack",
@@ -21,6 +21,9 @@
   },
   "dependencies": {
     "@babylonjs/core": "^6.3.1",
+    "@babylonjs/havok": "^1.0.1",
+    "copy-webpack-plugin": "^11.0.0",
+    "html-webpack-plugin": "^5.5.1",
     "tick-knock": "^4.2.0"
   }
 }
