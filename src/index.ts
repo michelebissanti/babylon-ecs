@@ -10,13 +10,9 @@ import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector t
 import { Engine as EngineECS, Entity } from "tick-knock";
 import { HavokPlugin, MeshBuilder, PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core';
 import { PlayerMeshComponent } from './components/PlayerMeshComponent';
-import { MovingComponent } from './components/MovingComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
-import { PhysicSistem } from './systems/PhysicSystem';
-import { PhysicComponent } from './components/PhysicComponent';
-import HavokPhysics from '@babylonjs/havok';
-import { PositionSystem } from './systems/PositionSystem';
+import { PlayerCameraComponent } from './components/PlayerCameraComponent';
 
 class App {
     engine: Engine;
@@ -33,45 +29,22 @@ class App {
     }
 
     async setup() {
-        // This creates and positions a free camera (non-mesh)
-        var camera = new FreeCamera("camera1", new Vector3(0, 5, -10), this.scene);
-
-        // This targets the camera to scene origin
-        camera.setTarget(Vector3.Zero());
-
-        // This attaches the camera to the canvas
-        camera.attachControl();
 
         // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
         var light = new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene);
-
-        // Default intensity is 1. Let's dim the light a small amount
         light.intensity = 0.7;
 
-        this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin(true, await HavokPhysics()));
-
-
+        //this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin(true, await HavokPhysics()));
 
         // Set up a simple ground
-        let ground = MeshBuilder.CreateGround('ground', { width: 5, height: 5 });
-        let groundAggregate = new PhysicsAggregate(ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene);
-
-
+        let ground = MeshBuilder.CreateGround('ground', { width: 50, height: 50 });
+        ground.checkCollisions = true;
+        //let groundAggregate = new PhysicsAggregate(ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene);
 
         // Create the player entity and attach all the component
         let player = new Entity();
-        player
-            .add(new PlayerMeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)))
-            .add(new MovingComponent())
-            .add(new PhysicComponent(new PhysicsAggregate(player.get(PlayerMeshComponent).mesh, PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 })));
-
-
-
-
-
-        this.ecs.addSystem(new PhysicSistem(this.scene));
-
-        //this.ecs.addSystem(new PositionSystem());
+        player.add(new PlayerMeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)));
+        player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.65, 0), this.scene)));
 
         this.ecs.addSystem(new MovementSystem(this.scene));
 

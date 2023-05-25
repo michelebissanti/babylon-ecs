@@ -1,62 +1,45 @@
-import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
+import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { PlayerMeshComponent } from "../components/PlayerMeshComponent";
-import { MovingComponent } from "../components/MovingComponent";
 import { PositionComponent } from "../components/PositionComponent";
 import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
+import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
 // that matches its query.
 export class MovementSystem extends IterativeSystem {
     scene: Scene;
-    constant: number = 0.05;
 
     constructor(scene: Scene) {
-        // Create a query that will capture out player entity (has to have a mesh component and a moving component)
-        super(new QueryBuilder().contains(PlayerMeshComponent).contains(PhysicComponent).contains(PositionComponent).build())
+        super(new QueryBuilder().contains(PlayerMeshComponent).contains(PlayerCameraComponent).build())
         this.scene = scene;
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
 
         // Get the mesh component
-        let meshComponent = entity.get(PlayerMeshComponent);
+        var meshComponent = entity.get(PlayerMeshComponent);
 
-        let positionComponent = entity.get(PositionComponent);
+        var camera = entity.get(PlayerCameraComponent).camera;
 
-        let phComponent = entity.get(PhysicComponent);
+        camera.attachControl();
+        //inserisco il controllo tramite wasd
+        camera.keysUp.push(87);
+        camera.keysDown.push(83);
+        camera.keysLeft.push(65);
+        camera.keysRight.push(68);
 
-        // Unpack the position from the mesh component
-        let position = positionComponent.position;
+        camera.applyGravity = true;
+        camera.checkCollisions = true;
 
-        let body = phComponent.phAggregate.body;
+        camera.ellipsoid = new Vector3(1, 1.65, 1);
 
+        camera.minZ = 0.5;
+        camera.speed = 0.5;
+        camera.angularSensibility = 4000;
 
-        this.scene.onKeyboardObservable.add((kbInfo) => {
-            switch (kbInfo.type) {
-                case KeyboardEventTypes.KEYDOWN:
-                    switch (kbInfo.event.key) {
-                        case "a":
-                        case "A":
-                            body.applyImpulse(new Vector3(-dt, 0, 0), position);
-                            break
-                        case "d":
-                        case "D":
-                            body.applyImpulse(new Vector3(dt, 0, 0), position);
-                            break
-                        case "w":
-                        case "W":
-                            body.applyImpulse(new Vector3(0, 0, dt), position);
-                            break
-                        case "s":
-                        case "S":
-                            body.applyImpulse(new Vector3(0, 0, -dt), position);
-                            break
-                    }
-                    break;
-            }
-        })
+        meshComponent.mesh.position = new Vector3(camera.position.x, camera.position.y, camera.position.z);
 
     }
 }
