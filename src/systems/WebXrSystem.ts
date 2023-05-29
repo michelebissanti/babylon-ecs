@@ -4,28 +4,30 @@ import { PositionComponent } from "../components/PositionComponent";
 import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
+import { WebXrComponent } from "../components/WebXrComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
 // that matches its query.
-export class MovementSystem extends IterativeSystem {
+export class WebXrSystem extends IterativeSystem {
     scene: Scene;
+    init = true;
 
     constructor(scene: Scene) {
-        super(new QueryBuilder().contains(PlayerMeshComponent).contains(PlayerCameraComponent).build())
+        super(new QueryBuilder().contains(WebXrComponent).build());
         this.scene = scene;
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
+        let session = entity.get(WebXrComponent).exp;
 
-        // Get the mesh component
-        var meshComponent = entity.get(PlayerMeshComponent);
+        if (this.init) {
+            const featureManager = session.baseExperience.featuresManager;
+            console.log(featureManager);
+            this.init = false;
 
-        var camera = entity.get(PlayerCameraComponent).camera;
-
-
-
-        meshComponent.mesh.position = camera.position;//new Vector3(camera.position.x, camera.position.y, camera.position.z);
+            session.baseExperience
+        }
 
     }
 }

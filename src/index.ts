@@ -13,6 +13,8 @@ import { PlayerMeshComponent } from './components/PlayerMeshComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
 import { PlayerCameraComponent } from './components/PlayerCameraComponent';
+import { WebXrComponent } from './components/WebXrComponent';
+import { WebXrSystem } from './systems/WebXrSystem';
 
 class App {
     engine: Engine;
@@ -45,8 +47,13 @@ class App {
         let player = new Entity();
         player.add(new PlayerMeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)));
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.65, 0), this.scene)));
+        player.add(new WebXrComponent(await this.scene.createDefaultXRExperienceAsync({
+            floorMeshes: [],
+            disableTeleportation: true,
+        })));
 
         this.ecs.addSystem(new MovementSystem(this.scene));
+        this.ecs.addSystem(new WebXrSystem(this.scene));
 
         // Add out player entity
         this.ecs.addEntity(player);
