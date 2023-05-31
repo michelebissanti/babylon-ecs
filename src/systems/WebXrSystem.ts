@@ -1,5 +1,5 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
-import { PlayerMeshComponent } from "../components/PlayerMeshComponent";
+import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
 import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
