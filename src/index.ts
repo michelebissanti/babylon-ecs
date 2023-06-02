@@ -21,6 +21,7 @@ import { PhysicComponent } from './components/PhysicComponent';
 import { GroundComponent } from './components/GroundComponent';
 import { ClientComponent } from './components/ClientComponent';
 import { Gui3dComponent } from './components/Gui3dComponent';
+import { MultiplayerSystem } from './systems/MultiplayerSystem';
 
 class App {
     engine: Engine;
@@ -55,7 +56,7 @@ class App {
             floorMeshes: [],
             disableTeleportation: true,
         })));
-        player.add(new ClientComponent());
+        player.add(new ClientComponent(false));
 
         let gui = new Entity();
         gui.add(new Gui3dComponent(new GUI3DManager(this.scene)));
@@ -63,6 +64,7 @@ class App {
 
         this.ecs.addSystem(new MovementSystem(this.scene));
         this.ecs.addSystem(new WebXrSystem(this.scene));
+        this.ecs.addSystem(new MultiplayerSystem(this.scene));
 
         // Add out player entity
         this.ecs.addEntity(light);

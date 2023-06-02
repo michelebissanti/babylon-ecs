@@ -2,7 +2,7 @@ import { Client, Room } from "colyseus.js";
 
 export class ClientComponent {
     client: Client;
-    room: Room;
+    room: Room = null;
 
     constructor(local?: boolean) {
         const ENDPOINT_LOCAL = "ws://localhost:2567";
