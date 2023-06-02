@@ -3,7 +3,7 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
-import { GUI3DManager } from '@babylonjs/gui';
+import { GUI3DManager, TouchHolographicButton } from '@babylonjs/gui';
 
 import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug methods
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
@@ -59,6 +59,7 @@ class App {
 
         let gui = new Entity();
         gui.add(new Gui3dComponent(new GUI3DManager(this.scene)));
+        this.multiButtonSetUp(gui, player);
 
         this.ecs.addSystem(new MovementSystem(this.scene));
         this.ecs.addSystem(new WebXrSystem(this.scene));
@@ -67,6 +68,7 @@ class App {
         this.ecs.addEntity(light);
         this.ecs.addEntity(ground);
         this.ecs.addEntity(player);
+        this.ecs.addEntity(gui);
     }
 
     run() {
@@ -75,6 +77,30 @@ class App {
             let dt = (this.scene.deltaTime / 1000) || 0;
             this.ecs.update(dt);
             this.scene.render();
+        });
+    }
+
+    multiButtonSetUp(gui: Entity, player: Entity) {
+        const ROOM_NAME = "my_room";
+        const manager = gui.get(Gui3dComponent).manager;
+        //manager.useRealisticScaling = true;
+
+        // Create Room Button
+        var createRoomButton = new TouchHolographicButton("TouchHoloTextButton");
+        manager.addControl(createRoomButton);
+        createRoomButton.position = new Vector3(-1, 1, 5);
+        createRoomButton.text = "Create Room";
+        createRoomButton.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room = await player.get(ClientComponent).client.create(ROOM_NAME);
+        });
+
+        // Join Room Button
+        var joinRoomButton = new TouchHolographicButton("TouchHoloTextButton");
+        manager.addControl(joinRoomButton);
+        joinRoomButton.position = new Vector3(1, 1, 5);
+        joinRoomButton.text = "Join Room";
+        joinRoomButton.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room = await player.get(ClientComponent).client.join(ROOM_NAME);
         });
     }
 }

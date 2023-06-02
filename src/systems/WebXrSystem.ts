@@ -25,8 +25,6 @@ export class WebXrSystem extends IterativeSystem {
             const featureManager = session.baseExperience.featuresManager;
             console.log(featureManager);
             this.init = false;
-
-            session.baseExperience
         }
 
     }
