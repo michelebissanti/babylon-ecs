@@ -30,7 +30,7 @@ export class MultiplayerSystem extends IterativeSystem {
                         let joiner = new Entity();
                         //const playerAvatar = await this.ImportPlayerModel();
                         joiner.addTag(sessionId);
-                        joiner.add(new MeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)));
+                        joiner.add(new MeshComponent(MeshBuilder.CreateSphere(sessionId, { diameter: 1 }, this.scene)));
                         let joinerMesh = joiner.get(MeshComponent).mesh;
 
 
@@ -78,7 +78,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     //tolgo 2 per far toccare il pavimento all avatar
                     y: playerMesh.position.y,
                     z: playerMesh.position.z,
-                    rotation: playerMesh.rotation,
+                    //rotation: playerMesh.rotation,
                 });
             }
 

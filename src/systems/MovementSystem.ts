@@ -10,6 +10,8 @@ import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 // that matches its query.
 export class MovementSystem extends IterativeSystem {
     scene: Scene;
+    init = true;
+    private vel = { x: 0, y: 0, z: 0 };
 
     constructor(scene: Scene) {
         super(new QueryBuilder().contains(MeshComponent).contains(PlayerCameraComponent).build())
@@ -20,12 +22,80 @@ export class MovementSystem extends IterativeSystem {
 
         // Get the mesh component
         var meshComponent = entity.get(MeshComponent);
+        let playerMesh = meshComponent.mesh;
 
-        var camera = entity.get(PlayerCameraComponent).camera;
+        let cameraComponent = entity.get(PlayerCameraComponent);
 
 
+        if (cameraComponent.firstPerson) {
+            var camera = cameraComponent.camera;
+            if (this.init) {
+                camera.attachControl();
+                //inserisco il controllo tramite wasd
+                camera.keysUp.push(87);
+                camera.keysDown.push(83);
+                camera.keysLeft.push(65);
+                camera.keysRight.push(68);
 
-        meshComponent.mesh.position = new Vector3(camera.position.x, 0, camera.position.z);
+                camera.applyGravity = true;
+                camera.checkCollisions = true;
+
+                camera.ellipsoid = new Vector3(1, 0.83, 1);
+
+                camera.minZ = 0.5;
+                camera.speed = 0.5;
+                camera.angularSensibility = 4000;
+                this.init = false;
+            }
+
+
+            playerMesh.position = new Vector3(camera.position.x, 0, camera.position.z);
+        } else {
+            //sono in terza persona
+
+            this.scene.onKeyboardObservable.add((kbInfo) => {
+                switch (kbInfo.type) {
+                    case KeyboardEventTypes.KEYDOWN:
+                        if (kbInfo.event.key == 'd') {
+                            this.vel.x = 10;
+                        }
+
+                        if (kbInfo.event.key == 'a') {
+                            this.vel.x = -10;
+                        }
+
+                        if (kbInfo.event.key == 'w') {
+                            this.vel.z = 10;
+                        }
+
+                        if (kbInfo.event.key == 's') {
+                            this.vel.z = -10;
+                        }
+
+                        break;
+                    case KeyboardEventTypes.KEYUP:
+                        if (kbInfo.event.key == 'd') {
+                            this.vel.x = 0;
+                        }
+
+                        if (kbInfo.event.key == 'a') {
+                            this.vel.x = 0;
+                        }
+
+                        if (kbInfo.event.key == 'w') {
+                            this.vel.z = 0;
+                        }
+
+                        if (kbInfo.event.key == 's') {
+                            this.vel.z = 0;
+                        }
+                        break;
+                }
+            });
+
+            playerMesh.position.x = playerMesh.position.x + this.vel.x * dt;
+            playerMesh.position.z = playerMesh.position.z + this.vel.z * dt;
+        }
 
     }
 }

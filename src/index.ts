@@ -51,12 +51,12 @@ class App {
         // Create the player entity and attach all the component
         let player = new Entity();
         player.add(new MeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)));
-        player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.65, 0), this.scene)));
+        player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
         player.add(new WebXrComponent(await this.scene.createDefaultXRExperienceAsync({
             floorMeshes: [],
             disableTeleportation: true,
         })));
-        player.add(new ClientComponent(false));
+        player.add(new ClientComponent(true));
 
         let gui = new Entity();
         gui.add(new Gui3dComponent(new GUI3DManager(this.scene)));
