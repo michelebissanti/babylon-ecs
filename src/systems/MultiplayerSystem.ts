@@ -21,6 +21,8 @@ export class MultiplayerSystem extends IterativeSystem {
 
         if (room != null) {
             if (this.init) {
+                //faccio sparire i pulsanti di join
+
                 //quando si aggiunge un player
                 room.state.players.onAdd(async (player, sessionId) => {
                     const isCurrentPlayer = (sessionId === room.sessionId);

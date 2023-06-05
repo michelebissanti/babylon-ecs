@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
+import { IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
@@ -23,7 +23,49 @@ export class WebXrSystem extends IterativeSystem {
 
         if (this.init) {
             const featureManager = session.baseExperience.featuresManager;
-            console.log(featureManager);
+            let grab = false;
+
+            this.scene.onPointerObservable.add((pointerInfo) => {
+                console.log('POINTER DOWN', pointerInfo)
+                if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+                    // "Grab" it by attaching the picked mesh to the VR Controller
+                    if (session.baseExperience.state === WebXRState.IN_XR) {
+                        let pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                        let event = pointerInfo.event as IPointerEvent;
+                        let xrInput = session.pointerSelection.getXRControllerByPointerId(event.pointerId);
+                        let motionController = xrInput.motionController;
+
+                        if (motionController) {
+                            if (grab) {
+                                //rimuovo l'oggetto preso 
+                                motionController.rootMesh.removeChild(pickedMesh);
+                                pickedMesh = null;
+                                console.log("sto uscendo");
+                                grab = false;
+                            } else {
+                                //prendo l'oggetto
+                                pickedMesh.setParent(motionController.rootMesh);
+                                console.log("ok");
+                                grab = true;
+                            }
+
+                        }
+
+                    } else {
+                        // here is the non-xr support
+                    }
+                }
+            }, PointerEventTypes.POINTERDOWN);
+
+
+
+
+
+
+
+
+
+
             this.init = false;
         }
 

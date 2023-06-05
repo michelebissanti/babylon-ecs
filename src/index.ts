@@ -71,6 +71,15 @@ class App {
         this.ecs.addEntity(ground);
         this.ecs.addEntity(player);
         this.ecs.addEntity(gui);
+
+
+
+        //piazzo un oggetto nella scena
+        let cubo = new Entity();
+        cubo.add(new MeshComponent(MeshBuilder.CreateBox('cubo', { size: 1 }, this.scene)));
+        cubo.get(MeshComponent).mesh.position = new Vector3(1, 1, 1);
+        this.ecs.addEntity(cubo);
+
     }
 
     run() {
@@ -105,6 +114,8 @@ class App {
             player.get(ClientComponent).room = await player.get(ClientComponent).client.join(ROOM_NAME);
         });
     }
+
+
 }
 
 let w = window as Window & typeof globalThis & { game: App };
