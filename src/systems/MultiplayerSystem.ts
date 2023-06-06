@@ -1,23 +1,30 @@
-import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
+import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
 import { KeyboardEventTypes, Mesh, MeshBuilder, Scene, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { ClientComponent } from "../components/ClientComponent";
+import { ModelMultiComponent } from "../components/ModelMultiComponent";
+import { MeshArrayComponent } from "../components/MeshArrayComponent";
 
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
     init = true;
     private playerEntities: { [playerId: string]: number } = {};
+    private models: { [name: string]: string } = {};
 
     constructor(scene: Scene) {
-        super(new QueryBuilder().contains(ClientComponent).build())
+        super(new Query((entity) => entity.hasComponent(ClientComponent) || entity.hasComponent(ModelMultiComponent)));
         this.scene = scene;
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
-        let room = entity.get(ClientComponent).room;
+        let room = null;
+        if (entity.has(ClientComponent)) {
+            room = entity.get(ClientComponent).room;
+        }
+
 
         if (room != null) {
             if (this.init) {
@@ -26,7 +33,6 @@ export class MultiplayerSystem extends IterativeSystem {
                 //quando si aggiunge un player
                 room.state.players.onAdd(async (player, sessionId) => {
                     const isCurrentPlayer = (sessionId === room.sessionId);
-                    console.log(player);
 
                     if (sessionId != room.sessionId) {
                         let joiner = new Entity();
@@ -68,6 +74,11 @@ export class MultiplayerSystem extends IterativeSystem {
                     //far riapparire i pulsanti per connettersi ad una stanza
                 })
 
+
+                //gestione degli oggetti(models)
+
+
+
                 this.init = false;
             }
 
@@ -82,6 +93,30 @@ export class MultiplayerSystem extends IterativeSystem {
                     z: playerMesh.position.z,
                     //rotation: playerMesh.rotation,
                 });
+            }
+
+            if (entity.hasComponent(ModelMultiComponent)) {
+                console.log("ciao");
+                let model = entity.get(ModelMultiComponent);
+
+                if (this.models[model.name] != model.name) {
+                    //mando a tutti il nuovo oggetto
+                    let modelMeshes = entity.get(MeshArrayComponent);
+
+                    room.send("createModel", {
+                        location: model.location,
+                        name: model.name,
+                        x: modelMeshes[0].position.x,
+                        y: modelMeshes[0].position.y,
+                        z: modelMeshes[0].position.z,
+                        rotation_x: modelMeshes[0].rotation.x,
+                        rotation_y: modelMeshes[0].rotation.y,
+                        rotation_z: modelMeshes[0].rotation.z,
+                    });
+
+                    //lo aggiungo agli oggetti da aggiornare
+                    this.models[model.name] = model.name;
+                }
             }
 
 

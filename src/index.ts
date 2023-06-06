@@ -9,7 +9,7 @@ import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug 
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
 import { Engine as EngineECS, Entity } from "tick-knock";
-import { HavokPlugin, MeshBuilder, PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core';
+import { AbstractMesh, HavokPlugin, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader } from '@babylonjs/core';
 import { MeshComponent } from './components/MeshComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
@@ -22,6 +22,8 @@ import { GroundComponent } from './components/GroundComponent';
 import { ClientComponent } from './components/ClientComponent';
 import { Gui3dComponent } from './components/Gui3dComponent';
 import { MultiplayerSystem } from './systems/MultiplayerSystem';
+import { MeshArrayComponent } from './components/MeshArrayComponent';
+import { ModelMultiComponent } from './components/ModelMultiComponent';
 
 class App {
     engine: Engine;
@@ -32,7 +34,7 @@ class App {
         // Set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
-        this.scene.debugLayer.show();
+        //this.scene.debugLayer.show();
 
         this.ecs = new EngineECS();
     }
@@ -75,10 +77,11 @@ class App {
 
 
         //piazzo un oggetto nella scena
-        let cubo = new Entity();
-        cubo.add(new MeshComponent(MeshBuilder.CreateBox('cubo', { size: 1 }, this.scene)));
-        cubo.get(MeshComponent).mesh.position = new Vector3(1, 1, 1);
-        this.ecs.addEntity(cubo);
+        let tazza = new Entity();
+        tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb")));
+        tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(1, 1, 1);
+        tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
+        this.ecs.addEntity(tazza);
 
     }
 
@@ -113,6 +116,18 @@ class App {
         joinRoomButton.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room = await player.get(ClientComponent).client.join(ROOM_NAME);
         });
+    }
+
+    async importModel(baseUrl: string, modelName: string): Promise<AbstractMesh[]> {
+
+        let { meshes } = await SceneLoader.ImportMeshAsync(
+            null,
+            baseUrl,
+            modelName,
+            this.scene
+        );
+
+        return meshes;
     }
 
 
