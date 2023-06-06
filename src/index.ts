@@ -1,7 +1,7 @@
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
 import { GUI3DManager, TouchHolographicButton } from '@babylonjs/gui';
 
@@ -34,7 +34,7 @@ class App {
         // Set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
-        //this.scene.debugLayer.show();
+        this.scene.debugLayer.show();
 
         this.ecs = new EngineECS();
     }
@@ -53,6 +53,7 @@ class App {
         // Create the player entity and attach all the component
         let player = new Entity();
         player.add(new MeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)));
+        player.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
         player.add(new WebXrComponent(await this.scene.createDefaultXRExperienceAsync({
             floorMeshes: [],
@@ -76,12 +77,7 @@ class App {
 
 
 
-        //piazzo un oggetto nella scena
-        let tazza = new Entity();
-        tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb")));
-        tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(1, 1, 1);
-        tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
-        this.ecs.addEntity(tazza);
+
 
     }
 
@@ -115,6 +111,20 @@ class App {
         joinRoomButton.text = "Join Room";
         joinRoomButton.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room = await player.get(ClientComponent).client.join(ROOM_NAME);
+        });
+
+        // spawn tazza TEMPORANEO
+        var spawnTazza = new TouchHolographicButton("TouchHoloTextButton");
+        manager.addControl(spawnTazza);
+        spawnTazza.position = new Vector3(5, 1, 5);
+        spawnTazza.text = "TAZZA";
+        spawnTazza.onPointerDownObservable.add(async () => {
+            //piazzo un oggetto nella scena
+            let tazza = new Entity();
+            tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb")));
+            tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(1, 1, 1);
+            tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
+            this.ecs.addEntity(tazza);
         });
     }
 

@@ -1,7 +1,7 @@
-import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder } from "tick-knock";
+import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder, System } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { KeyboardEventTypes, Mesh, MeshBuilder, Scene, Vector3 } from "@babylonjs/core";
+import { KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Scene, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { ClientComponent } from "../components/ClientComponent";
@@ -12,7 +12,8 @@ export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
     init = true;
     private playerEntities: { [playerId: string]: number } = {};
-    private models: { [name: string]: string } = {};
+    private models = new Set<number>;
+    private room = null;
 
     constructor(scene: Scene) {
         super(new Query((entity) => entity.hasComponent(ClientComponent) || entity.hasComponent(ModelMultiComponent)));
@@ -20,26 +21,26 @@ export class MultiplayerSystem extends IterativeSystem {
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
-        let room = null;
         if (entity.has(ClientComponent)) {
-            room = entity.get(ClientComponent).room;
+            this.room = entity.get(ClientComponent).room;
         }
 
 
-        if (room != null) {
+        if (this.room != null) {
             if (this.init) {
                 //faccio sparire i pulsanti di join
 
                 //quando si aggiunge un player
-                room.state.players.onAdd(async (player, sessionId) => {
-                    const isCurrentPlayer = (sessionId === room.sessionId);
+                this.room.state.players.onAdd(async (player, sessionId) => {
+                    const isCurrentPlayer = (sessionId === this.room.sessionId);
 
-                    if (sessionId != room.sessionId) {
+                    if (sessionId != this.room.sessionId) {
                         let joiner = new Entity();
                         //const playerAvatar = await this.ImportPlayerModel();
                         joiner.addTag(sessionId);
                         joiner.add(new MeshComponent(MeshBuilder.CreateSphere(sessionId, { diameter: 1 }, this.scene)));
                         let joinerMesh = joiner.get(MeshComponent).mesh;
+                        joinerMesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
 
 
                         // Set player spawning position
@@ -52,7 +53,7 @@ export class MultiplayerSystem extends IterativeSystem {
 
                     // update local target position
                     player.onChange(() => {
-                        if (sessionId != room.sessionId) {
+                        if (sessionId != this.room.sessionId) {
                             let playerEntity = this.engine.getEntityById(this.playerEntities[sessionId]);
 
                             //aggiorno la posizione dell'entità
@@ -63,19 +64,19 @@ export class MultiplayerSystem extends IterativeSystem {
 
                 });
 
-                room.state.players.onRemove((player, playerId) => {
+                this.room.state.players.onRemove((player, playerId) => {
                     let playerEntity = this.engine.getEntityById(this.playerEntities[playerId]);
                     playerEntity.get(MeshComponent).mesh.dispose();
                     this.engine.removeEntity(playerEntity);
                     delete this.playerEntities[playerId];
                 });
 
-                room.onLeave(code => {
+                this.room.onLeave(code => {
                     //far riapparire i pulsanti per connettersi ad una stanza
                 })
 
 
-                //gestione degli oggetti(models)
+                //inizializzazione degli oggetti(models)
 
 
 
@@ -83,10 +84,11 @@ export class MultiplayerSystem extends IterativeSystem {
             }
 
 
-            if (entity.hasComponent(MeshComponent)) {
+            //aggiorna la posizione del player
+            if (entity.hasAll(MeshComponent, ClientComponent)) {
                 let playerMesh = entity.get(MeshComponent).mesh;
                 // Send position update to the server
-                room.send("updatePosition", {
+                this.room.send("updatePosition", {
                     x: playerMesh.position.x,
                     //tolgo 2 per far toccare il pavimento all avatar
                     y: playerMesh.position.y,
@@ -95,15 +97,17 @@ export class MultiplayerSystem extends IterativeSystem {
                 });
             }
 
-            if (entity.hasComponent(ModelMultiComponent)) {
-                console.log("ciao");
+            if (entity.hasAll(ModelMultiComponent, MeshArrayComponent)) {
                 let model = entity.get(ModelMultiComponent);
 
-                if (this.models[model.name] != model.name) {
-                    //mando a tutti il nuovo oggetto
-                    let modelMeshes = entity.get(MeshArrayComponent);
+                if (this.models.has(entity.id)) {
 
-                    room.send("createModel", {
+                } else {
+                    //mando al server la presenza del nuovo oggetto
+                    let modelMeshes = entity.get(MeshArrayComponent).meshes;
+
+                    this.room.send("createModel", {
+                        id: entity.id,
                         location: model.location,
                         name: model.name,
                         x: modelMeshes[0].position.x,
@@ -115,7 +119,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     });
 
                     //lo aggiungo agli oggetti da aggiornare
-                    this.models[model.name] = model.name;
+                    this.models.add(entity.id);
                 }
             }
 
