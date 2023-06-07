@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder, System } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Scene, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { ClientComponent } from "../components/ClientComponent";
@@ -18,6 +18,18 @@ export class MultiplayerSystem extends IterativeSystem {
     constructor(scene: Scene) {
         super(new Query((entity) => entity.hasComponent(ClientComponent) || entity.hasComponent(ModelMultiComponent)));
         this.scene = scene;
+    }
+
+    async importModel(baseUrl: string, modelName: string): Promise<AbstractMesh[]> {
+
+        let { meshes } = await SceneLoader.ImportMeshAsync(
+            null,
+            baseUrl,
+            modelName,
+            this.scene
+        );
+
+        return meshes;
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
@@ -77,6 +89,27 @@ export class MultiplayerSystem extends IterativeSystem {
 
 
                 //inizializzazione degli oggetti(models)
+                this.room.state.models.onAdd(async (model) => {
+                    //aggiungo il modello alla lista di modelli caricati
+                    let newModel = new Entity();
+                    newModel.add(new MeshArrayComponent(await this.importModel(model.location, model.name)));
+                    newModel.get(MeshArrayComponent).meshes[0].position = new Vector3(model.x, model.y, model.z);
+                    newModel.get(MeshArrayComponent).meshes[0].rotation = new Vector3(model.rotation_x, model.rotation_y, model.rotation_z);
+
+                    model.onChange(() => {
+                        //aggiorno il modello
+
+                    });
+
+                });
+
+                this.room.state.models.onRemove((model) => {
+                    //rimuovo il modello come entità
+                    //rimuovo la sua mesh
+
+                });
+
+
 
 
 
@@ -97,6 +130,7 @@ export class MultiplayerSystem extends IterativeSystem {
                 });
             }
 
+            //aggiorna i modelli 3d per tutti i player
             if (entity.hasAll(ModelMultiComponent, MeshArrayComponent)) {
                 let model = entity.get(ModelMultiComponent);
 
