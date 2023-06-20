@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder, System } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { AbstractMesh, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Quaternion, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { ClientComponent } from "../components/ClientComponent";
@@ -12,7 +12,7 @@ export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
     init = true;
     private playerEntities: { [playerId: string]: number } = {};
-    private models = new Set<number>;
+    private models = new Map<string, number>;
     private room = null;
 
     constructor(scene: Scene) {
@@ -90,15 +90,24 @@ export class MultiplayerSystem extends IterativeSystem {
 
                 //inizializzazione degli oggetti(models)
                 this.room.state.models.onAdd(async (model) => {
-                    //aggiungo il modello alla lista di modelli caricati
+                    //istanzio il modello
                     let newModel = new Entity();
                     newModel.add(new MeshArrayComponent(await this.importModel(model.location, model.name)));
                     newModel.get(MeshArrayComponent).meshes[0].position = new Vector3(model.x, model.y, model.z);
-                    newModel.get(MeshArrayComponent).meshes[0].rotation = new Vector3(model.rotation_x, model.rotation_y, model.rotation_z);
+                    newModel.get(MeshArrayComponent).meshes[0].rotationQuaternion = new Quaternion(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
+
+                    //leggo il codice id del server all'entità locale
+                    newModel.addTag(model.id);
+                    //aggiungo l'entità a quelle da aggiornare
+                    this.models.set(model.id, newModel.id);
 
                     model.onChange(() => {
-                        //aggiorno il modello
+                        //aggiorno il modello prendendo la sua entità
+                        let modelEntity = this.engine.getEntityById(this.models.get(model.id));
 
+                        //aggiorno la posizione e la rotazione del modello
+                        modelEntity.get(MeshArrayComponent).meshes[0].position.set(model.x, model.y, model.z);
+                        modelEntity.get(MeshArrayComponent).meshes[0].rotationQuaternion.set(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
                     });
 
                 });
@@ -132,28 +141,37 @@ export class MultiplayerSystem extends IterativeSystem {
 
             //aggiorna i modelli 3d per tutti i player
             if (entity.hasAll(ModelMultiComponent, MeshArrayComponent)) {
-                let model = entity.get(ModelMultiComponent);
+                let caricato = false;
 
-                if (this.models.has(entity.id)) {
+                //se l'oggetto è già presente nella lista locale non lo creo sul server
+
+                for (let value of this.models.values()) {
+                    if (entity.id == value) {
+                        caricato = true;
+                    }
+                }
+
+                if (caricato) {
+                    console.log("NON SERVE PIù");
 
                 } else {
                     //mando al server la presenza del nuovo oggetto
+                    let model = entity.get(ModelMultiComponent);
                     let modelMeshes = entity.get(MeshArrayComponent).meshes;
 
                     this.room.send("createModel", {
-                        id: entity.id,
                         location: model.location,
                         name: model.name,
                         x: modelMeshes[0].position.x,
                         y: modelMeshes[0].position.y,
                         z: modelMeshes[0].position.z,
-                        rotation_x: modelMeshes[0].rotation.x,
-                        rotation_y: modelMeshes[0].rotation.y,
-                        rotation_z: modelMeshes[0].rotation.z,
+                        rotation_x: modelMeshes[0].rotationQuaternion.x,
+                        rotation_y: modelMeshes[0].rotationQuaternion.y,
+                        rotation_z: modelMeshes[0].rotationQuaternion.z,
+                        rotation_w: modelMeshes[0].rotationQuaternion.w,
                     });
 
-                    //lo aggiungo agli oggetti da aggiornare
-                    this.models.add(entity.id);
+
                 }
             }
 
