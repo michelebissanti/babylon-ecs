@@ -96,7 +96,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     newModel.get(MeshArrayComponent).meshes[0].position = new Vector3(model.x, model.y, model.z);
                     newModel.get(MeshArrayComponent).meshes[0].rotationQuaternion = new Quaternion(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
 
-                    //leggo il codice id del server all'entità locale
+                    //lego il codice id del server all'entità locale
                     newModel.addTag(model.id);
                     //aggiungo l'entità a quelle da aggiornare
                     this.models.set(model.id, newModel.id);
@@ -141,38 +141,30 @@ export class MultiplayerSystem extends IterativeSystem {
 
             //aggiorna i modelli 3d per tutti i player
             if (entity.hasAll(ModelMultiComponent, MeshArrayComponent)) {
-                let caricato = false;
 
-                //se l'oggetto è già presente nella lista locale non lo creo sul server
+                //se l'oggetto ha la componente multiplayer viene inviato al server
 
-                for (let value of this.models.values()) {
-                    if (entity.id == value) {
-                        caricato = true;
-                    }
-                }
+                //mando al server la presenza del nuovo oggetto
+                let model = entity.get(ModelMultiComponent);
+                let modelMeshes = entity.get(MeshArrayComponent).meshes;
 
-                if (caricato) {
-                    console.log("NON SERVE PIù");
+                this.room.send("createModel", {
+                    location: model.location,
+                    name: model.name,
+                    x: modelMeshes[0].position.x,
+                    y: modelMeshes[0].position.y,
+                    z: modelMeshes[0].position.z,
+                    rotation_x: modelMeshes[0].rotationQuaternion.x,
+                    rotation_y: modelMeshes[0].rotationQuaternion.y,
+                    rotation_z: modelMeshes[0].rotationQuaternion.z,
+                    rotation_w: modelMeshes[0].rotationQuaternion.w,
+                });
 
-                } else {
-                    //mando al server la presenza del nuovo oggetto
-                    let model = entity.get(ModelMultiComponent);
-                    let modelMeshes = entity.get(MeshArrayComponent).meshes;
-
-                    this.room.send("createModel", {
-                        location: model.location,
-                        name: model.name,
-                        x: modelMeshes[0].position.x,
-                        y: modelMeshes[0].position.y,
-                        z: modelMeshes[0].position.z,
-                        rotation_x: modelMeshes[0].rotationQuaternion.x,
-                        rotation_y: modelMeshes[0].rotationQuaternion.y,
-                        rotation_z: modelMeshes[0].rotationQuaternion.z,
-                        rotation_w: modelMeshes[0].rotationQuaternion.w,
-                    });
+                modelMeshes[0].dispose();
+                this.engine.removeEntity(entity);
 
 
-                }
+
             }
 
 
