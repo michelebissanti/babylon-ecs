@@ -3,10 +3,17 @@ import { AbstractMesh, Mesh } from '@babylonjs/core';
 export class MeshArrayComponent {
     meshes: AbstractMesh[];
 
-    constructor(meshes: AbstractMesh[], collision?: boolean) {
+    constructor(meshes: AbstractMesh[], eid: number, collision?: boolean) {
         this.meshes = meshes;
+
+        this.meshes[0].name = eid.toString();
+
+        this.meshes.map(mesh => {
+            mesh.metadata = eid.toString();
+        });
+
         if (collision) {
-            meshes.map(mesh => {
+            this.meshes.map(mesh => {
                 mesh.checkCollisions = true;
             });
         }

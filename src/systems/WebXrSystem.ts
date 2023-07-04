@@ -1,10 +1,11 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState } from "@babylonjs/core";
+import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
+import { MeshArrayComponent } from "../components/MeshArrayComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -19,13 +20,44 @@ export class WebXrSystem extends IterativeSystem {
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
-        let session = entity.get(WebXrComponent).exp;
+        let defExp = entity.get(WebXrComponent).exp;
 
         if (this.init) {
-            const featureManager = session.baseExperience.featuresManager;
-            let grab = false;
+            const featureManager = defExp.baseExperience.featuresManager;
 
+            //quando entro nella sessione webxr
+            defExp.baseExperience.sessionManager.onXRSessionInit.add(() => {
+                //aggiorno la telecamera dell'entità player
+                entity.get(PlayerCameraComponent).camera = defExp.baseExperience.camera;
+            });
+
+
+            //quando esco dalla sessione webxr
+            defExp.baseExperience.sessionManager.onXRSessionEnded.add(() => {
+                //aggiorno la telecamera dell'entità player
+                entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
+            });
+
+            //tocco su un oggetto
             this.scene.onPointerObservable.add((pointerInfo) => {
+                switch (pointerInfo.type) {
+                    case PointerEventTypes.POINTERDOWN:
+                        if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+                            let entityPicked = this.engine.getEntityById(pointerInfo.pickInfo.pickedMesh.name as unknown as number);
+                            if (entityPicked.has(MeshArrayComponent)) {
+                                entityPicked.get(MeshArrayComponent).meshes[0].position.x += 1;
+                            }
+                        }
+                }
+            });
+
+
+
+
+
+            //let grab = false;
+
+            /* this.scene.onPointerObservable.add((pointerInfo) => {
                 console.log('POINTER DOWN', pointerInfo)
                 if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
                     // "Grab" it by attaching the picked mesh to the VR Controller
@@ -55,7 +87,7 @@ export class WebXrSystem extends IterativeSystem {
                         // here is the non-xr support
                     }
                 }
-            }, PointerEventTypes.POINTERDOWN);
+            }, PointerEventTypes.POINTERDOWN); */
 
 
 

@@ -50,7 +50,7 @@ export class MultiplayerSystem extends IterativeSystem {
                         let joiner = new Entity();
                         //const playerAvatar = await this.ImportPlayerModel();
                         joiner.addTag(sessionId);
-                        joiner.add(new MeshComponent(MeshBuilder.CreateSphere(sessionId, { diameter: 1 }, this.scene)));
+                        joiner.add(new MeshComponent(MeshBuilder.CreateSphere(sessionId, { diameter: 1 }, this.scene), joiner.id));
                         let joinerMesh = joiner.get(MeshComponent).mesh;
                         joinerMesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
 
@@ -92,12 +92,14 @@ export class MultiplayerSystem extends IterativeSystem {
                 this.room.state.models.onAdd(async (model) => {
                     //istanzio il modello
                     let newModel = new Entity();
-                    newModel.add(new MeshArrayComponent(await this.importModel(model.location, model.name)));
+                    newModel.add(new MeshArrayComponent(await this.importModel(model.location, model.name), newModel.id));
+
                     newModel.get(MeshArrayComponent).meshes[0].position = new Vector3(model.x, model.y, model.z);
                     newModel.get(MeshArrayComponent).meshes[0].rotationQuaternion = new Quaternion(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
 
                     //lego il codice id del server all'entità locale
                     newModel.addTag(model.id);
+
                     //aggiungo l'entità a quelle da aggiornare
                     this.models.set(model.id, newModel.id);
 
@@ -160,7 +162,10 @@ export class MultiplayerSystem extends IterativeSystem {
                     rotation_w: modelMeshes[0].rotationQuaternion.w,
                 });
 
-                modelMeshes[0].dispose();
+                modelMeshes.map(mesh => {
+                    mesh.dispose();
+                });
+
                 this.engine.removeEntity(entity);
 
 

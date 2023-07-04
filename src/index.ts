@@ -47,17 +47,18 @@ class App {
         light.get(WorldLightComponent).light.intensity = 0.7;
 
         let ground = new Entity();
-        ground.add(new MeshComponent(MeshBuilder.CreateGround('ground', { width: 50, height: 50 }), true));
+        ground.add(new MeshComponent(MeshBuilder.CreateGround('ground', { width: 50, height: 50 }), ground.id, true));
         //ground.add(new PhysicComponent(new PhysicsAggregate(ground.get(MeshComponent).ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene)))
 
         // Create the player entity and attach all the component
         let player = new Entity();
-        player.add(new MeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene)));
+        player.add(new MeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene), player.id));
         player.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
+        player.get(MeshComponent).mesh.isPickable = false;
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
         player.add(new WebXrComponent(await this.scene.createDefaultXRExperienceAsync({
-            floorMeshes: [],
-            disableTeleportation: true,
+            floorMeshes: [ground.get(MeshComponent).mesh],
+            disableTeleportation: false,
         })));
         player.add(new ClientComponent(true));
 
@@ -121,7 +122,7 @@ class App {
         spawnTazza.onPointerDownObservable.add(async () => {
             //piazzo un oggetto nella scena
             let tazza = new Entity();
-            tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb")));
+            tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
             tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(1, 1, 1);
             tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
             this.ecs.addEntity(tazza);
