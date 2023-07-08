@@ -1,4 +1,4 @@
-import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder, System } from "tick-knock";
+import { Engine, Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder, System } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
 import { AbstractMesh, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Quaternion, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
@@ -7,6 +7,7 @@ import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { ClientComponent } from "../components/ClientComponent";
 import { ModelMultiComponent } from "../components/ModelMultiComponent";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";
+import { UpdateMultiComponent } from "../components/UpdateMultiComponent";
 
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
@@ -112,6 +113,8 @@ export class MultiplayerSystem extends IterativeSystem {
                         modelEntity.get(MeshArrayComponent).meshes[0].rotationQuaternion.set(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
                     });
 
+                    this.engine.addEntity(newModel);
+
                 });
 
                 this.room.state.models.onRemove((model) => {
@@ -134,14 +137,13 @@ export class MultiplayerSystem extends IterativeSystem {
                 // Send position update to the server
                 this.room.send("updatePosition", {
                     x: playerMesh.position.x,
-                    //tolgo 2 per far toccare il pavimento all avatar
                     y: playerMesh.position.y,
                     z: playerMesh.position.z,
                     //rotation: playerMesh.rotation,
                 });
             }
 
-            //aggiorna i modelli 3d per tutti i player
+            //istanzia i modelli 3d per tutti i player
             if (entity.hasAll(ModelMultiComponent, MeshArrayComponent)) {
 
                 //se l'oggetto ha la componente multiplayer viene inviato al server
@@ -168,8 +170,26 @@ export class MultiplayerSystem extends IterativeSystem {
 
                 this.engine.removeEntity(entity);
 
+            }
 
+            if (entity.hasAll(UpdateMultiComponent, MeshArrayComponent)) {
+                let update = entity.get(UpdateMultiComponent).update;
+                let modelMeshes = entity.get(MeshArrayComponent).meshes;
 
+                if (update) {
+                    this.room.send("updateModel", {
+                        id: entity.getTags(),
+                        x: modelMeshes[0].position.x,
+                        y: modelMeshes[0].position.y,
+                        z: modelMeshes[0].position.z,
+                        rotation_x: modelMeshes[0].rotationQuaternion.x,
+                        rotation_y: modelMeshes[0].rotationQuaternion.y,
+                        rotation_z: modelMeshes[0].rotationQuaternion.z,
+                        rotation_w: modelMeshes[0].rotationQuaternion.w,
+                    });
+
+                    update = false;
+                }
             }
 
 

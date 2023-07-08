@@ -9,7 +9,7 @@ export class MeshArrayComponent {
         this.meshes[0].name = eid.toString();
 
         this.meshes.map(mesh => {
-            mesh.metadata = eid.toString();
+            mesh.metadata = { id: eid.toString() };
         });
 
         if (collision) {
