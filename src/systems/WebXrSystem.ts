@@ -58,7 +58,7 @@ export class WebXrSystem extends IterativeSystem {
                             if (entityPicked != null) {
                                 if (entityPicked.has(MeshArrayComponent) && entityPicked.has(UpdateMultiComponent)) {
                                     entityPicked.get(MeshArrayComponent).meshes[0].position.x += 1;
-                                    entityPicked.get(UpdateMultiComponent).setOn();;
+                                    entityPicked.get(UpdateMultiComponent).update = true;
                                 }
                             } else {
                                 console.log("nessuna entità");

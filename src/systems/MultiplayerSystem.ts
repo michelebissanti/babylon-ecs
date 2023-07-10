@@ -17,7 +17,7 @@ export class MultiplayerSystem extends IterativeSystem {
     private room = null;
 
     constructor(scene: Scene) {
-        super(new Query((entity) => entity.hasComponent(ClientComponent) || entity.hasComponent(ModelMultiComponent)));
+        super(new Query((entity) => entity.hasComponent(ClientComponent) || entity.hasComponent(ModelMultiComponent) || entity.hasComponent(UpdateMultiComponent)));
         this.scene = scene;
     }
 
@@ -174,12 +174,12 @@ export class MultiplayerSystem extends IterativeSystem {
             }
 
             if (entity.hasAll(UpdateMultiComponent, MeshArrayComponent)) {
-                let update = entity.get(UpdateMultiComponent);
+                let update = entity.get(UpdateMultiComponent).update;
                 let modelMeshes = entity.get(MeshArrayComponent).meshes;
 
-                console.log("SONO ENTRAOT");
+                console.log("SONO ENTRATO");
 
-                if (update.update == true) {
+                if (update == true) {
                     console.log("UPDATE");
                     this.room.send("updateModel", {
                         id: entity.getTags(),
@@ -192,7 +192,7 @@ export class MultiplayerSystem extends IterativeSystem {
                         rotation_w: modelMeshes[0].rotationQuaternion.w,
                     });
 
-                    update.setOff();
+                    update = false;
                 }
             }
 
