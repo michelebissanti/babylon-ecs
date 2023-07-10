@@ -8,9 +8,13 @@ export class MeshArrayComponent {
 
         this.meshes[0].name = eid.toString();
 
-        this.meshes.map(mesh => {
+        this.meshes.forEach(mesh => {
             mesh.metadata = { id: eid.toString() };
         });
+
+        /* this.meshes.map(mesh => {
+            mesh.metadata = { id: eid.toString() };
+        }); */
 
         if (collision) {
             this.meshes.map(mesh => {

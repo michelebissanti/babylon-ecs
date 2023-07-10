@@ -24,6 +24,7 @@ import { Gui3dComponent } from './components/Gui3dComponent';
 import { MultiplayerSystem } from './systems/MultiplayerSystem';
 import { MeshArrayComponent } from './components/MeshArrayComponent';
 import { ModelMultiComponent } from './components/ModelMultiComponent';
+import { UpdateMultiComponent } from './components/UpdateMultiComponent';
 
 class App {
     engine: Engine;
@@ -125,6 +126,7 @@ class App {
             tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
             tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(1, 1, 1);
             tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
+            tazza.add(new UpdateMultiComponent(false));
             this.ecs.addEntity(tazza);
         });
     }

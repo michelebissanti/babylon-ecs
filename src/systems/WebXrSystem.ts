@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState } from "@babylonjs/core";
+import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
@@ -18,6 +18,13 @@ export class WebXrSystem extends IterativeSystem {
     constructor(scene: Scene) {
         super(new QueryBuilder().contains(WebXrComponent).build());
         this.scene = scene;
+    }
+
+    public bubbleParent(mesh: Node): Node {
+        var result = mesh;
+        while (result.parent)
+            result = result.parent as Node;
+        return result;
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
@@ -39,16 +46,19 @@ export class WebXrSystem extends IterativeSystem {
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
             });
 
+
+
             //tocco su un oggetto
             this.scene.onPointerObservable.add((pointerInfo) => {
-                switch (pointerInfo.type) {
+                switch (pointerInfo?.type) {
                     case PointerEventTypes.POINTERDOWN:
-                        if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
-                            let entityPicked = this.engine.getEntityById(pointerInfo.pickInfo.pickedMesh.metadata.id as unknown as number);
+                        if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+                            //let temp = this.bubbleParent(pointerInfo.pickInfo.pickedMesh);
+                            let entityPicked = this.engine.getEntityById(+pointerInfo.pickInfo.pickedMesh.metadata.id);
                             if (entityPicked != null) {
-                                if (entityPicked.has(MeshArrayComponent)) {
-                                    entityPicked.get(MeshArrayComponent).meshes[0].position.x += 10;
-                                    //entityPicked.get(UpdateMultiComponent).update = true;
+                                if (entityPicked.has(MeshArrayComponent) && entityPicked.has(UpdateMultiComponent)) {
+                                    entityPicked.get(MeshArrayComponent).meshes[0].position.x += 1;
+                                    entityPicked.get(UpdateMultiComponent).setOn();;
                                 }
                             } else {
                                 console.log("nessuna entità");

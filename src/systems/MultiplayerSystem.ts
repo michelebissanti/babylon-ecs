@@ -94,6 +94,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     //istanzio il modello
                     let newModel = new Entity();
                     newModel.add(new MeshArrayComponent(await this.importModel(model.location, model.name), newModel.id));
+                    newModel.add(new UpdateMultiComponent(false));
 
                     newModel.get(MeshArrayComponent).meshes[0].position = new Vector3(model.x, model.y, model.z);
                     newModel.get(MeshArrayComponent).meshes[0].rotationQuaternion = new Quaternion(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
@@ -173,10 +174,13 @@ export class MultiplayerSystem extends IterativeSystem {
             }
 
             if (entity.hasAll(UpdateMultiComponent, MeshArrayComponent)) {
-                let update = entity.get(UpdateMultiComponent).update;
+                let update = entity.get(UpdateMultiComponent);
                 let modelMeshes = entity.get(MeshArrayComponent).meshes;
 
-                if (update) {
+                console.log("SONO ENTRAOT");
+
+                if (update.update == true) {
+                    console.log("UPDATE");
                     this.room.send("updateModel", {
                         id: entity.getTags(),
                         x: modelMeshes[0].position.x,
@@ -188,7 +192,7 @@ export class MultiplayerSystem extends IterativeSystem {
                         rotation_w: modelMeshes[0].rotationQuaternion.w,
                     });
 
-                    update = false;
+                    update.setOff();
                 }
             }
 
