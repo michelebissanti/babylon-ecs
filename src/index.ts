@@ -3,13 +3,13 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
-import { GUI3DManager, TouchHolographicButton } from '@babylonjs/gui';
+import { GUI3DManager, TouchHolographicButton, NearMenu, InputText, AdvancedDynamicTexture } from '@babylonjs/gui';
 
 import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug methods
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
 import { Engine as EngineECS, Entity } from "tick-knock";
-import { AbstractMesh, HavokPlugin, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader } from '@babylonjs/core';
+import { AbstractMesh, CreatePlane, HavokPlugin, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader } from '@babylonjs/core';
 import { MeshComponent } from './components/MeshComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
@@ -66,6 +66,7 @@ class App {
         let gui = new Entity();
         gui.add(new Gui3dComponent(new GUI3DManager(this.scene)));
         this.multiButtonSetUp(gui, player);
+        this.createNearMenu(gui, player);
 
         this.ecs.addSystem(new MovementSystem(this.scene));
         this.ecs.addSystem(new WebXrSystem(this.scene));
@@ -92,33 +93,69 @@ class App {
         });
     }
 
-    multiButtonSetUp(gui: Entity, player: Entity) {
-        const ROOM_NAME = "my_room";
+    createNearMenu(gui: Entity, player: Entity) {
+        const ROOM_TYPE = "my_room";
         const manager = gui.get(Gui3dComponent).manager;
-        //manager.useRealisticScaling = true;
+        manager.useRealisticScaling = true;
 
-        // Create Room Button
-        var createRoomButton = new TouchHolographicButton("TouchHoloTextButton");
-        manager.addControl(createRoomButton);
-        createRoomButton.position = new Vector3(-1, 1, 5);
-        createRoomButton.text = "Create Room";
-        createRoomButton.onPointerDownObservable.add(async () => {
-            player.get(ClientComponent).room = await player.get(ClientComponent).client.create(ROOM_NAME);
+        // Create Near Menu with Touch Holographic Buttons + behaviour
+        var nearMenu = new NearMenu("NearMenu");
+        nearMenu.rows = 1;
+        manager.addControl(nearMenu);
+        nearMenu.isPinned = false;
+        nearMenu.position.y = 2;
+
+        var createButton = new TouchHolographicButton();
+        var joinButton = new TouchHolographicButton();
+
+
+
+        nearMenu.addButton(createButton);
+        nearMenu.addButton(joinButton);
+
+
+        //nearMenu.addButton(button3);
+
+        createButton.text = "Create Room";
+        joinButton.text = "Join Room";
+        //button3.text = "Exit";
+
+
+
+        //button3.onPointerDownObservable.add(()=>{});
+
+        var textArea = CreatePlane("textArea", { width: 2, height: 1 }, this.scene);
+        textArea.parent = nearMenu.mesh;
+        textArea.position.y = 1.5;
+
+        var advancedTexture = AdvancedDynamicTexture.CreateForMesh(textArea);
+
+        let inputText = new InputText("inputRoom", "room id");
+        inputText.width = 1;
+        inputText.height = 0.4;
+        inputText.color = "white";
+        inputText.fontSize = 150;
+        inputText.background = "green";
+        advancedTexture.addControl(inputText);
+
+        createButton.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room = await player.get(ClientComponent).client.create(ROOM_TYPE);
         });
 
-        // Join Room Button
-        var joinRoomButton = new TouchHolographicButton("TouchHoloTextButton");
-        manager.addControl(joinRoomButton);
-        joinRoomButton.position = new Vector3(1, 1, 5);
-        joinRoomButton.text = "Join Room";
-        joinRoomButton.onPointerDownObservable.add(async () => {
-            player.get(ClientComponent).room = await player.get(ClientComponent).client.join(ROOM_NAME);
+        joinButton.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room = await player.get(ClientComponent).client.joinById(inputText.text);
         });
+
+    }
+
+    multiButtonSetUp(gui: Entity, player: Entity) {
+        const manager = gui.get(Gui3dComponent).manager;
 
         // spawn tazza TEMPORANEO
         var spawnTazza = new TouchHolographicButton("TouchHoloTextButton");
         manager.addControl(spawnTazza);
-        spawnTazza.position = new Vector3(5, 1, 5);
+        spawnTazza.scaling = new Vector3(10, 10, 10);
+        spawnTazza.position = new Vector3(3, 1, 5);
         spawnTazza.text = "TAZZA";
         spawnTazza.onPointerDownObservable.add(async () => {
             //piazzo un oggetto nella scena

@@ -54,15 +54,18 @@ export class WebXrSystem extends IterativeSystem {
                     case PointerEventTypes.POINTERDOWN:
                         if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
                             //let temp = this.bubbleParent(pointerInfo.pickInfo.pickedMesh);
-                            let entityPicked = this.engine.getEntityById(+pointerInfo.pickInfo.pickedMesh.metadata.id);
-                            if (entityPicked != null) {
-                                if (entityPicked.has(MeshArrayComponent) && entityPicked.has(UpdateMultiComponent)) {
-                                    entityPicked.get(MeshArrayComponent).meshes[0].position.x += 1;
-                                    entityPicked.get(UpdateMultiComponent).update = true;
+                            if (pointerInfo.pickInfo.pickedMesh.metadata != null) {
+                                let entityPicked = this.engine.getEntityById(+pointerInfo.pickInfo.pickedMesh.metadata.id);
+                                if (entityPicked != null) {
+                                    if (entityPicked.has(MeshArrayComponent) && entityPicked.has(UpdateMultiComponent)) {
+                                        entityPicked.get(MeshArrayComponent).meshes[0].position.x += 1;
+                                        entityPicked.get(UpdateMultiComponent).update = true;
+                                    }
+                                } else {
+                                    console.log("nessuna entità");
                                 }
-                            } else {
-                                console.log("nessuna entità");
                             }
+
                         }
                 }
             });

@@ -177,10 +177,7 @@ export class MultiplayerSystem extends IterativeSystem {
                 let update = entity.get(UpdateMultiComponent).update;
                 let modelMeshes = entity.get(MeshArrayComponent).meshes;
 
-                console.log("SONO ENTRATO");
-
                 if (update == true) {
-                    console.log("UPDATE");
                     this.room.send("updateModel", {
                         id: entity.getTags(),
                         x: modelMeshes[0].position.x,

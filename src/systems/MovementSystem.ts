@@ -42,7 +42,7 @@ export class MovementSystem extends IterativeSystem {
 
                 camera.ellipsoid = new Vector3(1, 0.83, 1);
 
-                camera.minZ = 0.5;
+                camera.minZ = 0.01;
                 camera.speed = 0.5;
                 camera.angularSensibility = 4000;
                 this.init = false;
