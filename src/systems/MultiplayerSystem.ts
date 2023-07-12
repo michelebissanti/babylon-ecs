@@ -98,9 +98,10 @@ export class MultiplayerSystem extends IterativeSystem {
 
                     newModel.get(MeshArrayComponent).meshes[0].position = new Vector3(model.x, model.y, model.z);
                     newModel.get(MeshArrayComponent).meshes[0].rotationQuaternion = new Quaternion(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
+                    newModel.get(MeshArrayComponent).meshes[0].scaling.set(model.scale_x, model.scale_y, model.scale_z);
 
                     //lego il codice id del server all'entità locale
-                    newModel.addTag(model.id);
+                    newModel.get(UpdateMultiComponent).serverId = model.id;
 
                     //aggiungo l'entità a quelle da aggiornare
                     this.models.set(model.id, newModel.id);
@@ -112,6 +113,7 @@ export class MultiplayerSystem extends IterativeSystem {
                         //aggiorno la posizione e la rotazione del modello
                         modelEntity.get(MeshArrayComponent).meshes[0].position.set(model.x, model.y, model.z);
                         modelEntity.get(MeshArrayComponent).meshes[0].rotationQuaternion.set(model.rotation_x, model.rotation_y, model.rotation_z, model.rotation_w);
+                        modelEntity.get(MeshArrayComponent).meshes[0].scaling.set(model.scale_x, model.scale_y, model.scale_z);
                     });
 
                     this.engine.addEntity(newModel);
@@ -163,6 +165,9 @@ export class MultiplayerSystem extends IterativeSystem {
                     rotation_y: modelMeshes[0].rotationQuaternion.y,
                     rotation_z: modelMeshes[0].rotationQuaternion.z,
                     rotation_w: modelMeshes[0].rotationQuaternion.w,
+                    scale_x: modelMeshes[0].scaling.x,
+                    scale_y: modelMeshes[0].scaling.y,
+                    scale_z: modelMeshes[0].scaling.z,
                 });
 
                 modelMeshes.map(mesh => {
@@ -179,7 +184,7 @@ export class MultiplayerSystem extends IterativeSystem {
 
                 if (update == true) {
                     this.room.send("updateModel", {
-                        id: entity.getTags(),
+                        id: entity.get(UpdateMultiComponent).serverId,
                         x: modelMeshes[0].position.x,
                         y: modelMeshes[0].position.y,
                         z: modelMeshes[0].position.z,
@@ -187,9 +192,10 @@ export class MultiplayerSystem extends IterativeSystem {
                         rotation_y: modelMeshes[0].rotationQuaternion.y,
                         rotation_z: modelMeshes[0].rotationQuaternion.z,
                         rotation_w: modelMeshes[0].rotationQuaternion.w,
+                        scale_x: modelMeshes[0].scaling.x,
+                        scale_y: modelMeshes[0].scaling.y,
+                        scale_z: modelMeshes[0].scaling.z,
                     });
-
-                    update = false;
                 }
             }
 

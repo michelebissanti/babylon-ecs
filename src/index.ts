@@ -3,13 +3,13 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
-import { GUI3DManager, TouchHolographicButton, NearMenu, InputText, AdvancedDynamicTexture } from '@babylonjs/gui';
+import { GUI3DManager, TouchHolographicButton, NearMenu, InputText, AdvancedDynamicTexture, HandMenu } from '@babylonjs/gui';
 
 import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug methods
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
 import { Engine as EngineECS, Entity } from "tick-knock";
-import { AbstractMesh, CreatePlane, HavokPlugin, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader } from '@babylonjs/core';
+import { AbstractMesh, CreatePlane, HavokPlugin, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader, WebXRFeatureName } from '@babylonjs/core';
 import { MeshComponent } from './components/MeshComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
@@ -30,6 +30,7 @@ class App {
     engine: Engine;
     scene: Scene;
     ecs: EngineECS;
+    guiManager: Gui3dComponent;
 
     constructor() {
         // Set up Babylon
@@ -50,6 +51,8 @@ class App {
         let ground = new Entity();
         ground.add(new MeshComponent(MeshBuilder.CreateGround('ground', { width: 50, height: 50 }), ground.id, true));
         //ground.add(new PhysicComponent(new PhysicsAggregate(ground.get(MeshComponent).ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene)))
+        ground.get(MeshComponent).mesh.isVisible = true;
+
 
         // Create the player entity and attach all the component
         let player = new Entity();
@@ -57,26 +60,36 @@ class App {
         player.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
         player.get(MeshComponent).mesh.isPickable = false;
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
+
         player.add(new WebXrComponent(await this.scene.createDefaultXRExperienceAsync({
             floorMeshes: [ground.get(MeshComponent).mesh],
             disableTeleportation: false,
+            uiOptions: {
+                sessionMode: "immersive-vr",
+            },
         })));
-        player.add(new ClientComponent(true));
 
         let gui = new Entity();
         gui.add(new Gui3dComponent(new GUI3DManager(this.scene)));
-        this.multiButtonSetUp(gui, player);
-        this.createNearMenu(gui, player);
+        this.ecs.addEntity(gui);
+
 
         this.ecs.addSystem(new MovementSystem(this.scene));
-        this.ecs.addSystem(new WebXrSystem(this.scene));
+        this.ecs.addSystem(new WebXrSystem(this.scene, gui));
         this.ecs.addSystem(new MultiplayerSystem(this.scene));
 
-        // Add out player entity
         this.ecs.addEntity(light);
         this.ecs.addEntity(ground);
         this.ecs.addEntity(player);
-        this.ecs.addEntity(gui);
+
+
+        player.add(new ClientComponent(true));
+
+
+
+        this.createNearMenu(gui, player);
+
+
 
 
 
@@ -91,6 +104,58 @@ class App {
             this.ecs.update(dt);
             this.scene.render();
         });
+    }
+
+    initRoom(gui: Entity, player: Entity) {
+        var spawnTazza = new TouchHolographicButton();
+        var roomInfo = new TouchHolographicButton();
+        var leaveRoomBtn = new TouchHolographicButton();
+
+        const manager = gui.get(Gui3dComponent).manager;
+
+        //dovrebbe essere se sono in xr e se ho abilitate le mani
+        if (player.get(WebXrComponent).exp.baseExperience.sessionManager.inXRSession) {
+            var handMenu = new HandMenu(player.get(WebXrComponent).exp.baseExperience, "HandMenu");
+            manager.addControl(handMenu);
+
+            handMenu.addButton(spawnTazza);
+            handMenu.addButton(roomInfo);
+            handMenu.addButton(leaveRoomBtn);
+        } else {
+            var nearMenu = new NearMenu("NearMenu");
+            nearMenu.rows = 1;
+            manager.addControl(nearMenu);
+            nearMenu.isPinned = false;
+            nearMenu.position.y = 2;
+
+            nearMenu.addButton(spawnTazza);
+            nearMenu.addButton(roomInfo);
+            nearMenu.addButton(leaveRoomBtn);
+        }
+
+        spawnTazza.text = "Spawn Tazza";
+        spawnTazza.imageUrl = "icon/coffee-cup.png"
+        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
+        console.log(player.get(ClientComponent).room.id.toString());
+        leaveRoomBtn.text = "Leave Room";
+        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png"
+
+        spawnTazza.onPointerDownObservable.add(async () => {
+            //piazzo una tazza nella scena
+            let tazza = new Entity();
+            tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
+            tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(player.get(MeshComponent).mesh.position.x, player.get(MeshComponent).mesh.position.y + 1, player.get(MeshComponent).mesh.position.z + 1)
+            tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
+            tazza.add(new UpdateMultiComponent(false));
+            this.ecs.addEntity(tazza);
+        });
+
+        leaveRoomBtn.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room.leave();
+            window.location.reload();
+
+        });
+
     }
 
     createNearMenu(gui: Entity, player: Entity) {
@@ -140,32 +205,22 @@ class App {
 
         createButton.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room = await player.get(ClientComponent).client.create(ROOM_TYPE);
+
+            if (player.get(ClientComponent).room != null) {
+                nearMenu.dispose();
+                this.initRoom(gui, player);
+            }
         });
 
         joinButton.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room = await player.get(ClientComponent).client.joinById(inputText.text);
+
+            if (player.get(ClientComponent).room != null) {
+                nearMenu.dispose();
+                this.initRoom(gui, player);
+            }
         });
 
-    }
-
-    multiButtonSetUp(gui: Entity, player: Entity) {
-        const manager = gui.get(Gui3dComponent).manager;
-
-        // spawn tazza TEMPORANEO
-        var spawnTazza = new TouchHolographicButton("TouchHoloTextButton");
-        manager.addControl(spawnTazza);
-        spawnTazza.scaling = new Vector3(10, 10, 10);
-        spawnTazza.position = new Vector3(3, 1, 5);
-        spawnTazza.text = "TAZZA";
-        spawnTazza.onPointerDownObservable.add(async () => {
-            //piazzo un oggetto nella scena
-            let tazza = new Entity();
-            tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
-            tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(1, 1, 1);
-            tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
-            tazza.add(new UpdateMultiComponent(false));
-            this.ecs.addEntity(tazza);
-        });
     }
 
     async importModel(baseUrl: string, modelName: string): Promise<AbstractMesh[]> {

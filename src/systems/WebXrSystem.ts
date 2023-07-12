@@ -1,12 +1,14 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node } from "@babylonjs/core";
+import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh } from "@babylonjs/core";
+import { PlanePanel, HolographicButton } from "@babylonjs/gui";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";
 import { UpdateMultiComponent } from "../components/UpdateMultiComponent";
+import { Gui3dComponent } from "../components/Gui3dComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -14,10 +16,12 @@ import { UpdateMultiComponent } from "../components/UpdateMultiComponent";
 export class WebXrSystem extends IterativeSystem {
     scene: Scene;
     init = true;
+    gui: Entity;
 
-    constructor(scene: Scene) {
+    constructor(scene: Scene, gui: Entity) {
         super(new QueryBuilder().contains(WebXrComponent).build());
         this.scene = scene;
+        this.gui = gui;
     }
 
     public bubbleParent(mesh: Node): Node {
@@ -33,10 +37,25 @@ export class WebXrSystem extends IterativeSystem {
         if (this.init) {
             const featureManager = defExp.baseExperience.featuresManager;
 
+            //abilito se possibile l'hand tracking
+            featureManager.enableFeature(WebXRFeatureName.HAND_TRACKING, "latest", {
+                xrInput: defExp.input,
+            }, true, false);
+
+            //abilito se possibile il walking locomotion
+            featureManager.enableFeature(WebXRFeatureName.WALKING_LOCOMOTION, "latest", {
+                locomotionTarget: entity.get(PlayerCameraComponent).camera
+            }, true, false);
+
             //quando entro nella sessione webxr
             defExp.baseExperience.sessionManager.onXRSessionInit.add(() => {
                 //aggiorno la telecamera dell'entità player
                 entity.get(PlayerCameraComponent).camera = defExp.baseExperience.camera;
+
+                if (defExp.baseExperience.sessionManager.sessionMode == "immersive-ar") {
+                    //nascondo la mesh del terreno
+
+                }
             });
 
 
@@ -58,8 +77,49 @@ export class WebXrSystem extends IterativeSystem {
                                 let entityPicked = this.engine.getEntityById(+pointerInfo.pickInfo.pickedMesh.metadata.id);
                                 if (entityPicked != null) {
                                     if (entityPicked.has(MeshArrayComponent) && entityPicked.has(UpdateMultiComponent)) {
-                                        entityPicked.get(MeshArrayComponent).meshes[0].position.x += 1;
-                                        entityPicked.get(UpdateMultiComponent).update = true;
+
+                                        var boundingBox = entityPicked.get(MeshArrayComponent).meshes[0];
+                                        var utilLayer = new UtilityLayerRenderer(this.scene);
+                                        utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
+                                        var gizmo = new BoundingBoxGizmo(Color3.FromHexString("#0984e3"), utilLayer)
+
+                                        var sixDofDragBehavior = new SixDofDragBehavior();
+                                        var multiPointerScaleBehavior = new MultiPointerScaleBehavior();
+
+
+
+                                        if (entityPicked.get(UpdateMultiComponent).update == false) {
+
+                                            gizmo.attachedMesh = boundingBox;
+                                            boundingBox.addBehavior(sixDofDragBehavior);
+                                            boundingBox.addBehavior(multiPointerScaleBehavior);
+
+                                            var appBar = new TransformNode("ExitButton");
+                                            //appBar.scaling.scaleInPlace(2);
+                                            var panel = new PlanePanel();
+                                            panel.margin = 0;
+                                            panel.rows = 1;
+                                            this.gui.get(Gui3dComponent).manager.addControl(panel);
+                                            panel.linkToTransformNode(appBar);
+
+                                            var button = new HolographicButton("");
+                                            panel.addControl(button);
+                                            button.text = "Exit from edit";
+
+                                            button.onPointerClickObservable.add(() => {
+                                                gizmo.attachedMesh = null;
+                                                boundingBox.removeBehavior(sixDofDragBehavior);
+                                                boundingBox.removeBehavior(multiPointerScaleBehavior);
+                                                appBar.dispose();
+                                                entityPicked.get(UpdateMultiComponent).update = false;
+                                            });
+
+                                            //attach app bar to bounding box
+                                            boundingBox.addBehavior(new AttachToBoxBehavior(appBar));
+
+                                            entityPicked.get(UpdateMultiComponent).update = true;
+                                        }
+
                                     }
                                 } else {
                                     console.log("nessuna entità");
@@ -69,53 +129,6 @@ export class WebXrSystem extends IterativeSystem {
                         }
                 }
             });
-
-
-
-
-
-            //let grab = false;
-
-            /* this.scene.onPointerObservable.add((pointerInfo) => {
-                console.log('POINTER DOWN', pointerInfo)
-                if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
-                    // "Grab" it by attaching the picked mesh to the VR Controller
-                    if (session.baseExperience.state === WebXRState.IN_XR) {
-                        let pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                        let event = pointerInfo.event as IPointerEvent;
-                        let xrInput = session.pointerSelection.getXRControllerByPointerId(event.pointerId);
-                        let motionController = xrInput.motionController;
-
-                        if (motionController) {
-                            if (grab) {
-                                //rimuovo l'oggetto preso 
-                                motionController.rootMesh.removeChild(pickedMesh);
-                                pickedMesh = null;
-                                console.log("sto uscendo");
-                                grab = false;
-                            } else {
-                                //prendo l'oggetto
-                                pickedMesh.setParent(motionController.rootMesh);
-                                console.log("ok");
-                                grab = true;
-                            }
-
-                        }
-
-                    } else {
-                        // here is the non-xr support
-                    }
-                }
-            }, PointerEventTypes.POINTERDOWN); */
-
-
-
-
-
-
-
-
-
 
             this.init = false;
         }
