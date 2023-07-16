@@ -7,7 +7,7 @@ import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";
-import { UpdateMultiComponent } from "../components/UpdateMultiComponent";
+import { UpdateMultiComponent } from "../components/EntityMultiplayerComponent";
 import { Gui3dComponent } from "../components/Gui3dComponent";
 
 // Create a simple system that extends an iterative base class

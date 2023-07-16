@@ -23,8 +23,11 @@ import { ClientComponent } from './components/ClientComponent';
 import { Gui3dComponent } from './components/Gui3dComponent';
 import { MultiplayerSystem } from './systems/MultiplayerSystem';
 import { MeshArrayComponent } from './components/MeshArrayComponent';
-import { ModelMultiComponent } from './components/ModelMultiComponent';
-import { UpdateMultiComponent } from './components/UpdateMultiComponent';
+import { MeshMultiComponent } from './components/MeshMultiComponent';
+import { EntityMultiplayerComponent } from './components/EntityMultiplayerComponent';
+import { TransformSystem } from './systems/TransformSystem';
+import { MeshMultiplayerSystem } from './systems/MeshMultiplayerSystem';
+import { TransformComponent } from './components/TransformComponent';
 
 class App {
     engine: Engine;
@@ -61,6 +64,12 @@ class App {
         player.get(MeshComponent).mesh.isPickable = false;
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
+        player.add(new ClientComponent(false));
+
+        player.add(new MeshMultiComponent("local", "sphere", true));
+
+        player.add(new TransformComponent(true));
+
         player.add(new WebXrComponent(await this.scene.createDefaultXRExperienceAsync({
             floorMeshes: [ground.get(MeshComponent).mesh],
             disableTeleportation: false,
@@ -77,24 +86,14 @@ class App {
         this.ecs.addSystem(new MovementSystem(this.scene));
         this.ecs.addSystem(new WebXrSystem(this.scene, gui));
         this.ecs.addSystem(new MultiplayerSystem(this.scene));
+        this.ecs.addSystem(new TransformSystem(this.scene, player.get(ClientComponent).room));
+        this.ecs.addSystem(new MeshMultiplayerSystem(this.scene, player.get(ClientComponent).room));
 
         this.ecs.addEntity(light);
         this.ecs.addEntity(ground);
         this.ecs.addEntity(player);
 
-
-        player.add(new ClientComponent(true));
-
-
-
         this.createNearMenu(gui, player);
-
-
-
-
-
-
-
     }
 
     run() {
@@ -145,8 +144,9 @@ class App {
             let tazza = new Entity();
             tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
             tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(player.get(MeshComponent).mesh.position.x, player.get(MeshComponent).mesh.position.y + 1, player.get(MeshComponent).mesh.position.z + 1)
-            tazza.add(new ModelMultiComponent("models/", "coffee_cup.glb"));
-            tazza.add(new UpdateMultiComponent(false));
+            tazza.add(new MeshMultiComponent("models/", "coffee_cup.glb", true));
+            tazza.add(new EntityMultiplayerComponent());
+            tazza.add(new TransformComponent(false));
             this.ecs.addEntity(tazza);
         });
 

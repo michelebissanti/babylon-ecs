@@ -1,8 +1,6 @@
-import { Room } from "colyseus.js";
 
 export class TransformComponent {
-    room: Room;
-    id: number;
+    id: string = null;
     x: number;
     y: number;
     z: number;
@@ -10,8 +8,12 @@ export class TransformComponent {
     rotation_y: number;
     rotation_z: number;
     rotation_w: number;
+    scale_x: number;
+    scale_y: number;
+    scale_z: number;
+    update: boolean = false;
 
-    constructor(room: Room) {
-        this.room = room;
+    constructor(update?: boolean) {
+        this.update = update;
     }
 }
