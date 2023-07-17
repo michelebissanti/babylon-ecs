@@ -7,8 +7,9 @@ import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";
-import { UpdateMultiComponent } from "../components/EntityMultiplayerComponent";
+import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
 import { Gui3dComponent } from "../components/Gui3dComponent";
+import { TransformComponent } from "../components/TransformComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -76,7 +77,7 @@ export class WebXrSystem extends IterativeSystem {
                             if (pointerInfo.pickInfo.pickedMesh.metadata != null) {
                                 let entityPicked = this.engine.getEntityById(+pointerInfo.pickInfo.pickedMesh.metadata.id);
                                 if (entityPicked != null) {
-                                    if (entityPicked.has(MeshArrayComponent) && entityPicked.has(UpdateMultiComponent)) {
+                                    if (entityPicked.has(MeshArrayComponent) && entityPicked.has(TransformComponent) && entityPicked.has(EntityMultiplayerComponent)) {
 
                                         var boundingBox = entityPicked.get(MeshArrayComponent).meshes[0];
                                         var utilLayer = new UtilityLayerRenderer(this.scene);
@@ -88,7 +89,7 @@ export class WebXrSystem extends IterativeSystem {
 
 
 
-                                        if (entityPicked.get(UpdateMultiComponent).update == false) {
+                                        if (entityPicked.get(TransformComponent).update == false) {
 
                                             gizmo.attachedMesh = boundingBox;
                                             boundingBox.addBehavior(sixDofDragBehavior);
@@ -111,13 +112,13 @@ export class WebXrSystem extends IterativeSystem {
                                                 boundingBox.removeBehavior(sixDofDragBehavior);
                                                 boundingBox.removeBehavior(multiPointerScaleBehavior);
                                                 appBar.dispose();
-                                                entityPicked.get(UpdateMultiComponent).update = false;
+                                                entityPicked.get(TransformComponent).update = false;
                                             });
 
                                             //attach app bar to bounding box
                                             boundingBox.addBehavior(new AttachToBoxBehavior(appBar));
 
-                                            entityPicked.get(UpdateMultiComponent).update = true;
+                                            entityPicked.get(TransformComponent).update = true;
                                         }
 
                                     }

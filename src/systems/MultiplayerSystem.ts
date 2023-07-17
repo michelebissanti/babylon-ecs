@@ -69,6 +69,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     });
 
                     entity.get(EntityMultiplayerComponent).send = true;
+                    entity.get(EntityMultiplayerComponent).serverId = this.room.state.entityCount;
 
                     //qui mi serve sapere l'id dal server come faccio?
                 }

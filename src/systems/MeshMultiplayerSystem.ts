@@ -56,6 +56,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
 
                 this.room.state.transform.onRemove((entity) => {
 
+
                 });
 
                 this.init = false;
@@ -94,6 +95,8 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     location: meshMultiComponent.location,
                     name: meshMultiComponent.name,
                 });
+
+                meshMultiComponent.id = entityServer.serverId;
             }
 
         }

@@ -120,6 +120,8 @@ export class TransformSystem extends IterativeSystem {
                     scale_y: transformComponent.scale_y,
                     scale_z: transformComponent.scale_z,
                 });
+
+                transformComponent.id = entityServer.serverId;
             }
 
             //se l'entità ha bisogno di essere aggiornata, invio la modifica al server

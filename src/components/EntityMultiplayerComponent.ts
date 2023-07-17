@@ -1,6 +1,6 @@
 
 export class EntityMultiplayerComponent {
-    serverId: number;
+    serverId: string;
     send: boolean;
 
     constructor(send?: boolean) {
