@@ -64,7 +64,7 @@ class App {
         player.get(MeshComponent).mesh.isPickable = false;
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
-        player.add(new ClientComponent(false));
+        player.add(new ClientComponent(true));
 
         player.add(new MeshMultiComponent("local", "sphere", true));
 

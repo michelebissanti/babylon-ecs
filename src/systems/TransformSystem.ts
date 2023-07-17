@@ -106,7 +106,7 @@ export class TransformSystem extends IterativeSystem {
             let entityServer = entity.get(EntityMultiplayerComponent);
 
             //se l'entità non è stata mai inviata al server, invio il segnale di creazione
-            if (transformComponent.id == null) {
+            if (transformComponent.id == undefined) {
                 this.room.send("attachTransformComponent", {
                     id: entityServer.serverId,
                     x: transformComponent.x,
@@ -125,7 +125,7 @@ export class TransformSystem extends IterativeSystem {
             }
 
             //se l'entità ha bisogno di essere aggiornata, invio la modifica al server
-            if (transformComponent.update) {
+            if (transformComponent.update && transformComponent.id != undefined) {
                 this.room.send("updateTransformComponent", {
                     id: transformComponent.id,
                     x: transformComponent.x,

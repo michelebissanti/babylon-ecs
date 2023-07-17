@@ -64,14 +64,14 @@ export class MultiplayerSystem extends IterativeSystem {
 
             //invio al server la presenza di nuove entità
             if (entity.has(EntityMultiplayerComponent)) {
-                if (entity.get(EntityMultiplayerComponent).serverId == null) {
+                if (entity.get(EntityMultiplayerComponent).serverId == undefined) {
                     this.room.send("createEntity", {
                     });
 
                     entity.get(EntityMultiplayerComponent).send = true;
                     entity.get(EntityMultiplayerComponent).serverId = this.room.state.entityCount;
 
-                    //qui mi serve sapere l'id dal server come faccio?
+                    console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
             }
         }
