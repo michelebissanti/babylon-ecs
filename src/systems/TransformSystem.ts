@@ -41,7 +41,7 @@ export class TransformSystem extends IterativeSystem {
         if (this.room != null) {
             if (this.init) {
                 //quando si aggiunge un componente di transform
-                this.room.state.transformComponents.onAdd(async (entityServer) => {
+                this.room.state.transformComponents.onAdd(async (entityServer, client) => {
 
                     //cercare se esiste un entità con quel server id
                     if (this.savedEntities.has(entityServer.id)) {
@@ -61,10 +61,38 @@ export class TransformSystem extends IterativeSystem {
                         if (localEntity.has(MeshComponent)) {
                             let mesh = localEntity.get(MeshComponent).mesh;
 
-                            mesh[0].position.set(entityServer.x, entityServer.y, entityServer.z);
-                            mesh[0].rotationQuaternion.set(entityServer.rotation_x, entityServer.rotation_y, entityServer.rotation_z, entityServer.rotation_w);
-                            mesh[0].scaling.set(entityServer.scale_x, entityServer.scale_y, entityServer.scale_z);
+                            mesh.position.set(entityServer.x, entityServer.y, entityServer.z);
+                            mesh.rotation.set(entityServer.rotation_x, entityServer.rotation_y, entityServer.rotation_z);
+                            mesh.scaling.set(entityServer.scale_x, entityServer.scale_y, entityServer.scale_z);
                         }
+
+                        entityServer.onChange(() => {
+                            //aggiorno il modello prendendo la sua entità
+                            let localEntity = this.engine.getEntityById(this.savedEntities.get(entityServer.id));
+
+                            //aggiorno solo se non sono io a mandare l'update
+                            if (entityServer.sender != this.room.sessionId) {
+
+                                if (localEntity.has(MeshArrayComponent)) {
+                                    let meshes = localEntity.get(MeshArrayComponent).meshes;
+
+                                    meshes[0].position.set(entityServer.x, entityServer.y, entityServer.z);
+                                    meshes[0].rotationQuaternion.set(entityServer.rotation_x, entityServer.rotation_y, entityServer.rotation_z, entityServer.rotation_w);
+                                    meshes[0].scaling.set(entityServer.scale_x, entityServer.scale_y, entityServer.scale_z);
+                                }
+
+                                if (localEntity.has(MeshComponent)) {
+                                    let mesh = localEntity.get(MeshComponent).mesh;
+
+                                    mesh.position.set(entityServer.x, entityServer.y, entityServer.z);
+                                    mesh.rotation.set(entityServer.rotation_x, entityServer.rotation_y, entityServer.rotation_z);
+                                    mesh.scaling.set(entityServer.scale_x, entityServer.scale_y, entityServer.scale_z);
+                                }
+
+                            }
+
+
+                        });
                     }
 
                 });
@@ -120,7 +148,7 @@ export class TransformSystem extends IterativeSystem {
                 let entityServer = entity.get(EntityMultiplayerComponent);
 
                 //se l'entità non è stata mai inviata al server, invio il segnale di creazione
-                if (transformComponent.id == undefined) {
+                if (transformComponent.id == undefined && entityServer.serverId != undefined) {
                     transformComponent.id = entityServer.serverId;
 
                     this.room.send("attachTransformComponent", {
