@@ -2,13 +2,14 @@ import { Engine, Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder, S
 import { AbstractMesh, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Quaternion, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
 import { ClientComponent } from "../components/ClientComponent";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
+import { Room } from "colyseus.js";
 
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
     init = true;
     private Entities: { [playerId: string]: number } = {};
     private models = new Map<string, number>;
-    private room = null;
+    private room: Room = null;
 
     constructor(scene: Scene) {
         super(new Query((entity) => entity.hasComponent(ClientComponent) || entity.hasComponent(EntityMultiplayerComponent)));
@@ -32,21 +33,28 @@ export class MultiplayerSystem extends IterativeSystem {
             this.room = entity.get(ClientComponent).room;
         }
 
-
         if (this.room != null) {
             if (this.init) {
                 //quando si aggiunge un entità al server
-                this.room.state.entities.onAdd(async (entity, sessionId) => {
-                    if (sessionId != this.room.sessionId) {
+                this.room.state.entities.onAdd(async (serverEntity, sessionId) => {
+                    //entra solo se chi ha inviato il messaggio non sono io
+                    if (serverEntity.sender != this.room.sessionId) {
+
+                        console.log(sessionId);
+
                         let joiner = new Entity();
                         //const playerAvatar = await this.ImportPlayerModel();
                         joiner.addComponent(EntityMultiplayerComponent);
-                        joiner.get(EntityMultiplayerComponent).serverId = entity.id;
-
-                        this.Entities[entity.id] = joiner.id;
-
                         this.engine.addEntity(joiner);
+
+                        if (serverEntity.id != undefined) {
+                            joiner.get(EntityMultiplayerComponent).serverId = serverEntity.id;
+                        }
+
+                        this.Entities[serverEntity.id] = joiner.id;
                     }
+
+
                 });
 
                 this.room.state.entities.onRemove((player, playerId) => {
@@ -64,7 +72,15 @@ export class MultiplayerSystem extends IterativeSystem {
 
             //invio al server la presenza di nuove entità
             if (entity.has(EntityMultiplayerComponent)) {
-                if (entity.get(EntityMultiplayerComponent).serverId == undefined) {
+
+                if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined) {
+                    entity.get(EntityMultiplayerComponent).serverId = this.room.state.entityCount;
+
+                    console.log(entity.get(EntityMultiplayerComponent).serverId);
+
+                }
+
+                if (entity.get(EntityMultiplayerComponent).send == false && entity.get(EntityMultiplayerComponent).serverId == undefined) {
                     this.room.send("createEntity", {
                     });
 
@@ -73,6 +89,8 @@ export class MultiplayerSystem extends IterativeSystem {
 
                     console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
+
+
             }
         }
     }
