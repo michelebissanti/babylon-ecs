@@ -47,7 +47,7 @@ export class TransformSystem extends IterativeSystem {
                     if (this.savedEntities.has(entityServer.id)) {
                         let localEntity = this.engine.getEntityById(this.savedEntities.get(entityServer.id));
                         //gli id coincidono quindi questa entità ha anche la componente di transform
-                        localEntity.add(TransformComponent);
+                        localEntity.add(new TransformComponent());
                         localEntity.get(TransformComponent).id = entityServer.id;
 
                         if (localEntity.has(MeshArrayComponent)) {
@@ -105,7 +105,7 @@ export class TransformSystem extends IterativeSystem {
             }
 
 
-            //copio la posizione dalla mesh
+            //copio la posizione dalla mesh nel caso di mesh component
             if (entity.has(MeshComponent) && entity.has(TransformComponent)) {
 
                 let transformComponent = entity.get(TransformComponent);
@@ -124,6 +124,7 @@ export class TransformSystem extends IterativeSystem {
 
             }
 
+            //copia la posizione della mesh nel caso di array di mesh
             if (entity.has(MeshArrayComponent) && entity.has(TransformComponent)) {
                 let transformComponent = entity.get(TransformComponent);
                 let meshes = entity.get(MeshArrayComponent).meshes;
@@ -189,8 +190,5 @@ export class TransformSystem extends IterativeSystem {
             }
 
         }
-
-
-
     }
 }

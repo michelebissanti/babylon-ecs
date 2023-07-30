@@ -76,7 +76,7 @@ export class MultiplayerSystem extends IterativeSystem {
                 if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined) {
                     entity.get(EntityMultiplayerComponent).serverId = this.room.state.entityCount;
 
-                    console.log(entity.get(EntityMultiplayerComponent).serverId);
+                    //console.log(entity.get(EntityMultiplayerComponent).serverId);
 
                 }
 
@@ -87,7 +87,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     entity.get(EntityMultiplayerComponent).send = true;
                     entity.get(EntityMultiplayerComponent).serverId = this.room.state.entityCount;
 
-                    console.log(entity.get(EntityMultiplayerComponent).serverId);
+                    //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
 
 
