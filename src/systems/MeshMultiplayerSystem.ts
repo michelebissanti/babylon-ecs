@@ -86,10 +86,10 @@ export class MeshMultiplayerSystem extends IterativeSystem {
 
                 });
 
-                this.room.state.transform.onRemove((entity) => {
+                /* this.room.state.transform.onRemove((entity) => {
 
 
-                });
+                }); */
 
                 this.init = false;
             }

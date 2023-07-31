@@ -94,7 +94,7 @@ class App {
         this.ecs.addSystem(new WebXrSystem(this.scene, gui));
         this.ecs.addSystem(new MultiplayerSystem(this.scene));
         this.ecs.addSystem(new TransformSystem(this.scene));
-        //this.ecs.addSystem(new MeshMultiplayerSystem(this.scene, player.get(ClientComponent).room));
+        this.ecs.addSystem(new MeshMultiplayerSystem(this.scene));
 
         //create the menu to choose the room
         this.createNearMenu(gui, player);
