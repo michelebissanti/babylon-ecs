@@ -56,6 +56,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                 this.room.state.meshComponents.onAdd(async (entityServer) => {
 
                     if (this.savedEntities.has(entityServer.id)) {
+                        console.log("ciao");
                         let localEntity = this.engine.getEntityById(this.savedEntities.get(entityServer.id));
                         //gli id coincidono quindi questa entità ha anche la componente di transform
                         localEntity.add(new MeshMultiComponent(entityServer.location, entityServer.name, false));
@@ -123,7 +124,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
             //se l'entità non è stata mai inviata al server, invio il segnale di creazione
             if (meshMultiComponent.id == undefined && entityServer.serverId != undefined) {
                 this.room.send("attachMeshComponent", {
-                    id: entityServer.serverId,
+                    id: "" + entityServer.serverId,
                     location: meshMultiComponent.location,
                     name: meshMultiComponent.name,
                 });

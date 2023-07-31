@@ -28,6 +28,7 @@ import { EntityMultiplayerComponent } from './components/EntityMultiplayerCompon
 import { TransformSystem } from './systems/TransformSystem';
 import { MeshMultiplayerSystem } from './systems/MeshMultiplayerSystem';
 import { TransformComponent } from './components/TransformComponent';
+import { Utils } from './utils';
 
 class App {
     engine: Engine;
@@ -68,6 +69,7 @@ class App {
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
         player.add(new ClientComponent(true));
+
 
         player.add(new EntityMultiplayerComponent(true));
 
@@ -154,6 +156,7 @@ class App {
 
         createButton.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room = await player.get(ClientComponent).client.create(ROOM_TYPE);
+            Utils.room = player.get(ClientComponent).room;
 
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
@@ -214,16 +217,31 @@ class App {
 
             tazza.add(new MeshMultiComponent("models/", "coffee_cup.glb", true));
 
-            tazza.add(new EntityMultiplayerComponent());
+            tazza.add(new EntityMultiplayerComponent(false));
 
             tazza.add(new TransformComponent(false));
 
             this.ecs.addEntity(tazza);
+
+            Utils.room.send("createEntity", {
+            });
+
+            Utils.room.onMessage("entityCreated", (message) => {
+                tazza.get(EntityMultiplayerComponent).send = true;
+                tazza.get(EntityMultiplayerComponent).serverId = message;
+                console.log(message);
+                Utils.room.removeAllListeners();
+            });
         });
 
         leaveRoomBtn.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room.leave();
             window.location.reload();
+        });
+
+        roomInfo.onPointerDownObservable.add(async () => {
+
+
         });
 
     }

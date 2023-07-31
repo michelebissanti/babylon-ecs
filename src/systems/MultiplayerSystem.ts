@@ -3,6 +3,7 @@ import { AbstractMesh, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Quaternion
 import { ClientComponent } from "../components/ClientComponent";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
 import { Room } from "colyseus.js";
+import { Utils } from "../utils";
 
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
@@ -28,43 +29,52 @@ export class MultiplayerSystem extends IterativeSystem {
         return meshes;
     }
 
+    onAddedToEngine() {
+        Utils.waitForConditionAsync(_ => {
+            return Utils.room != null;
+        }).then(_ => {
+            //quando si aggiunge un entità al server
+            Utils.room.state.entities.onAdd(async (serverEntity) => {
+                //entra solo se chi ha inviato il messaggio non sono io
+                if (serverEntity.sender != Utils.room.sessionId) {
+
+                    let joiner = new Entity();
+                    //const playerAvatar = await this.ImportPlayerModel();
+                    joiner.addComponent(new EntityMultiplayerComponent(true));
+                    this.engine.addEntity(joiner);
+
+                    if (serverEntity.id != undefined) {
+                        joiner.get(EntityMultiplayerComponent).serverId = serverEntity.id;
+                    }
+
+                    this.Entities[serverEntity.id] = joiner.id;
+                }
+
+
+            });
+
+            Utils.room.state.entities.onRemove((serverEntity) => {
+                let playerEntity = this.engine.getEntityById(this.Entities[serverEntity.id]);
+                this.engine.removeEntity(playerEntity);
+                delete this.Entities[serverEntity.id];
+            });
+
+            Utils.room.onLeave(code => {
+            })
+        });
+
+    }
+
     protected updateEntity(entity: Entity, dt: number): void {
         if (entity.has(ClientComponent)) {
             this.room = entity.get(ClientComponent).room;
+
+
         }
 
         if (this.room != null) {
             if (this.init) {
-                //quando si aggiunge un entità al server
-                this.room.state.entities.onAdd(async (serverEntity, sessionId) => {
-                    //entra solo se chi ha inviato il messaggio non sono io
-                    if (serverEntity.sender != this.room.sessionId) {
 
-                        console.log(sessionId);
-
-                        let joiner = new Entity();
-                        //const playerAvatar = await this.ImportPlayerModel();
-                        joiner.addComponent(EntityMultiplayerComponent);
-                        this.engine.addEntity(joiner);
-
-                        if (serverEntity.id != undefined) {
-                            joiner.get(EntityMultiplayerComponent).serverId = serverEntity.id;
-                        }
-
-                        this.Entities[serverEntity.id] = joiner.id;
-                    }
-
-
-                });
-
-                this.room.state.entities.onRemove((player, playerId) => {
-                    let playerEntity = this.engine.getEntityById(this.Entities[entity.id]);
-                    this.engine.removeEntity(playerEntity);
-                    delete this.Entities[entity.id];
-                });
-
-                this.room.onLeave(code => {
-                })
 
                 this.init = false;
             }
@@ -74,7 +84,14 @@ export class MultiplayerSystem extends IterativeSystem {
             if (entity.has(EntityMultiplayerComponent)) {
 
                 if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined) {
-                    entity.get(EntityMultiplayerComponent).serverId = this.room.state.entityCount;
+
+                    this.room.onMessage("playerCreated", (message) => {
+                        entity.get(EntityMultiplayerComponent).serverId = message;
+                        console.log(message);
+                        this.room.removeAllListeners();
+                    });
+
+
 
                     //console.log(entity.get(EntityMultiplayerComponent).serverId);
 
@@ -84,8 +101,19 @@ export class MultiplayerSystem extends IterativeSystem {
                     this.room.send("createEntity", {
                     });
 
-                    entity.get(EntityMultiplayerComponent).send = true;
-                    entity.get(EntityMultiplayerComponent).serverId = this.room.state.entityCount;
+                    this.room.onMessage("entityCreated", (message) => {
+                        entity.get(EntityMultiplayerComponent).send = true;
+                        entity.get(EntityMultiplayerComponent).serverId = message;
+                        console.log(message);
+                        this.room.removeAllListeners();
+                    });
+
+
+
+
+
+
+
 
                     //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
