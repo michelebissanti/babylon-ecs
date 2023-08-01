@@ -4,6 +4,7 @@ import { PositionComponent } from "../components/PositionComponent";
 import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
+import { TransformComponent } from "../components/TransformComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -48,8 +49,16 @@ export class MovementSystem extends IterativeSystem {
                 this.init = false;
             }
 
+            //playerMesh.position = new Vector3(camera.position.x, 0, camera.position.z);
 
-            playerMesh.position = new Vector3(camera.position.x, 0, camera.position.z);
+            if (entity.has(TransformComponent)) {
+                let transformPlayer = entity.get(TransformComponent);
+
+                transformPlayer.x = camera.position.x;
+                transformPlayer.y = 0;
+                transformPlayer.z = camera.position.z;
+            }
+
         } else {
             //sono in terza persona
 

@@ -7,113 +7,66 @@ import { Utils } from "../utils";
 
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
-    init = true;
     private Entities: { [playerId: string]: number } = {};
-    private models = new Map<string, number>;
-    private room: Room = null;
+    private entityCodeResponse: string = undefined;
+    private init = true;
+    private once = true;
 
     constructor(scene: Scene) {
-        super(new Query((entity) => entity.hasComponent(ClientComponent) || entity.hasComponent(EntityMultiplayerComponent)));
+        super(new Query((entity) => entity.hasComponent(EntityMultiplayerComponent)));
         this.scene = scene;
     }
 
-    async importModel(baseUrl: string, modelName: string): Promise<AbstractMesh[]> {
-
-        let { meshes } = await SceneLoader.ImportMeshAsync(
-            null,
-            baseUrl,
-            modelName,
-            this.scene
-        );
-
-        return meshes;
-    }
-
-    onAddedToEngine() {
-        Utils.waitForConditionAsync(_ => {
-            return Utils.room != null;
-        }).then(_ => {
-            //quando si aggiunge un entità al server
-            Utils.room.state.entities.onAdd(async (serverEntity) => {
-                //entra solo se chi ha inviato il messaggio non sono io
-                if (serverEntity.sender != Utils.room.sessionId) {
-
-                    let joiner = new Entity();
-                    //const playerAvatar = await this.ImportPlayerModel();
-                    joiner.addComponent(new EntityMultiplayerComponent(true));
-                    this.engine.addEntity(joiner);
-
-                    if (serverEntity.id != undefined) {
-                        joiner.get(EntityMultiplayerComponent).serverId = serverEntity.id;
-                    }
-
-                    this.Entities[serverEntity.id] = joiner.id;
-                }
-
-
-            });
-
-            Utils.room.state.entities.onRemove((serverEntity) => {
-                let playerEntity = this.engine.getEntityById(this.Entities[serverEntity.id]);
-                this.engine.removeEntity(playerEntity);
-                delete this.Entities[serverEntity.id];
-            });
-
-            Utils.room.onLeave(code => {
-            })
-        });
-
-    }
-
     protected updateEntity(entity: Entity, dt: number): void {
-        if (entity.has(ClientComponent)) {
-            this.room = entity.get(ClientComponent).room;
-
-
-        }
-
-        if (this.room != null) {
+        if (Utils.room != null) {
             if (this.init) {
+                Utils.room.onMessage("playerCreated", (message) => {
+                    this.entityCodeResponse = message;
+                });
 
+                Utils.room.onMessage("entityCreated", (message) => {
+                    this.entityCodeResponse = message;
+                });
 
                 this.init = false;
             }
 
-
             //invio al server la presenza di nuove entità
             if (entity.has(EntityMultiplayerComponent)) {
 
+                //caso del player che joina la stanza
                 if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined) {
 
-                    this.room.onMessage("playerCreated", (message) => {
-                        entity.get(EntityMultiplayerComponent).serverId = message;
-                        console.log(message);
-                        this.room.removeAllListeners();
+                    Utils.waitForConditionAsync(_ => {
+                        return this.entityCodeResponse != undefined;
+                    }).then(_ => {
+                        entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
+                        Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
+                        this.entityCodeResponse = undefined;
                     });
 
 
 
                     //console.log(entity.get(EntityMultiplayerComponent).serverId);
-
                 }
 
-                if (entity.get(EntityMultiplayerComponent).send == false && entity.get(EntityMultiplayerComponent).serverId == undefined) {
-                    this.room.send("createEntity", {
+                //caso della entità locale da sincronizzare
+                if (entity.get(EntityMultiplayerComponent).send == false && entity.get(EntityMultiplayerComponent).serverId == undefined && this.once) {
+
+                    Utils.room.send("createEntity", {
                     });
 
-                    this.room.onMessage("entityCreated", (message) => {
+                    this.once = false;
+
+                    Utils.waitForConditionAsync(_ => {
+                        return this.entityCodeResponse != undefined;
+                    }).then(_ => {
                         entity.get(EntityMultiplayerComponent).send = true;
-                        entity.get(EntityMultiplayerComponent).serverId = message;
-                        console.log(message);
-                        this.room.removeAllListeners();
+                        entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
+                        Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
+                        this.entityCodeResponse = undefined;
+
                     });
-
-
-
-
-
-
-
 
                     //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }

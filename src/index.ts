@@ -70,7 +70,6 @@ class App {
 
         player.add(new ClientComponent(true));
 
-
         player.add(new EntityMultiplayerComponent(true));
 
         player.add(new MeshMultiComponent("local", "sphere", true));
@@ -160,15 +159,18 @@ class App {
 
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
+                Utils.setServerTrigger(this.ecs);
                 this.initRoom(gui, player);
             }
         });
 
         joinButton.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room = await player.get(ClientComponent).client.joinById(inputText.text);
+            Utils.room = player.get(ClientComponent).room;
 
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
+                Utils.setServerTrigger(this.ecs);
                 this.initRoom(gui, player);
             }
         });
@@ -213,25 +215,14 @@ class App {
             //piazzo una tazza nella scena
             let tazza = new Entity();
             tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
-            tazza.get(MeshArrayComponent).meshes[0].position = new Vector3(player.get(MeshComponent).mesh.position.x, player.get(MeshComponent).mesh.position.y + 1, player.get(MeshComponent).mesh.position.z + 1)
 
             tazza.add(new MeshMultiComponent("models/", "coffee_cup.glb", true));
 
             tazza.add(new EntityMultiplayerComponent(false));
 
-            tazza.add(new TransformComponent(false));
+            tazza.add(new TransformComponent(false, player.get(MeshComponent).mesh.position.x, player.get(MeshComponent).mesh.position.y + 1, player.get(MeshComponent).mesh.position.z + 1));
 
             this.ecs.addEntity(tazza);
-
-            Utils.room.send("createEntity", {
-            });
-
-            Utils.room.onMessage("entityCreated", (message) => {
-                tazza.get(EntityMultiplayerComponent).send = true;
-                tazza.get(EntityMultiplayerComponent).serverId = message;
-                console.log(message);
-                Utils.room.removeAllListeners();
-            });
         });
 
         leaveRoomBtn.onPointerDownObservable.add(async () => {
