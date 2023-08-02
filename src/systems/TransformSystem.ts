@@ -25,41 +25,75 @@ export class TransformSystem extends IterativeSystem {
 
     protected updateEntity(entity: Entity, dt: number): void {
 
-
-
-        if (entity.has(MeshComponent) && entity.has(TransformComponent)) {
-
+        if (entity.has(TransformComponent)) {
             let transformComponent = entity.get(TransformComponent);
-            let mesh = entity.get(MeshComponent).mesh;
+            if (transformComponent.revertLogic == false) {
+                if (entity.has(MeshComponent)) {
+                    let mesh = entity.get(MeshComponent).mesh;
 
-            mesh.position.x = transformComponent.x;
-            mesh.position.y = transformComponent.y;
-            mesh.position.z = transformComponent.z;
-            mesh.rotation.x = transformComponent.rotation_x;
-            mesh.rotation.y = transformComponent.rotation_y;
-            mesh.rotation.z = transformComponent.rotation_z;
-            //mesh.rotation.w = transformComponent.rotation_w;
-            mesh.scaling.x = transformComponent.scale_x;
-            mesh.scaling.y = transformComponent.scale_y;
-            mesh.scaling.z = transformComponent.scale_z;
+                    mesh.position.x = transformComponent.x;
+                    mesh.position.y = transformComponent.y;
+                    mesh.position.z = transformComponent.z;
+                    mesh.rotation.x = transformComponent.rotation_x;
+                    mesh.rotation.y = transformComponent.rotation_y;
+                    mesh.rotation.z = transformComponent.rotation_z;
+                    //mesh.rotation.w = transformComponent.rotation_w;
+                    mesh.scaling.x = transformComponent.scale_x;
+                    mesh.scaling.y = transformComponent.scale_y;
+                    mesh.scaling.z = transformComponent.scale_z;
+                }
+
+                if (entity.has(MeshArrayComponent)) {
+                    let meshes = entity.get(MeshArrayComponent).meshes;
+                    let mesh = meshes[0];
+
+                    mesh.position.x = transformComponent.x;
+                    mesh.position.y = transformComponent.y;
+                    mesh.position.z = transformComponent.z;
+                    mesh.rotationQuaternion.x = transformComponent.rotation_x;
+                    mesh.rotationQuaternion.y = transformComponent.rotation_y;
+                    mesh.rotationQuaternion.z = transformComponent.rotation_z;
+                    mesh.rotationQuaternion.w = transformComponent.rotation_w;
+                    mesh.scaling.x = transformComponent.scale_x;
+                    mesh.scaling.y = transformComponent.scale_y;
+                    mesh.scaling.z = transformComponent.scale_z;
+                }
+            } else {
+                if (entity.has(MeshComponent)) {
+                    let mesh = entity.get(MeshComponent).mesh;
+
+                    transformComponent.x = mesh.position.x;
+                    transformComponent.y = mesh.position.y;
+                    transformComponent.z = mesh.position.z;
+                    transformComponent.rotation_x = mesh.rotation.x;
+                    transformComponent.rotation_y = mesh.rotation.y;
+                    transformComponent.rotation_z = mesh.rotation.z;
+                    //transformComponent.rotation_w = mesh.rotation.w;
+                    transformComponent.scale_x = mesh.scaling.x;
+                    transformComponent.scale_y = mesh.scaling.y;
+                    transformComponent.scale_z = mesh.scaling.z;
+                }
+
+                if (entity.has(MeshArrayComponent)) {
+                    let meshes = entity.get(MeshArrayComponent).meshes;
+                    let mesh = meshes[0];
+
+                    transformComponent.x = mesh.position.x;
+                    transformComponent.y = mesh.position.y;
+                    transformComponent.z = mesh.position.z;
+                    transformComponent.rotation_x = mesh.rotationQuaternion.x;
+                    transformComponent.rotation_y = mesh.rotationQuaternion.y;
+                    transformComponent.rotation_z = mesh.rotationQuaternion.z;
+                    transformComponent.rotation_w = mesh.rotationQuaternion.w;
+                    transformComponent.scale_x = mesh.scaling.x;
+                    transformComponent.scale_y = mesh.scaling.y;
+                    transformComponent.scale_z = mesh.scaling.z;
+                }
+
+            }
         }
 
-        if (entity.has(MeshArrayComponent) && entity.has(TransformComponent)) {
-            let transformComponent = entity.get(TransformComponent);
-            let meshes = entity.get(MeshArrayComponent).meshes;
-            let mesh = meshes[0];
 
-            mesh.position.x = transformComponent.x;
-            mesh.position.y = transformComponent.y;
-            mesh.position.z = transformComponent.z;
-            mesh.rotationQuaternion.x = transformComponent.rotation_x;
-            mesh.rotationQuaternion.y = transformComponent.rotation_y;
-            mesh.rotationQuaternion.z = transformComponent.rotation_z;
-            mesh.rotationQuaternion.w = transformComponent.rotation_w;
-            mesh.scaling.x = transformComponent.scale_x;
-            mesh.scaling.y = transformComponent.scale_y;
-            mesh.scaling.z = transformComponent.scale_z;
-        }
 
         if (Utils.room != null) {
             if (entity.has(TransformComponent) && entity.has(EntityMultiplayerComponent)) {

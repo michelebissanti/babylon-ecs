@@ -12,6 +12,7 @@ export class TransformComponent {
     scale_y: number = 1;
     scale_z: number = 1;
     update: boolean = false;
+    revertLogic: boolean = false;
 
     constructor(update?: boolean, x?, y?, z?) {
         this.update = update;

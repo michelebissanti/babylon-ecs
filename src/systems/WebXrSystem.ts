@@ -115,12 +115,14 @@ export class WebXrSystem extends IterativeSystem {
                                                 boundingBox.removeBehavior(sixDofDragBehavior);
                                                 boundingBox.removeBehavior(multiPointerScaleBehavior);
                                                 appBar.dispose();
+                                                entityPicked.get(TransformComponent).revertLogic = false;
                                                 entityPicked.get(TransformComponent).update = false;
                                             });
 
                                             //attach app bar to bounding box
                                             boundingBox.addBehavior(new AttachToBoxBehavior(appBar));
 
+                                            entityPicked.get(TransformComponent).revertLogic = true;
                                             entityPicked.get(TransformComponent).update = true;
                                         }
 
