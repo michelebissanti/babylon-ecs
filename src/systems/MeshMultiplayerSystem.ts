@@ -34,7 +34,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                 meshMultiComponent.render = true;
 
                 if (meshMultiComponent.location == "local" && meshMultiComponent.name == "sphere") {
-                    entity.add(new MeshComponent(MeshBuilder.CreateSphere('sphere ' + entity.id, { diameter: 1 }, this.scene), entity.id));
+                    entity.add(new MeshComponent(MeshBuilder.CreateSphere('sphere ' + meshMultiComponent.id, { diameter: 1 }, this.scene), entity.id));
                     entity.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
                     entity.get(MeshComponent).mesh.isPickable = false;
                 } else {

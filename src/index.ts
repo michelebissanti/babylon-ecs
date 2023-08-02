@@ -62,7 +62,7 @@ class App {
 
         // Create the player entity and attach all the component
         let player = new Entity();
-        player.add(new MeshComponent(MeshBuilder.CreateSphere('sphere', { diameter: 1 }, this.scene), player.id));
+        player.add(new MeshComponent(MeshBuilder.CreateSphere('player', { diameter: 1 }, this.scene), player.id));
         player.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
         player.get(MeshComponent).mesh.isPickable = false;
 
@@ -145,7 +145,7 @@ class App {
 
         var advancedTexture = AdvancedDynamicTexture.CreateForMesh(textArea);
 
-        let inputText = new InputText("inputRoom", "room id");
+        let inputText = new InputText("inputRoom", "");
         inputText.width = 1;
         inputText.height = 0.4;
         inputText.color = "white";
@@ -216,9 +216,9 @@ class App {
             let tazza = new Entity();
             tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
 
-            tazza.add(new MeshMultiComponent("models/", "coffee_cup.glb", true));
-
             tazza.add(new EntityMultiplayerComponent(false));
+
+            tazza.add(new MeshMultiComponent("models/", "coffee_cup.glb", true));
 
             tazza.add(new TransformComponent(false, player.get(MeshComponent).mesh.position.x, player.get(MeshComponent).mesh.position.y + 1, player.get(MeshComponent).mesh.position.z + 1));
 
@@ -231,7 +231,7 @@ class App {
         });
 
         roomInfo.onPointerDownObservable.add(async () => {
-
+            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
 
         });
 

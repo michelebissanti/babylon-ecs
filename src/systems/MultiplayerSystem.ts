@@ -10,7 +10,6 @@ export class MultiplayerSystem extends IterativeSystem {
     private Entities: { [playerId: string]: number } = {};
     private entityCodeResponse: string = undefined;
     private init = true;
-    private once = true;
 
     constructor(scene: Scene) {
         super(new Query((entity) => entity.hasComponent(EntityMultiplayerComponent)));
@@ -51,17 +50,16 @@ export class MultiplayerSystem extends IterativeSystem {
                 }
 
                 //caso della entità locale da sincronizzare
-                if (entity.get(EntityMultiplayerComponent).send == false && entity.get(EntityMultiplayerComponent).serverId == undefined && this.once) {
+                if (entity.get(EntityMultiplayerComponent).send == false && entity.get(EntityMultiplayerComponent).serverId == undefined) {
+                    entity.get(EntityMultiplayerComponent).send = true;
 
                     Utils.room.send("createEntity", {
                     });
 
-                    this.once = false;
-
                     Utils.waitForConditionAsync(_ => {
                         return this.entityCodeResponse != undefined;
                     }).then(_ => {
-                        entity.get(EntityMultiplayerComponent).send = true;
+
                         entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
                         Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
                         this.entityCodeResponse = undefined;

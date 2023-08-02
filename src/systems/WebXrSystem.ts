@@ -75,7 +75,10 @@ export class WebXrSystem extends IterativeSystem {
                         if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
                             //let temp = this.bubbleParent(pointerInfo.pickInfo.pickedMesh);
                             if (pointerInfo.pickInfo.pickedMesh.metadata != null) {
+                                //prendo l'entità dai metadati
                                 let entityPicked = this.engine.getEntityById(+pointerInfo.pickInfo.pickedMesh.metadata.id);
+
+                                //se l'entità esiste
                                 if (entityPicked != null) {
                                     if (entityPicked.has(MeshArrayComponent) && entityPicked.has(TransformComponent) && entityPicked.has(EntityMultiplayerComponent)) {
 

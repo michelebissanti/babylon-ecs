@@ -36,6 +36,20 @@ export class Utils {
         return meshes;
     }
 
+    static copyMessage(val: string) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        selBox.value = val;
+        document.body.appendChild(selBox);
+        selBox.focus();
+        selBox.select();
+        document.execCommand('copy');
+        document.body.removeChild(selBox);
+    }
+
     static setServerTrigger(engine: Engine) {
 
         Utils.waitForConditionAsync(_ => {
@@ -146,6 +160,7 @@ export class Utils {
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
                         //gli id coincidono quindi questa entità ha anche la componente di transform
                         localEntity.add(new MeshMultiComponent(entityServer.location, entityServer.name, false));
+                        localEntity.get(MeshMultiComponent).id = entityServer.id;
 
                         //istanzio la mesh qui
                         //localEntity.add(new MeshArrayComponent(await this.importModel(entityServer.location, entityServer.name), localEntity.id));

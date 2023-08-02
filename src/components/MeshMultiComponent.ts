@@ -6,7 +6,7 @@ export class MeshMultiComponent {
     location: string;
     render: boolean = false;
 
-    constructor(location: string, name: string, render?: boolean) {
+    constructor(location: string, name: string, render?: boolean, send?: boolean) {
         this.name = name;
         this.location = location;
         this.render = render;
