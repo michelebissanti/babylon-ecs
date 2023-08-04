@@ -40,7 +40,7 @@ class App {
         // Set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
-        //this.scene.debugLayer.show();
+        this.scene.debugLayer.show();
 
         this.ecs = new EngineECS();
     }
@@ -185,7 +185,8 @@ class App {
         const manager = gui.get(Gui3dComponent).manager;
 
         //dovrebbe essere se sono in xr e se ho abilitate le mani
-        if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
+        //if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
+        if (false) {
             var handMenu = new HandMenu(player.get(WebXrComponent).exp.baseExperience, "HandMenu");
             manager.addControl(handMenu);
 

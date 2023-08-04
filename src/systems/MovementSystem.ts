@@ -6,6 +6,7 @@ import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { TransformComponent } from "../components/TransformComponent";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";
+import { Utils } from "../utils";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -22,10 +23,8 @@ export class MovementSystem extends IterativeSystem {
 
     protected updateEntity(entity: Entity, dt: number): void {
 
-        // Get the mesh component
-        var transformComponent = entity.get(TransformComponent);
-
         let cameraComponent = entity.get(PlayerCameraComponent);
+        let transformPlayer = entity.get(TransformComponent);
 
 
         if (cameraComponent.firstPerson) {
@@ -49,15 +48,18 @@ export class MovementSystem extends IterativeSystem {
                 this.init = false;
             }
 
-            //playerMesh.position = new Vector3(camera.position.x, 0, camera.position.z);
 
-            if (entity.has(TransformComponent)) {
-                let transformPlayer = entity.get(TransformComponent);
+            //setto la componente in base alla camera
+            transformPlayer.x = camera.position.x;
+            transformPlayer.y = 0;
+            transformPlayer.z = camera.position.z;
 
-                transformPlayer.x = camera.position.x;
-                transformPlayer.y = 0;
-                transformPlayer.z = camera.position.z;
-            }
+            let cameraQuaternion = Utils.euler(0, camera.rotation.y, 0);
+
+            transformPlayer.rotation_x = cameraQuaternion.x;
+            transformPlayer.rotation_y = cameraQuaternion.y;
+            transformPlayer.rotation_z = cameraQuaternion.z;
+            transformPlayer.rotation_w = cameraQuaternion.w;
 
             //andrebbe fatto solo una volta questo
             if (entity.has(MeshArrayComponent)) {
@@ -112,8 +114,8 @@ export class MovementSystem extends IterativeSystem {
                 }
             });
 
-            transformComponent.x = transformComponent.x + this.vel.x * dt;
-            transformComponent.z = transformComponent.z + this.vel.z * dt;
+            transformPlayer.x = transformPlayer.x + this.vel.x * dt;
+            transformPlayer.z = transformPlayer.z + this.vel.z * dt;
         }
 
     }

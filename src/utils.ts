@@ -1,4 +1,4 @@
-import { AbstractMesh, SceneLoader } from "@babylonjs/core";
+import { AbstractMesh, Quaternion, SceneLoader } from "@babylonjs/core";
 import { Room } from "colyseus.js";
 import { Engine, Entity } from "tick-knock";
 import { EntityMultiplayerComponent } from "./components/EntityMultiplayerComponent";
@@ -9,6 +9,11 @@ import { MeshArrayComponent } from "./components/MeshArrayComponent";
 export class Utils {
     public static room: Room;
     public static savedEntities = new Map<string, number>();
+
+    /** Returns a new Quaternion set from the passed Euler float angles (y, x, z). */
+    static euler(eulerX: number, eulerY: number, eulerZ: number): Quaternion {
+        return Quaternion.RotationYawPitchRoll(eulerY, eulerX, eulerZ);
+    }
 
 
     static waitForConditionAsync(conditionFunction, timerInMs?: number, timeout?: number) {
