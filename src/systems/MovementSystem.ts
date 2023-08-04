@@ -1,10 +1,11 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
+import { KeyboardEventTypes, Mesh, Scene, Vector3 } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { TransformComponent } from "../components/TransformComponent";
+import { MeshArrayComponent } from "../components/MeshArrayComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -15,15 +16,14 @@ export class MovementSystem extends IterativeSystem {
     private vel = { x: 0, y: 0, z: 0 };
 
     constructor(scene: Scene) {
-        super(new QueryBuilder().contains(MeshComponent).contains(PlayerCameraComponent).build())
+        super(new QueryBuilder().contains(TransformComponent).contains(PlayerCameraComponent).build())
         this.scene = scene;
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
 
         // Get the mesh component
-        var meshComponent = entity.get(MeshComponent);
-        let playerMesh = meshComponent.mesh;
+        var transformComponent = entity.get(TransformComponent);
 
         let cameraComponent = entity.get(PlayerCameraComponent);
 
@@ -57,6 +57,16 @@ export class MovementSystem extends IterativeSystem {
                 transformPlayer.x = camera.position.x;
                 transformPlayer.y = 0;
                 transformPlayer.z = camera.position.z;
+            }
+
+            //andrebbe fatto solo una volta questo
+            if (entity.has(MeshArrayComponent)) {
+                let meshComponent = entity.get(MeshArrayComponent).meshes;
+
+                meshComponent.map(mesh => {
+                    mesh.isPickable = false;
+                    mesh.visibility = 0;
+                });
             }
 
         } else {
@@ -102,8 +112,8 @@ export class MovementSystem extends IterativeSystem {
                 }
             });
 
-            playerMesh.position.x = playerMesh.position.x + this.vel.x * dt;
-            playerMesh.position.z = playerMesh.position.z + this.vel.z * dt;
+            transformComponent.x = transformComponent.x + this.vel.x * dt;
+            transformComponent.z = transformComponent.z + this.vel.z * dt;
         }
 
     }

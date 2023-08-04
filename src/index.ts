@@ -40,7 +40,7 @@ class App {
         // Set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
-        this.scene.debugLayer.show();
+        //this.scene.debugLayer.show();
 
         this.ecs = new EngineECS();
     }
@@ -62,9 +62,9 @@ class App {
 
         // Create the player entity and attach all the component
         let player = new Entity();
-        player.add(new MeshComponent(MeshBuilder.CreateSphere('player', { diameter: 1 }, this.scene), player.id));
+        /* player.add(new MeshComponent(MeshBuilder.CreateSphere('player', { diameter: 1 }, this.scene), player.id));
         player.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
-        player.get(MeshComponent).mesh.isPickable = false;
+        player.get(MeshComponent).mesh.isPickable = false; */
 
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
@@ -72,7 +72,7 @@ class App {
 
         player.add(new EntityMultiplayerComponent(true));
 
-        player.add(new MeshMultiComponent("local", "sphere", true));
+        player.add(new MeshMultiComponent("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", false));
 
         player.add(new TransformComponent(true));
 
@@ -185,7 +185,7 @@ class App {
         const manager = gui.get(Gui3dComponent).manager;
 
         //dovrebbe essere se sono in xr e se ho abilitate le mani
-        if (player.get(WebXrComponent).exp.baseExperience.sessionManager.inXRSession) {
+        if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
             var handMenu = new HandMenu(player.get(WebXrComponent).exp.baseExperience, "HandMenu");
             manager.addControl(handMenu);
 
@@ -220,7 +220,7 @@ class App {
 
             tazza.add(new MeshMultiComponent("models/", "coffee_cup.glb", true));
 
-            tazza.add(new TransformComponent(false, player.get(MeshComponent).mesh.position.x, player.get(MeshComponent).mesh.position.y + 1, player.get(MeshComponent).mesh.position.z + 1));
+            tazza.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
 
             this.ecs.addEntity(tazza);
         });
