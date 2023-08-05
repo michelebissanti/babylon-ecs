@@ -112,15 +112,16 @@ class App {
 
     createNearMenu(gui: Entity, player: Entity) {
         const ROOM_TYPE = "my_room";
-        const manager = gui.get(Gui3dComponent).manager;
+        let manager = gui.get(Gui3dComponent).manager;
         manager.useRealisticScaling = true;
 
         // Create Near Menu with Touch Holographic Buttons + behaviour
-        var nearMenu = new NearMenu("NearMenu");
+        let nearMenu = new NearMenu("NearMenu");
         nearMenu.rows = 1;
         manager.addControl(nearMenu);
         nearMenu.isPinned = false;
         nearMenu.position.y = 2;
+
 
         var createButton = new TouchHolographicButton();
         var joinButton = new TouchHolographicButton();
@@ -182,6 +183,8 @@ class App {
         var roomInfo = new TouchHolographicButton();
         var leaveRoomBtn = new TouchHolographicButton();
         let addObject = new TouchHolographicButton();
+        let displayList = false;
+
 
         const manager = gui.get(Gui3dComponent).manager;
 
@@ -242,42 +245,50 @@ class App {
         addObject.text = "Add 3d Object";
         //addObject.imageUrl = "icon/coffee-cup.png";
 
+        let listDiplay: HolographicSlate;
+
         addObject.onPointerDownObservable.add(async () => {
-            //spawn slate con elenco
-            this.createListObject(gui, player);
+
+            if (displayList == true) {
+                listDiplay.dispose();
+                displayList = false;
+            } else {
+                //spawn slate con elenco
+                listDiplay = this.createListObject(gui, player);
+                displayList = true;
+            }
 
         });
 
     }
 
-    createListObject(gui: Entity, player: Entity) {
+    createListObject(gui: Entity, player: Entity): HolographicSlate {
         let manager = gui.get(Gui3dComponent).manager;
         let playerTransform = player.get(TransformComponent);
 
         //creo la lastra olografica dove inserirò la gui 2d
         let listSlate = new HolographicSlate("listSlate");
-        manager.addControl(listSlate);
-
-        listSlate.dimensions = new Vector2(10, 10);
-        listSlate.position = new Vector3(playerTransform.x, playerTransform.y + 5, playerTransform.z + 2);
+        listSlate.titleBarHeight = 0;
+        listSlate.dimensions = new Vector2(1, 1);
+        listSlate.position = new Vector3(0, 0, 0);
         listSlate.title = "Add Object";
+
+        manager.addControl(listSlate);
 
         let sv = new ScrollViewer();
         sv.background = "orange";
 
         let grid = new Grid();
         grid.background = "black";
-        //advancedTexture.addControl(grid); 
-
-        //grid.width = "500px";
-
 
         sv.addControl(grid);
 
         grid.addColumnDefinition(0.5);
         grid.addColumnDefinition(0.5);
 
-        for (let i = 0; i < 5; i++) {
+        let elementSize = 10;
+
+        for (let i = 0; i < elementSize; i++) {
             grid.addRowDefinition(100, true);
             var imgButton = Button.CreateImageOnlyButton("but", "https://placekitten.com/300/300");
             grid.addControl(imgButton, i, 0);
@@ -296,10 +307,10 @@ class App {
             });
         }
 
-        grid.height = "2000px";
+        grid.height = elementSize * 100 + "px";
         listSlate.content = sv;
 
-
+        return listSlate;
     }
 
     async importModel(baseUrl: string, modelName: string): Promise<AbstractMesh[]> {

@@ -1,4 +1,5 @@
 import { AbstractMesh, Quaternion, SceneLoader } from "@babylonjs/core";
+import { GUI3DManager } from "@babylonjs/gui";
 import { Room } from "colyseus.js";
 import { Engine, Entity } from "tick-knock";
 import { EntityMultiplayerComponent } from "./components/EntityMultiplayerComponent";
