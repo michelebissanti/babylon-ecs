@@ -28,7 +28,7 @@ import { EntityMultiplayerComponent } from './components/EntityMultiplayerCompon
 import { TransformSystem } from './systems/TransformSystem';
 import { MeshMultiplayerSystem } from './systems/MeshMultiplayerSystem';
 import { TransformComponent } from './components/TransformComponent';
-import { Utils } from './utils';
+import { Object3d, Utils } from './utils';
 
 class App {
     engine: Engine;
@@ -86,19 +86,18 @@ class App {
 
         this.ecs.addEntity(player);
 
-        let gui = new Entity();
-        gui.add(new Gui3dComponent(new GUI3DManager(this.scene)));
-        this.ecs.addEntity(gui);
+        Utils.gui3dmanager = new GUI3DManager(this.scene);
+
 
 
         this.ecs.addSystem(new MovementSystem(this.scene));
-        this.ecs.addSystem(new WebXrSystem(this.scene, gui));
+        this.ecs.addSystem(new WebXrSystem(this.scene));
         this.ecs.addSystem(new MultiplayerSystem(this.scene));
         this.ecs.addSystem(new TransformSystem(this.scene));
         this.ecs.addSystem(new MeshMultiplayerSystem(this.scene));
 
         //create the menu to choose the room
-        this.createNearMenu(gui, player);
+        this.createNearMenu(player);
     }
 
     run() {
@@ -110,9 +109,9 @@ class App {
         });
     }
 
-    createNearMenu(gui: Entity, player: Entity) {
+    createNearMenu(player: Entity) {
         const ROOM_TYPE = "my_room";
-        let manager = gui.get(Gui3dComponent).manager;
+        let manager = Utils.gui3dmanager;
         manager.useRealisticScaling = true;
 
         // Create Near Menu with Touch Holographic Buttons + behaviour
@@ -161,7 +160,7 @@ class App {
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
                 Utils.setServerTrigger(this.ecs);
-                this.initRoom(gui, player);
+                this.initRoom(player);
             }
         });
 
@@ -172,13 +171,13 @@ class App {
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
                 Utils.setServerTrigger(this.ecs);
-                this.initRoom(gui, player);
+                this.initRoom(player);
             }
         });
 
     }
 
-    initRoom(gui: Entity, player: Entity) {
+    async initRoom(player: Entity) {
         var spawnTazza = new TouchHolographicButton();
         var roomInfo = new TouchHolographicButton();
         var leaveRoomBtn = new TouchHolographicButton();
@@ -186,7 +185,7 @@ class App {
         let displayList = false;
 
 
-        const manager = gui.get(Gui3dComponent).manager;
+        const manager = Utils.gui3dmanager;
 
         //dovrebbe essere se sono in xr e se ho abilitate le mani
         //if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
@@ -252,9 +251,11 @@ class App {
             if (displayList == true) {
                 listDiplay.dispose();
                 displayList = false;
+                addObject.text = "Add 3d Object";
             } else {
                 //spawn slate con elenco
-                listDiplay = this.createListObject(gui, player);
+                listDiplay = this.createListObject(player);
+                addObject.text = "Hide 3d Object List";
                 displayList = true;
             }
 
@@ -262,8 +263,8 @@ class App {
 
     }
 
-    createListObject(gui: Entity, player: Entity): HolographicSlate {
-        let manager = gui.get(Gui3dComponent).manager;
+    createListObject(player: Entity): HolographicSlate {
+        let manager = Utils.gui3dmanager;
         let playerTransform = player.get(TransformComponent);
 
         //creo la lastra olografica dove inserirò la gui 2d
@@ -286,28 +287,52 @@ class App {
         grid.addColumnDefinition(0.5);
         grid.addColumnDefinition(0.5);
 
-        let elementSize = 10;
+        let objectAvaible: Array<Object3d> = Utils.getAvaiableObjects();
+
+        console.log(objectAvaible);
+
+        let elementSize = objectAvaible.length;
 
         for (let i = 0; i < elementSize; i++) {
-            grid.addRowDefinition(100, true);
-            var imgButton = Button.CreateImageOnlyButton("but", "https://placekitten.com/300/300");
+            grid.addRowDefinition(200, true);
+            var imgButton = Button.CreateImageOnlyButton("", objectAvaible[i].urlIcona);
             grid.addControl(imgButton, i, 0);
 
-            imgButton.onPointerClickObservable.add(() => {
-                console.log(i);
+            imgButton.onPointerClickObservable.add(async () => {
+                //piazzo una nuovo oggetto selezionato nella scena
+                let newObject = new Entity();
+                newObject.add(new MeshArrayComponent(await this.importModel(objectAvaible[i].percorso, objectAvaible[i].nomeFile), newObject.id));
+
+                newObject.add(new EntityMultiplayerComponent(false));
+
+                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
+
+                newObject.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+
+                this.ecs.addEntity(newObject);
             });
 
-            var textButton = Button.CreateSimpleButton("but", "Object " + i);
+            var textButton = Button.CreateSimpleButton("", objectAvaible[i].nome);
             textButton.color = "white";
             textButton.background = "green";
             grid.addControl(textButton, i, 1);
 
-            textButton.onPointerClickObservable.add(() => {
-                console.log(i);
+            textButton.onPointerClickObservable.add(async () => {
+                //piazzo una nuovo oggetto selezionato nella scena
+                let newObject = new Entity();
+                newObject.add(new MeshArrayComponent(await this.importModel(objectAvaible[i].percorso, objectAvaible[i].nomeFile), newObject.id));
+
+                newObject.add(new EntityMultiplayerComponent(false));
+
+                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
+
+                newObject.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+
+                this.ecs.addEntity(newObject);
             });
         }
 
-        grid.height = elementSize * 100 + "px";
+        grid.height = elementSize * 200 + "px";
         listSlate.content = sv;
 
         return listSlate;

@@ -7,13 +7,42 @@ import { TransformComponent } from "./components/TransformComponent";
 import { MeshMultiComponent } from "./components/MeshMultiComponent";
 import { MeshArrayComponent } from "./components/MeshArrayComponent";
 
+export class Object3d {
+    nome: string;
+    urlIcona: string;
+    percorso: string;
+    nomeFile: string;
+
+    constructor(nome, urlIcona, percorso, nomeFile) {
+        this.nome = nome,
+            this.urlIcona = urlIcona;
+        this.percorso = percorso;
+        this.nomeFile = nomeFile;
+    }
+}
+
 export class Utils {
     public static room: Room;
+    public static gui3dmanager: GUI3DManager;
     public static savedEntities = new Map<string, number>();
 
     /** Returns a new Quaternion set from the passed Euler float angles (y, x, z). */
     static euler(eulerX: number, eulerY: number, eulerZ: number): Quaternion {
         return Quaternion.RotationYawPitchRoll(eulerY, eulerX, eulerZ);
+    }
+
+    static getAvaiableObjects(): Array<Object3d> {
+        let objects: Array<Object3d> = [];
+
+        objects[0] = new Object3d("Cofee Cup", "models_image/coffee_cup.png", "models/", "coffee_cup.glb");
+        objects[1] = new Object3d("Wood Chair", "models_image/chair.png", "models/", "chair.glb");
+        objects[2] = new Object3d("Lion", "models_image/lion.png", "models/", "lion.glb");
+        objects[3] = new Object3d("Table Football", "models_image/table_football.png", "models/", "table_football.glb");
+        objects[4] = new Object3d("Mystery Block", "models_image/mystery_block.png", "models/", "mystery_block.glb");
+
+
+        return objects;
+
     }
 
 
