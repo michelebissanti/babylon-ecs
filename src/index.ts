@@ -1,9 +1,9 @@
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Matrix, Vector2, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
-import { GUI3DManager, TouchHolographicButton, NearMenu, InputText, AdvancedDynamicTexture, HandMenu } from '@babylonjs/gui';
+import { GUI3DManager, TouchHolographicButton, NearMenu, InputText, AdvancedDynamicTexture, HandMenu, HolographicSlate, ScrollViewer, Grid, Button } from '@babylonjs/gui';
 
 import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug methods
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
@@ -181,6 +181,7 @@ class App {
         var spawnTazza = new TouchHolographicButton();
         var roomInfo = new TouchHolographicButton();
         var leaveRoomBtn = new TouchHolographicButton();
+        let addObject = new TouchHolographicButton();
 
         const manager = gui.get(Gui3dComponent).manager;
 
@@ -203,10 +204,11 @@ class App {
             nearMenu.addButton(spawnTazza);
             nearMenu.addButton(roomInfo);
             nearMenu.addButton(leaveRoomBtn);
+            nearMenu.addButton(addObject);
         }
 
         spawnTazza.text = "Spawn Tazza";
-        spawnTazza.imageUrl = "icon/coffee-cup.png"
+        spawnTazza.imageUrl = "icon/coffee-cup.png";
         roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
         console.log(player.get(ClientComponent).room.id.toString());
         leaveRoomBtn.text = "Leave Room";
@@ -235,6 +237,68 @@ class App {
             Utils.copyMessage(player.get(ClientComponent).room.id.toString());
 
         });
+
+
+        addObject.text = "Add 3d Object";
+        //addObject.imageUrl = "icon/coffee-cup.png";
+
+        addObject.onPointerDownObservable.add(async () => {
+            //spawn slate con elenco
+            this.createListObject(gui, player);
+
+        });
+
+    }
+
+    createListObject(gui: Entity, player: Entity) {
+        let manager = gui.get(Gui3dComponent).manager;
+        let playerTransform = player.get(TransformComponent);
+
+        //creo la lastra olografica dove inserirò la gui 2d
+        let listSlate = new HolographicSlate("listSlate");
+        manager.addControl(listSlate);
+
+        listSlate.dimensions = new Vector2(10, 10);
+        listSlate.position = new Vector3(playerTransform.x, playerTransform.y + 5, playerTransform.z + 2);
+        listSlate.title = "Add Object";
+
+        let sv = new ScrollViewer();
+        sv.background = "orange";
+
+        let grid = new Grid();
+        grid.background = "black";
+        //advancedTexture.addControl(grid); 
+
+        //grid.width = "500px";
+
+
+        sv.addControl(grid);
+
+        grid.addColumnDefinition(0.5);
+        grid.addColumnDefinition(0.5);
+
+        for (let i = 0; i < 5; i++) {
+            grid.addRowDefinition(100, true);
+            var imgButton = Button.CreateImageOnlyButton("but", "https://placekitten.com/300/300");
+            grid.addControl(imgButton, i, 0);
+
+            imgButton.onPointerClickObservable.add(() => {
+                console.log(i);
+            });
+
+            var textButton = Button.CreateSimpleButton("but", "Object " + i);
+            textButton.color = "white";
+            textButton.background = "green";
+            grid.addControl(textButton, i, 1);
+
+            textButton.onPointerClickObservable.add(() => {
+                console.log(i);
+            });
+        }
+
+        grid.height = "2000px";
+        listSlate.content = sv;
+
 
     }
 

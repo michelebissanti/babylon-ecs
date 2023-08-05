@@ -1,0 +1,4 @@
+<objects>
+  <Object3d nome="Tazzina del caffe" url_icona="icon/coffee-cup.png" percorso="models/" nome_file="coffee_cup.glb" />
+  <Object3d nome="Macchina" url_icona="icon/coffee-cup.png" percorso="models/" nome_file=" " />
+</objects>
