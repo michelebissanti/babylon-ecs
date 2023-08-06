@@ -69,6 +69,12 @@ export class MultiplayerSystem extends IterativeSystem {
                     //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
 
+                if (entity.get(EntityMultiplayerComponent).delete == true) {
+                    Utils.room.send("removeEntity", {
+                        id: "" + entity.get(EntityMultiplayerComponent).serverId,
+                    });
+                }
+
 
             }
         }

@@ -132,7 +132,9 @@ class App {
         //nearMenu.addButton(button3);
 
         createButton.text = "Create Room";
+        createButton.imageUrl = "icon/create-room.png"
         joinButton.text = "Join Room";
+        joinButton.imageUrl = "icon/join.png";
         //button3.text = "Exit";
 
 
@@ -211,8 +213,10 @@ class App {
 
         spawnTazza.text = "Spawn Tazza";
         spawnTazza.imageUrl = "icon/coffee-cup.png";
+
         roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
         console.log(player.get(ClientComponent).room.id.toString());
+
         leaveRoomBtn.text = "Leave Room";
         leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png"
 
@@ -242,7 +246,7 @@ class App {
 
 
         addObject.text = "Add 3d Object";
-        //addObject.imageUrl = "icon/coffee-cup.png";
+        addObject.imageUrl = "icon/object.png";
 
         let listDiplay: HolographicSlate;
 

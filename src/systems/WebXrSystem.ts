@@ -2,7 +2,7 @@ import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knoc
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
 import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder } from "@babylonjs/core";
-import { PlanePanel, HolographicButton, TouchHolographicButton } from "@babylonjs/gui";
+import { PlanePanel, HolographicButton, TouchHolographicButton, TouchHolographicMenu } from "@babylonjs/gui";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
@@ -84,24 +84,54 @@ export class WebXrSystem extends IterativeSystem {
                                         let manager = Utils.gui3dmanager;
                                         let entityMesh = entityPicked.get(MeshArrayComponent).meshes[0];
 
-                                        let button = new TouchHolographicButton("button");
-                                        manager.addControl(button);
-                                        button.linkToTransformNode(entityMesh);
-                                        button.scaling.x = 0.20;
-                                        button.scaling.y = 0.20;
-                                        button.scaling.z = 0.20;
-                                        button.text = "Button 1";
+                                        let objectMenu = new TouchHolographicMenu("objectMenu");
+                                        objectMenu.rows = 1;
+                                        manager.addControl(objectMenu);
+                                        objectMenu.linkToTransformNode(entityMesh);
+
+                                        objectMenu.scaling.x = 0.1;
+                                        objectMenu.scaling.y = 0.1;
+                                        objectMenu.scaling.z = 0.1;
 
 
-                                        button.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (button.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.2;
-
-                                        button.onPointerDownObservable.add(() => {
+                                        let editButton = new TouchHolographicButton("editButton");
+                                        objectMenu.addButton(editButton);
+                                        editButton.text = "Move/Scale";
+                                        editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
+                                        editButton.onPointerDownObservable.add(() => {
                                             console.log("Button 1 pressed");
+                                        });
+
+                                        let playButton = new TouchHolographicButton("playButton");
+                                        objectMenu.addButton(playButton);
+                                        playButton.text = "Play";
+                                        playButton.imageUrl = "icon/play-button.png";
+                                        playButton.onPointerDownObservable.add(() => {
+                                            console.log("Button 1 pressed");
+                                        });
+
+                                        let removeButton = new TouchHolographicButton("removeButton");
+                                        objectMenu.addButton(removeButton);
+                                        removeButton.text = "Delete Object";
+                                        removeButton.imageUrl = "icon/recycle-bin.png";
+                                        removeButton.onPointerDownObservable.add(() => {
+                                            entityPicked.get(EntityMultiplayerComponent).delete = true;
+                                        });
+
+                                        let closeButton = new TouchHolographicButton("closeButton");
+                                        objectMenu.addButton(closeButton);
+                                        closeButton.text = "Close Menu";
+                                        closeButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
+                                        closeButton.onPointerDownObservable.add(() => {
+                                            objectMenu.dispose();
                                         });
 
 
 
 
+
+
+                                        objectMenu.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
 
 
 
