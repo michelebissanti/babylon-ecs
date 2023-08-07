@@ -9,7 +9,7 @@ import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug 
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
 import { Engine as EngineECS, Entity } from "tick-knock";
-import { AbstractMesh, CreatePlane, HavokPlugin, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader, WebXRFeatureName } from '@babylonjs/core';
+import { AbstractMesh, CreatePlane, CubeTexture, HavokPlugin, Material, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, SceneLoader, StandardMaterial, Texture, WebXRFeatureName } from '@babylonjs/core';
 import { MeshComponent } from './components/MeshComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
@@ -40,7 +40,7 @@ class App {
         // Set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
-        this.scene.debugLayer.show();
+        //this.scene.debugLayer.show();
 
         this.ecs = new EngineECS();
     }
@@ -48,15 +48,37 @@ class App {
     async setup() {
         //this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin(true, await HavokPhysics()));
 
+        let envTexture = CubeTexture.CreateFromPrefilteredData("sky/sky.env", this.scene);
+        this.scene.environmentTexture = envTexture;
+
+        this.scene.createDefaultSkybox(envTexture, true);
+
         let light = new Entity();
         light.add(new WorldLightComponent(new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene)));
-        light.get(WorldLightComponent).light.intensity = 0.7;
+        light.get(WorldLightComponent).light.intensity = 1;
         this.ecs.addEntity(light);
 
         let ground = new Entity();
         ground.add(new MeshComponent(MeshBuilder.CreateGround('ground', { width: 50, height: 50 }), ground.id, true));
         //ground.add(new PhysicComponent(new PhysicsAggregate(ground.get(MeshComponent).ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene)))
         ground.get(MeshComponent).mesh.isVisible = true;
+        let groundMat = new StandardMaterial("groundMat", this.scene);
+        let groundTexture = new Texture("materials/floor/laminate_floor_02_diff_1k.jpg");
+        groundTexture.uScale = 10;
+        groundTexture.vScale = 10;
+        groundMat.diffuseTexture = groundTexture;
+
+        let groundNormal = new Texture("materials/floor/laminate_floor_02_nor_gl_1k.jpg");
+        groundMat.bumpTexture = groundNormal;
+        groundNormal.uScale = 10;
+        groundNormal.vScale = 10;
+
+        let groundAO = new Texture("materials/floor/laminate_floor_02_ao_1k.jpg");
+        groundMat.bumpTexture = groundAO;
+        groundAO.uScale = 10;
+        groundAO.vScale = 10;
+
+        ground.get(MeshComponent).mesh.material = groundMat;
         this.ecs.addEntity(ground);
 
 
@@ -207,10 +229,10 @@ class App {
             nearMenu.isPinned = false;
             nearMenu.position.y = 2;
 
-            nearMenu.addButton(spawnTazza);
+            nearMenu.addButton(addObject);
             nearMenu.addButton(roomInfo);
             nearMenu.addButton(leaveRoomBtn);
-            nearMenu.addButton(addObject);
+
         }
 
         spawnTazza.text = "Spawn Tazza";
@@ -313,7 +335,7 @@ class App {
 
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
 
-                newObject.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
 
                 this.ecs.addEntity(newObject);
             });
