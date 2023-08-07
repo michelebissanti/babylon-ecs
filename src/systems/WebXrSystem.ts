@@ -2,7 +2,7 @@ import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knoc
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
 import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder } from "@babylonjs/core";
-import { PlanePanel, HolographicButton, TouchHolographicButton, TouchHolographicMenu } from "@babylonjs/gui";
+import { PlanePanel, HolographicButton, TouchHolographicButton, TouchHolographicMenu, Container3D } from "@babylonjs/gui";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
@@ -67,6 +67,53 @@ export class WebXrSystem extends IterativeSystem {
             });
 
 
+            //posizionamento del menu sul controller
+            defExp.input.onControllerAddedObservable.add(inputSource => {
+                inputSource.onMotionControllerInitObservable.add(motionController => {
+                    motionController.onModelLoadedObservable.add(mc => {
+
+
+                        if (motionController.handedness[0] === 'l') {
+                            let mesh = inputSource.grip;
+                            let manager = Utils.gui3dmanager;
+
+                            let controllerMenu = new TouchHolographicMenu("objectMenu");
+                            controllerMenu.rows = 1;
+                            manager.addControl(controllerMenu);
+                            controllerMenu.mesh.parent = mesh;
+                            controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
+                            controllerMenu.mesh.position = new Vector3(0.1, 0, 0);
+
+                            let editButton = new TouchHolographicButton("editButton");
+                            controllerMenu.addButton(editButton);
+                            editButton.text = "Move/Scale";
+                            editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
+                            editButton.onPointerDownObservable.add(() => {
+                                console.log("Button 1 pressed");
+                            });
+
+                            let playButton = new TouchHolographicButton("playButton");
+                            controllerMenu.addButton(playButton);
+                            playButton.text = "Play";
+                            playButton.imageUrl = "icon/play-button.png";
+                            playButton.onPointerDownObservable.add(() => {
+                                console.log("Button 1 pressed");
+                            });
+                        } else {
+                            //controllerMenu.position = new Vector3(-0.1, 0, 0);
+                        }
+
+
+
+
+
+
+
+                    })
+                })
+            })
+
+
 
             //tocco su un oggetto
             this.scene.onPointerObservable.add((pointerInfo) => {
@@ -115,7 +162,7 @@ export class WebXrSystem extends IterativeSystem {
                                         removeButton.text = "Delete Object";
                                         removeButton.imageUrl = "icon/recycle-bin.png";
                                         removeButton.onPointerDownObservable.add(() => {
-                                            entityPicked.get(EntityMultiplayerComponent).delete = true;
+                                            entityPicked.get(EntityMultiplayerComponent).delete = "true";
                                         });
 
                                         let closeButton = new TouchHolographicButton("closeButton");

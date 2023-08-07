@@ -33,10 +33,5 @@
     "timer": "^1.0.1",
     "timers": "^0.1.1",
     "xml2js": "^0.6.2"
-  },
-  "browser": {
-    "fs": false,
-    "os": false,
-    "path": false
   }
 }

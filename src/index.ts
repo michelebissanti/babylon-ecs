@@ -121,6 +121,8 @@ class App {
         nearMenu.isPinned = false;
         nearMenu.position.y = 2;
 
+        //nearMenu.scaling = new Vector3(0.1, 0.1, 0.1);
+
 
         var createButton = new TouchHolographicButton();
         var joinButton = new TouchHolographicButton();
