@@ -60,13 +60,15 @@ export class Utils {
         return new Promise(poll);
     }
 
-    static async importModel(baseUrl: string, modelName: string): Promise<AbstractMesh[]> {
+    static async importModel(baseUrl: string, modelName: string, animGroup?): Promise<AbstractMesh[]> {
 
-        let { meshes } = await SceneLoader.ImportMeshAsync(
+        let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
             null,
             baseUrl,
             modelName
         );
+
+        animGroup = animationGroups;
 
         return meshes;
     }

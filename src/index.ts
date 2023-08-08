@@ -9,7 +9,7 @@ import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug 
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
 import { Engine as EngineECS, Entity } from "tick-knock";
-import { AbstractMesh, CreatePlane, CubeTexture, HavokPlugin, Material, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, SceneLoader, StandardMaterial, Texture, WebXRFeatureName } from '@babylonjs/core';
+import { AbstractMesh, CreatePlane, CubeTexture, HavokPlugin, Material, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, SceneLoader, SceneLoaderAnimationGroupLoadingMode, StandardMaterial, Texture, WebXRFeatureName } from '@babylonjs/core';
 import { MeshComponent } from './components/MeshComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
@@ -40,7 +40,7 @@ class App {
         // Set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
-        //this.scene.debugLayer.show();
+        this.scene.debugLayer.show();
 
         this.ecs = new EngineECS();
     }
@@ -82,6 +82,8 @@ class App {
         this.ecs.addEntity(ground);
 
 
+
+
         // Create the player entity and attach all the component
         let player = new Entity();
         /* player.add(new MeshComponent(MeshBuilder.CreateSphere('player', { diameter: 1 }, this.scene), player.id));
@@ -109,6 +111,25 @@ class App {
         this.ecs.addEntity(player);
 
         Utils.gui3dmanager = new GUI3DManager(this.scene);
+
+        let animGroup;
+
+        //let testMesh = await Utils.importModel("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", animGroup);
+
+
+
+        // ready player me model, rig matches mixamo animations
+        const rpm = SceneLoader.LoadAssetContainer("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", this.scene, assets => {
+            assets.addAllToScene();
+
+            // mixamo animation
+            const hiphop = SceneLoader.ImportAnimations("animation/player/", "idle.fbx", this.scene, false,
+                SceneLoaderAnimationGroupLoadingMode.Clean, null);
+
+        });
+
+
+
 
 
 
