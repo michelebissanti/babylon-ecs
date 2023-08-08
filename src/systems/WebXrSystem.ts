@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2 } from "@babylonjs/core";
+import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2, PointerDragBehavior } from "@babylonjs/core";
 import { PlanePanel, HolographicButton, TouchHolographicButton, TouchHolographicMenu, HolographicSlate, ScrollViewer, Grid, Button } from "@babylonjs/gui";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
@@ -47,7 +47,7 @@ export class WebXrSystem extends IterativeSystem {
         manager.addControl(listSlate);
 
         let sv = new ScrollViewer();
-        sv.background = "orange";
+        sv.background = "blue";
 
         let grid = new Grid();
         grid.background = "black";
@@ -221,7 +221,9 @@ export class WebXrSystem extends IterativeSystem {
 
 
             let objectMenuShow = false;
+            let objectMenuList = new Map<Entity, boolean>();
             let objectMenu;
+            let switchEdit = false;
 
             //tocco su un oggetto
             this.scene.onPointerObservable.add((pointerInfo) => {
@@ -251,13 +253,39 @@ export class WebXrSystem extends IterativeSystem {
                                             objectMenu.scaling.y = 0.1;
                                             objectMenu.scaling.z = 0.1;
 
+                                            objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + 0.5;
 
+                                            const sixDofDragBehavior = new SixDofDragBehavior();
+                                            const multiPointerScaleBehavior = new MultiPointerScaleBehavior();
+                                            let utilLayer, gizmo;
                                             let editButton = new TouchHolographicButton("editButton");
                                             objectMenu.addButton(editButton);
                                             editButton.text = "Move/Scale";
                                             editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
                                             editButton.onPointerDownObservable.add(() => {
-                                                console.log("Button 1 pressed");
+
+                                                if (switchEdit == false) {
+                                                    // Create bounding box gizmo
+                                                    utilLayer = new UtilityLayerRenderer(this.scene)
+                                                    utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
+                                                    gizmo = new BoundingBoxGizmo(Color3.FromHexString("#0984e3"), utilLayer);
+                                                    gizmo.attachedMesh = entityMesh;
+                                                    entityMesh.addBehavior(multiPointerScaleBehavior);
+                                                    entityMesh.addBehavior(sixDofDragBehavior);
+                                                    entityPicked.get(TransformComponent).revertLogic = true;
+                                                    entityPicked.get(TransformComponent).update = true;
+                                                    switchEdit = true;
+                                                } else {
+                                                    utilLayer.dispose();
+                                                    gizmo.dispose();
+                                                    entityMesh.removeBehavior(multiPointerScaleBehavior);
+                                                    entityMesh.removeBehavior(sixDofDragBehavior);
+                                                    entityPicked.get(TransformComponent).revertLogic = false;
+                                                    entityPicked.get(TransformComponent).update = false;
+                                                    switchEdit = false;
+                                                }
+
+
                                             });
 
                                             let playButton = new TouchHolographicButton("playButton");
@@ -274,6 +302,7 @@ export class WebXrSystem extends IterativeSystem {
                                             removeButton.imageUrl = "icon/recycle-bin.png";
                                             removeButton.onPointerDownObservable.add(() => {
                                                 entityPicked.get(EntityMultiplayerComponent).delete = "true";
+                                                objectMenuShow = false;
                                             });
 
                                             let closeButton = new TouchHolographicButton("closeButton");
@@ -282,14 +311,14 @@ export class WebXrSystem extends IterativeSystem {
                                             closeButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
                                             closeButton.onPointerDownObservable.add(() => {
                                                 objectMenu.dispose();
+                                                objectMenuShow = false;
                                             });
 
-                                            objectMenu.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
+                                            //objectMenu.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
 
                                             objectMenuShow = true;
                                         } else {
-                                            objectMenu.dispose();
-                                            objectMenuShow = false;
+
                                         }
 
 

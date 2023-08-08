@@ -40,7 +40,7 @@ class App {
         // Set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
-        //this.scene.debugLayer.show();
+        this.scene.debugLayer.show();
 
         this.ecs = new EngineECS();
     }
@@ -305,7 +305,7 @@ class App {
         manager.addControl(listSlate);
 
         let sv = new ScrollViewer();
-        sv.background = "orange";
+        sv.background = "blue";
 
         let grid = new Grid();
         grid.background = "black";
