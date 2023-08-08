@@ -249,11 +249,16 @@ export class WebXrSystem extends IterativeSystem {
                                             manager.addControl(objectMenu);
                                             objectMenu.linkToTransformNode(entityMesh);
 
+                                            /* const attachToBoxBehavior = new AttachToBoxBehavior(objectMenu.mesh);
+                                            attachToBoxBehavior.distanceAwayFromBottomOfFace = 0;
+                                            attachToBoxBehavior.distanceAwayFromFace = 0;
+                                            entityMesh.addBehavior(attachToBoxBehavior); */
+
                                             objectMenu.scaling.x = 0.1;
                                             objectMenu.scaling.y = 0.1;
                                             objectMenu.scaling.z = 0.1;
 
-                                            objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + 0.5;
+                                            //objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + 0.5;
 
                                             const sixDofDragBehavior = new SixDofDragBehavior();
                                             const multiPointerScaleBehavior = new MultiPointerScaleBehavior();
@@ -269,13 +274,16 @@ export class WebXrSystem extends IterativeSystem {
                                                     utilLayer = new UtilityLayerRenderer(this.scene)
                                                     utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
                                                     gizmo = new BoundingBoxGizmo(Color3.FromHexString("#0984e3"), utilLayer);
+
                                                     gizmo.attachedMesh = entityMesh;
+
                                                     entityMesh.addBehavior(multiPointerScaleBehavior);
                                                     entityMesh.addBehavior(sixDofDragBehavior);
                                                     entityPicked.get(TransformComponent).revertLogic = true;
                                                     entityPicked.get(TransformComponent).update = true;
                                                     switchEdit = true;
                                                 } else {
+
                                                     utilLayer.dispose();
                                                     gizmo.dispose();
                                                     entityMesh.removeBehavior(multiPointerScaleBehavior);
@@ -314,71 +322,12 @@ export class WebXrSystem extends IterativeSystem {
                                                 objectMenuShow = false;
                                             });
 
-                                            //objectMenu.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
+                                            objectMenu.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
 
                                             objectMenuShow = true;
                                         } else {
 
                                         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                        /* 
-                                                                                var boundingBox = entityPicked.get(MeshArrayComponent).meshes[0];
-                                                                                var utilLayer = new UtilityLayerRenderer(this.scene);
-                                                                                utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
-                                                                                var gizmo = new BoundingBoxGizmo(Color3.FromHexString("#0984e3"), utilLayer)
-                                        
-                                                                                var sixDofDragBehavior = new SixDofDragBehavior();
-                                                                                var multiPointerScaleBehavior = new MultiPointerScaleBehavior();
-                                        
-                                        
-                                        
-                                                                                if (entityPicked.get(TransformComponent).update == false) {
-                                        
-                                                                                    gizmo.attachedMesh = boundingBox;
-                                                                                    boundingBox.addBehavior(sixDofDragBehavior);
-                                                                                    boundingBox.addBehavior(multiPointerScaleBehavior);
-                                        
-                                                                                    var appBar = new TransformNode("ExitButton");
-                                                                                    //appBar.scaling.scaleInPlace(2);
-                                                                                    var panel = new PlanePanel();
-                                                                                    panel.margin = 0;
-                                                                                    panel.rows = 1;
-                                                                                    manager.addControl(panel);
-                                                                                    panel.linkToTransformNode(appBar);
-                                        
-                                                                                    var button2 = new HolographicButton("");
-                                                                                    panel.addControl(button2);
-                                                                                    button.text = "Exit from edit";
-                                        
-                                                                                    button.onPointerClickObservable.add(() => {
-                                                                                        gizmo.attachedMesh = null;
-                                                                                        boundingBox.removeBehavior(sixDofDragBehavior);
-                                                                                        boundingBox.removeBehavior(multiPointerScaleBehavior);
-                                                                                        appBar.dispose();
-                                                                                        entityPicked.get(TransformComponent).revertLogic = false;
-                                                                                        entityPicked.get(TransformComponent).update = false;
-                                                                                    });
-                                        
-                                                                                    //attach app bar to bounding box
-                                                                                    boundingBox.addBehavior(new AttachToBoxBehavior(appBar));
-                                        
-                                                                                    entityPicked.get(TransformComponent).revertLogic = true;
-                                                                                    entityPicked.get(TransformComponent).update = true;
-                                                                                } */
 
                                     }
                                 } else {
