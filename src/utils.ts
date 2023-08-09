@@ -98,7 +98,6 @@ export class Utils {
                 if (serverEntity.sender != Utils.room.sessionId) {
                     console.log("nuova entita da server");
                     let joiner = new Entity();
-                    //const playerAvatar = await this.ImportPlayerModel();
                     joiner.addComponent(new EntityMultiplayerComponent(true));
                     engine.addEntity(joiner);
 
@@ -107,7 +106,13 @@ export class Utils {
                     }
 
                     Utils.savedEntities.set(serverEntity.id, joiner.id);
-                    //this.Entities[serverEntity.id] = joiner.id;
+
+                    serverEntity.onChange(async () => {
+                        //aggiorno lo stato dell'entità
+                        let localEntity = engine.getEntityById(Utils.savedEntities.get(serverEntity.id));
+
+                        localEntity.get(EntityMultiplayerComponent).busy = serverEntity.busy;
+                    });
                 }
 
 

@@ -69,6 +69,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
 
+                //per rimuovere un entità
                 if (entity.get(EntityMultiplayerComponent).delete == "true") {
                     Utils.room.send("removeEntity", {
                         id: "" + entity.get(EntityMultiplayerComponent).serverId,
@@ -76,6 +77,25 @@ export class MultiplayerSystem extends IterativeSystem {
 
                     entity.get(EntityMultiplayerComponent).delete = "done";
                 }
+
+                //per occupare un entità
+                if (entity.get(EntityMultiplayerComponent).busy == "true") {
+                    Utils.room.send("setBusy", {
+                        id: "" + entity.get(EntityMultiplayerComponent).serverId,
+                    });
+
+                    entity.get(EntityMultiplayerComponent).busy = Utils.room.sessionId;
+                }
+
+                //per liberare un entità
+                if (entity.get(EntityMultiplayerComponent).busy == "false") {
+                    Utils.room.send("setIdle", {
+                        id: "" + entity.get(EntityMultiplayerComponent).serverId,
+                    });
+
+                    entity.get(EntityMultiplayerComponent).busy = undefined;
+                }
+
 
 
             }
