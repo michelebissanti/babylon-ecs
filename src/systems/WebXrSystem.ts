@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2, PointerDragBehavior } from "@babylonjs/core";
+import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2, PointerDragBehavior, SceneLoader, WebXRAbstractMotionController } from "@babylonjs/core";
 import { PlanePanel, HolographicButton, TouchHolographicButton, TouchHolographicMenu, HolographicSlate, ScrollViewer, Grid, Button } from "@babylonjs/gui";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
@@ -13,6 +13,7 @@ import { TransformComponent } from "../components/TransformComponent";
 import { AdvancedDynamicTextureTreeItemComponent } from "@babylonjs/inspector/components/sceneExplorer/entities/gui/advancedDynamicTextureTreeItemComponent";
 import { Object3d, Utils } from "../utils";
 import { MeshMultiComponent } from "../components/MeshMultiComponent";
+import { AnimationComponent } from "../components/AnimationComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -71,13 +72,25 @@ export class WebXrSystem extends IterativeSystem {
             imgButton.onPointerClickObservable.add(async () => {
                 //piazzo una nuovo oggetto selezionato nella scena
                 let newObject = new Entity();
-                newObject.add(new MeshArrayComponent(await Utils.importModel(objectAvaible[i].percorso, objectAvaible[i].nomeFile), newObject.id));
+
+                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+                    null,
+                    objectAvaible[i].percorso,
+                    objectAvaible[i].nomeFile
+                );
+
+                newObject.add(new MeshArrayComponent(meshes, newObject.id));
+
+                if (animationGroups.length != 0) {
+                    newObject.add(new AnimationComponent(animationGroups));
+                    animationGroups[0].stop();
+                }
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
 
-                newObject.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
 
                 this.engine.addEntity(newObject);
             });
@@ -90,13 +103,27 @@ export class WebXrSystem extends IterativeSystem {
             textButton.onPointerClickObservable.add(async () => {
                 //piazzo una nuovo oggetto selezionato nella scena
                 let newObject = new Entity();
-                newObject.add(new MeshArrayComponent(await Utils.importModel(objectAvaible[i].percorso, objectAvaible[i].nomeFile), newObject.id));
+
+                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+                    null,
+                    objectAvaible[i].percorso,
+                    objectAvaible[i].nomeFile
+                );
+
+                newObject.add(new MeshArrayComponent(meshes, newObject.id));
+
+                console.log(animationGroups);
+
+                if (animationGroups.length != 0) {
+                    newObject.add(new AnimationComponent(animationGroups));
+                    animationGroups[0].stop();
+                }
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
 
-                newObject.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
 
                 this.engine.addEntity(newObject);
             });
@@ -110,6 +137,7 @@ export class WebXrSystem extends IterativeSystem {
 
     protected updateEntity(entity: Entity, dt: number): void {
         let defExp = entity.get(WebXrComponent).exp;
+        let controllers: WebXRAbstractMotionController[] = new Array<WebXRAbstractMotionController>();
 
         if (this.init) {
             const featureManager = defExp.baseExperience.featuresManager;
@@ -142,19 +170,18 @@ export class WebXrSystem extends IterativeSystem {
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
             });
 
-
-
-
-
             //posizionamento del menu sul controller
             defExp.input.onControllerAddedObservable.add(inputSource => {
                 inputSource.onMotionControllerInitObservable.add(motionController => {
                     motionController.onModelLoadedObservable.add(mc => {
+                        console.log(inputSource);
+
+                        controllers.push(mc);
 
                         Utils.waitForConditionAsync(_ => {
                             return Utils.room != null;
                         }).then(_ => {
-                            if (motionController.handedness[0] === 'l') {
+                            if (motionController.handedness[0] === 'l' && inputSource.inputSource.hand == undefined) {
                                 let mesh = inputSource.grip;
                                 let manager = Utils.gui3dmanager;
 
@@ -296,13 +323,42 @@ export class WebXrSystem extends IterativeSystem {
 
                                             });
 
-                                            let playButton = new TouchHolographicButton("playButton");
-                                            objectMenu.addButton(playButton);
-                                            playButton.text = "Play";
-                                            playButton.imageUrl = "icon/play-button.png";
-                                            playButton.onPointerDownObservable.add(() => {
-                                                console.log("Button 1 pressed");
-                                            });
+                                            if (entityPicked.has(AnimationComponent)) {
+
+                                                let animComp = entityPicked.get(AnimationComponent);
+
+                                                for (let i = 0; i < animComp.animGroup.length; i++) {
+                                                    let playButton = new TouchHolographicButton("playButton");
+                                                    objectMenu.addButton(playButton);
+                                                    playButton.text = "Play " + animComp.animGroup[i].name;
+                                                    playButton.imageUrl = "icon/play-button.png";
+
+                                                    playButton.onPointerDownObservable.add(() => {
+                                                        if (animComp.state == null || animComp.state == "pause") {
+                                                            animComp.animGroup[i].start(true);
+                                                            animComp.state = animComp.animGroup[i].name;
+
+                                                            playButton.text = "Pause";
+                                                            playButton.imageUrl = "icon/pause.png";
+
+                                                        } else if (animComp.state == animComp.animGroup[i].name) {
+                                                            animComp.animGroup[i].stop();
+                                                            animComp.state = "pause";
+
+                                                            playButton.text = "Play";
+                                                            playButton.imageUrl = "icon/play-button.png";
+                                                        }
+
+                                                    });
+
+                                                }
+
+
+
+
+                                            }
+
+
 
                                             let removeButton = new TouchHolographicButton("removeButton");
                                             objectMenu.addButton(removeButton);

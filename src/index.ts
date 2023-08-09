@@ -9,7 +9,7 @@ import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug 
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
 import { Engine as EngineECS, Entity } from "tick-knock";
-import { AbstractMesh, CreatePlane, CubeTexture, HavokPlugin, Material, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, SceneLoader, SceneLoaderAnimationGroupLoadingMode, StandardMaterial, Texture, WebXRFeatureName } from '@babylonjs/core';
+import { AbstractMesh, AnimationGroup, CreatePlane, CubeTexture, HavokPlugin, Material, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, SceneLoader, SceneLoaderAnimationGroupLoadingMode, StandardMaterial, Texture, WebXRFeatureName } from '@babylonjs/core';
 import { MeshComponent } from './components/MeshComponent';
 import { MovementSystem } from './systems/MovementSystem';
 import { PositionComponent } from './components/PositionComponent';
@@ -29,6 +29,7 @@ import { TransformSystem } from './systems/TransformSystem';
 import { MeshMultiplayerSystem } from './systems/MeshMultiplayerSystem';
 import { TransformComponent } from './components/TransformComponent';
 import { Object3d, Utils } from './utils';
+import { AnimationComponent } from './components/AnimationComponent';
 
 class App {
     engine: Engine;
@@ -112,21 +113,34 @@ class App {
 
         Utils.gui3dmanager = new GUI3DManager(this.scene);
 
-        let animGroup;
-
-        //let testMesh = await Utils.importModel("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", animGroup);
 
 
 
-        // ready player me model, rig matches mixamo animations
-        const rpm = SceneLoader.LoadAssetContainer("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", this.scene, assets => {
+
+        //test per le animazioni del player
+
+        /* SceneLoader.LoadAssetContainer("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", this.scene, assets => {
+            const rpmMesh = assets.meshes[0];
             assets.addAllToScene();
 
-            // mixamo animation
-            const hiphop = SceneLoader.ImportAnimations("animation/player/", "idle.fbx", this.scene, false,
-                SceneLoaderAnimationGroupLoadingMode.Clean, null);
+            // Mixamo animation
+            const hiphop = SceneLoader.ImportAnimations("animation/player/", "cards.fbx", this.scene, false, SceneLoaderAnimationGroupLoadingMode.Clean, null, () => {
+                // Get Animation Group
+                const dancing = this.scene.getAnimationGroupByName("Armature|mixamo.com|Layer0");
 
-        });
+                //Start Anim
+                dancing.start(true, 1.0, dancing.from, dancing.to, false);
+
+            });
+        }); */
+
+
+
+
+
+
+
+
 
 
 
@@ -235,35 +249,28 @@ class App {
         const manager = Utils.gui3dmanager;
 
         //dovrebbe essere se sono in xr e se ho abilitate le mani
-        //if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
-        if (false) {
+        if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
             var handMenu = new HandMenu(player.get(WebXrComponent).exp.baseExperience, "HandMenu");
             manager.addControl(handMenu);
 
-            handMenu.addButton(spawnTazza);
+            handMenu.addButton(addObject);
             handMenu.addButton(roomInfo);
             handMenu.addButton(leaveRoomBtn);
-        } else {
-            var nearMenu = new NearMenu("NearMenu");
-            nearMenu.rows = 1;
-            manager.addControl(nearMenu);
-            nearMenu.isPinned = false;
-            nearMenu.position.y = 2;
-
-            nearMenu.addButton(addObject);
-            nearMenu.addButton(roomInfo);
-            nearMenu.addButton(leaveRoomBtn);
-
         }
 
-        spawnTazza.text = "Spawn Tazza";
+        var nearMenu = new NearMenu("NearMenu");
+        nearMenu.rows = 1;
+        manager.addControl(nearMenu);
+        nearMenu.isPinned = false;
+        nearMenu.position.y = 2;
+
+        nearMenu.addButton(addObject);
+        nearMenu.addButton(roomInfo);
+        nearMenu.addButton(leaveRoomBtn);
+
+
+        /* spawnTazza.text = "Spawn Tazza";
         spawnTazza.imageUrl = "icon/coffee-cup.png";
-
-        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
-        console.log(player.get(ClientComponent).room.id.toString());
-
-        leaveRoomBtn.text = "Leave Room";
-        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png"
 
         spawnTazza.onPointerDownObservable.add(async () => {
             //piazzo una tazza nella scena
@@ -277,12 +284,18 @@ class App {
             tazza.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
 
             this.ecs.addEntity(tazza);
-        });
+        }); */
+
+        leaveRoomBtn.text = "Leave Room";
+        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
 
         leaveRoomBtn.onPointerDownObservable.add(async () => {
             player.get(ClientComponent).room.leave();
             window.location.reload();
         });
+
+        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
+        console.log(player.get(ClientComponent).room.id.toString());
 
         roomInfo.onPointerDownObservable.add(async () => {
             Utils.copyMessage(player.get(ClientComponent).room.id.toString());
@@ -350,7 +363,19 @@ class App {
             imgButton.onPointerClickObservable.add(async () => {
                 //piazzo una nuovo oggetto selezionato nella scena
                 let newObject = new Entity();
-                newObject.add(new MeshArrayComponent(await this.importModel(objectAvaible[i].percorso, objectAvaible[i].nomeFile), newObject.id));
+
+                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+                    null,
+                    objectAvaible[i].percorso,
+                    objectAvaible[i].nomeFile
+                );
+
+                newObject.add(new MeshArrayComponent(meshes, newObject.id));
+
+                if (animationGroups.length != 0) {
+                    newObject.add(new AnimationComponent(animationGroups));
+                    animationGroups[0].stop();
+                }
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
@@ -369,13 +394,27 @@ class App {
             textButton.onPointerClickObservable.add(async () => {
                 //piazzo una nuovo oggetto selezionato nella scena
                 let newObject = new Entity();
-                newObject.add(new MeshArrayComponent(await this.importModel(objectAvaible[i].percorso, objectAvaible[i].nomeFile), newObject.id));
+
+                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+                    null,
+                    objectAvaible[i].percorso,
+                    objectAvaible[i].nomeFile
+                );
+
+                newObject.add(new MeshArrayComponent(meshes, newObject.id));
+
+                console.log(animationGroups);
+
+                if (animationGroups.length != 0) {
+                    newObject.add(new AnimationComponent(animationGroups));
+                    animationGroups[0].stop();
+                }
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
 
-                newObject.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
 
                 this.ecs.addEntity(newObject);
             });

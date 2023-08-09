@@ -1,4 +1,4 @@
-import { AbstractMesh, Quaternion, SceneLoader } from "@babylonjs/core";
+import { AbstractMesh, AnimationGroup, Quaternion, SceneLoader } from "@babylonjs/core";
 import { GUI3DManager } from "@babylonjs/gui";
 import { Room } from "colyseus.js";
 import { Engine, Entity } from "tick-knock";
@@ -39,7 +39,7 @@ export class Utils {
         objects[2] = new Object3d("Lion", "models_image/lion.png", "models/", "lion.glb");
         objects[3] = new Object3d("Table Football", "models_image/table_football.png", "models/", "table_football.glb");
         objects[4] = new Object3d("Mystery Block", "models_image/mystery_block.png", "models/", "mystery_block.glb");
-
+        objects[5] = new Object3d("Bee", "models_image/bee.png", "models/", "bee.glb");
 
         return objects;
 
@@ -60,7 +60,7 @@ export class Utils {
         return new Promise(poll);
     }
 
-    static async importModel(baseUrl: string, modelName: string, animGroup?): Promise<AbstractMesh[]> {
+    static async importModel(baseUrl: string, modelName: string, animGroup?: AnimationGroup[]): Promise<AbstractMesh[]> {
 
         let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
             null,
