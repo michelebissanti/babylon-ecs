@@ -30,6 +30,7 @@ import { MeshMultiplayerSystem } from './systems/MeshMultiplayerSystem';
 import { TransformComponent } from './components/TransformComponent';
 import { Object3d, Utils } from './utils';
 import { AnimationComponent } from './components/AnimationComponent';
+import { AnimationSystem } from './systems/AnimationSystem';
 
 class App {
     engine: Engine;
@@ -152,6 +153,7 @@ class App {
         this.ecs.addSystem(new MultiplayerSystem(this.scene));
         this.ecs.addSystem(new TransformSystem(this.scene));
         this.ecs.addSystem(new MeshMultiplayerSystem(this.scene));
+        this.ecs.addSystem(new AnimationSystem(this.scene));
 
         //create the menu to choose the room
         this.createNearMenu(player);

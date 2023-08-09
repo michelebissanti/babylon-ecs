@@ -6,6 +6,7 @@ import { EntityMultiplayerComponent } from "./components/EntityMultiplayerCompon
 import { TransformComponent } from "./components/TransformComponent";
 import { MeshMultiComponent } from "./components/MeshMultiComponent";
 import { MeshArrayComponent } from "./components/MeshArrayComponent";
+import { AnimationComponent } from "./components/AnimationComponent";
 
 export class Object3d {
     nome: string;
@@ -238,6 +239,53 @@ export class Utils {
                 if (localEntity != null && localEntity.has(MeshArrayComponent)) {
                     localEntity.get(MeshArrayComponent).meshes[0].dispose();
                 }
+            });
+
+
+
+
+            //quando si aggiunge un componente di animazione
+            Utils.room.state.animationComponents.onAdd(async (entityServer) => {
+
+                if (Utils.savedEntities.has(entityServer.id)) {
+                    if (entityServer.sender != Utils.room.sessionId) {
+
+                        let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
+
+                        if (localEntity.has(AnimationComponent)) {
+                            localEntity.get(AnimationComponent).id = entityServer.id;
+                        }
+
+                        entityServer.onChange(async () => {
+                            //aggiorno il modello prendendo la sua entità
+                            let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
+
+                            //aggiorno solo se non sono io a mandare l'update
+                            if (entityServer.sender != Utils.room.sessionId) {
+
+                                let lastAnimation;
+                                let animations = localEntity.get(AnimationComponent).animGroup;
+                                localEntity.get(AnimationComponent).state = entityServer.state;
+                                localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
+
+                                if (entityServer.state != "pause") {
+                                    animations[+entityServer.state].goToFrame(entityServer.currentFrame);
+                                    animations[+entityServer.state].play(true);
+                                    lastAnimation = +entityServer.state;
+                                } else {
+                                    animations[lastAnimation].pause();
+
+                                }
+                            }
+
+                        });
+
+                    }
+                }
+
+            });
+
+            Utils.room.state.animationComponents.onRemove((serverEntity) => {
             });
 
 

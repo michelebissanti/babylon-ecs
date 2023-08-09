@@ -346,12 +346,12 @@ export class WebXrSystem extends IterativeSystem {
                                                         playButton.onPointerDownObservable.add(() => {
                                                             if (animComp.state == null || animComp.state == "pause") {
                                                                 animComp.animGroup[i].start(true);
-                                                                animComp.state = animComp.animGroup[i].name;
+                                                                animComp.state = i.toString();
 
                                                                 playButton.text = "Pause";
                                                                 playButton.imageUrl = "icon/pause.png";
 
-                                                            } else if (animComp.state == animComp.animGroup[i].name) {
+                                                            } else if (animComp.state == i.toString()) {
                                                                 animComp.animGroup[i].stop();
                                                                 animComp.state = "pause";
 
