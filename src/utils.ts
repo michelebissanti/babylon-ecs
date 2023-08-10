@@ -1,5 +1,5 @@
-import { AbstractMesh, AnimationGroup, Quaternion, SceneLoader } from "@babylonjs/core";
-import { GUI3DManager } from "@babylonjs/gui";
+import { AbstractMesh, AnimationGroup, Quaternion, Scene, SceneLoader } from "@babylonjs/core";
+
 import { Room } from "colyseus.js";
 import { Engine, Entity } from "tick-knock";
 import { EntityMultiplayerComponent } from "./components/EntityMultiplayerComponent";
@@ -24,7 +24,8 @@ export class Object3d {
 
 export class Utils {
     public static room: Room;
-    public static gui3dmanager: GUI3DManager;
+    public static engineEcs: Engine;
+    public static scene: Scene;
     public static savedEntities = new Map<string, number>();
 
     /** Returns a new Quaternion set from the passed Euler float angles (y, x, z). */
@@ -158,32 +159,32 @@ export class Utils {
                         transform.scale_x = entityServer.scale_x;
                         transform.scale_y = entityServer.scale_y;
                         transform.scale_z = entityServer.scale_z;
-
-                        entityServer.onChange(() => {
-                            //aggiorno il modello prendendo la sua entità
-                            let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
-
-                            //aggiorno solo se non sono io a mandare l'update
-                            if (entityServer.sender != Utils.room.sessionId) {
-
-                                let transform = localEntity.get(TransformComponent);
-
-                                transform.x = entityServer.x;
-                                transform.y = entityServer.y;
-                                transform.z = entityServer.z;
-                                transform.rotation_x = entityServer.rotation_x;
-                                transform.rotation_y = entityServer.rotation_y;
-                                transform.rotation_z = entityServer.rotation_z;
-                                transform.rotation_w = entityServer.rotation_w;
-                                transform.scale_x = entityServer.scale_x;
-                                transform.scale_y = entityServer.scale_y;
-                                transform.scale_z = entityServer.scale_z;
-
-                            }
-
-
-                        });
                     }
+
+                    entityServer.onChange(() => {
+                        //aggiorno il modello prendendo la sua entità
+                        let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
+
+                        //aggiorno solo se non sono io a mandare l'update
+                        if (entityServer.sender != Utils.room.sessionId) {
+
+                            let transform = localEntity.get(TransformComponent);
+
+                            transform.x = entityServer.x;
+                            transform.y = entityServer.y;
+                            transform.z = entityServer.z;
+                            transform.rotation_x = entityServer.rotation_x;
+                            transform.rotation_y = entityServer.rotation_y;
+                            transform.rotation_z = entityServer.rotation_z;
+                            transform.rotation_w = entityServer.rotation_w;
+                            transform.scale_x = entityServer.scale_x;
+                            transform.scale_y = entityServer.scale_y;
+                            transform.scale_z = entityServer.scale_z;
+
+                        }
+
+
+                    });
                 }
 
             });
@@ -208,32 +209,26 @@ export class Utils {
                         //gli id coincidono quindi questa entità ha anche la componente di transform
                         localEntity.add(new MeshMultiComponent(entityServer.location, entityServer.name, false));
                         localEntity.get(MeshMultiComponent).id = entityServer.id;
+                    }
 
-                        //istanzio la mesh qui
-                        //localEntity.add(new MeshArrayComponent(await this.importModel(entityServer.location, entityServer.name), localEntity.id));
+                    entityServer.onChange(async () => {
+                        //aggiorno il modello prendendo la sua entità
+                        let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
-                        entityServer.onChange(async () => {
-                            //aggiorno il modello prendendo la sua entità
-                            let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
+                        //aggiorno solo se non sono io a mandare l'update
+                        if (entityServer.sender != Utils.room.sessionId) {
+                            localEntity.get(MeshMultiComponent).location = entityServer.location;
+                            localEntity.get(MeshMultiComponent).name = entityServer.name;
+                            localEntity.get(MeshMultiComponent).render = false;
 
-                            //aggiorno solo se non sono io a mandare l'update
-                            if (entityServer.sender != Utils.room.sessionId) {
-                                localEntity.get(MeshMultiComponent).location = entityServer.location;
-                                localEntity.get(MeshMultiComponent).name = entityServer.name;
-                                localEntity.get(MeshMultiComponent).render = false;
-
-                                //aggiorno e istanzio le modifiche
-                                if (localEntity.has(MeshArrayComponent)) {
-                                    localEntity.get(MeshArrayComponent).meshes[0].dispose();
-
-                                    //localEntity.get(MeshArrayComponent).meshes = await Utils.importModel(entityServer.location, entityServer.name);
-                                }
-
+                            //aggiorno e istanzio le modifiche
+                            if (localEntity.has(MeshArrayComponent)) {
+                                localEntity.get(MeshArrayComponent).meshes[0].dispose();
                             }
 
-                        });
+                        }
 
-                    }
+                    });
                 }
 
             });
@@ -262,44 +257,39 @@ export class Utils {
                             localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
                         }
 
-                        entityServer.onChange(async () => {
-                            //aggiorno il modello prendendo la sua entità
-                            let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
-
-                            //aggiorno solo se non sono io a mandare l'update
-                            if (entityServer.sender != Utils.room.sessionId && localEntity.has(AnimationComponent)) {
-
-                                let lastAnimation = 0;
-                                let animations = localEntity.get(AnimationComponent).animGroup;
-                                localEntity.get(AnimationComponent).state = entityServer.state;
-                                localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
-
-                                if (entityServer.state != "pause" && localEntity.get(AnimationComponent).isStoppable == false) {
-                                    animations[+entityServer.state].goToFrame(entityServer.currentFrame);
-                                    animations[+entityServer.state].play(true);
-                                    lastAnimation = +entityServer.state;
-                                    localEntity.get(AnimationComponent).isStoppable = true;
-                                } else {
-                                    animations[lastAnimation].pause();
-                                    localEntity.get(AnimationComponent).isStoppable = false;
-
-                                }
-                            }
-
-                        });
-
                     }
+
+                    entityServer.onChange(async () => {
+                        //aggiorno il modello prendendo la sua entità
+                        let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
+
+                        //aggiorno solo se non sono io a mandare l'update
+                        if (entityServer.sender != Utils.room.sessionId && localEntity.has(AnimationComponent)) {
+
+                            let lastAnimation = 0;
+                            let animations = localEntity.get(AnimationComponent).animGroup;
+                            localEntity.get(AnimationComponent).state = entityServer.state;
+                            localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
+
+                            /* if (entityServer.state != "pause" && localEntity.get(AnimationComponent).isStoppable == false) {
+                                animations[+entityServer.state].goToFrame(entityServer.currentFrame);
+                                animations[+entityServer.state].play(true);
+                                lastAnimation = +entityServer.state;
+                                localEntity.get(AnimationComponent).isStoppable = true;
+                            } else {
+                                animations[lastAnimation].pause();
+                                localEntity.get(AnimationComponent).isStoppable = false;
+
+                            } */
+                        }
+
+                    });
                 }
 
             });
 
             Utils.room.state.animationComponents.onRemove((serverEntity) => {
             });
-
-
-
-
-
 
         });
 

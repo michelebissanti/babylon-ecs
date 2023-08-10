@@ -14,6 +14,7 @@ import { AdvancedDynamicTextureTreeItemComponent } from "@babylonjs/inspector/co
 import { Object3d, Utils } from "../utils";
 import { MeshMultiComponent } from "../components/MeshMultiComponent";
 import { AnimationComponent } from "../components/AnimationComponent";
+import { GuiUtils } from "../GuiUtils";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -25,114 +26,6 @@ export class WebXrSystem extends IterativeSystem {
     constructor(scene: Scene) {
         super(new QueryBuilder().contains(WebXrComponent).build());
         this.scene = scene;
-    }
-
-    public bubbleParent(mesh: Node): Node {
-        var result = mesh;
-        while (result.parent)
-            result = result.parent as Node;
-        return result;
-    }
-
-    createListObject(player: Entity): HolographicSlate {
-        let manager = Utils.gui3dmanager;
-        let playerTransform = player.get(TransformComponent);
-
-        //creo la lastra olografica dove inserirò la gui 2d
-        let listSlate = new HolographicSlate("listSlate");
-        listSlate.titleBarHeight = 0;
-        listSlate.dimensions = new Vector2(1, 1);
-        listSlate.position = new Vector3(0, 0, 0);
-        listSlate.title = "Add Object";
-
-        manager.addControl(listSlate);
-
-        let sv = new ScrollViewer();
-        sv.background = "blue";
-
-        let grid = new Grid();
-        grid.background = "black";
-
-        sv.addControl(grid);
-
-        grid.addColumnDefinition(0.5);
-        grid.addColumnDefinition(0.5);
-
-        let objectAvaible: Array<Object3d> = Utils.getAvaiableObjects();
-
-        console.log(objectAvaible);
-
-        let elementSize = objectAvaible.length;
-
-        for (let i = 0; i < elementSize; i++) {
-            grid.addRowDefinition(200, true);
-            var imgButton = Button.CreateImageOnlyButton("", objectAvaible[i].urlIcona);
-            grid.addControl(imgButton, i, 0);
-
-            imgButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo oggetto selezionato nella scena
-                let newObject = new Entity();
-
-                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
-                    null,
-                    objectAvaible[i].percorso,
-                    objectAvaible[i].nomeFile
-                );
-
-                newObject.add(new MeshArrayComponent(meshes, newObject.id));
-
-                if (animationGroups.length != 0) {
-                    newObject.add(new AnimationComponent(animationGroups));
-                    animationGroups[0].stop();
-                }
-
-                newObject.add(new EntityMultiplayerComponent(false));
-
-                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
-
-                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
-
-                this.engine.addEntity(newObject);
-            });
-
-            var textButton = Button.CreateSimpleButton("", objectAvaible[i].nome);
-            textButton.color = "white";
-            textButton.background = "green";
-            grid.addControl(textButton, i, 1);
-
-            textButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo oggetto selezionato nella scena
-                let newObject = new Entity();
-
-                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
-                    null,
-                    objectAvaible[i].percorso,
-                    objectAvaible[i].nomeFile
-                );
-
-                newObject.add(new MeshArrayComponent(meshes, newObject.id));
-
-                console.log(animationGroups);
-
-                if (animationGroups.length != 0) {
-                    newObject.add(new AnimationComponent(animationGroups));
-                    animationGroups[0].stop();
-                }
-
-                newObject.add(new EntityMultiplayerComponent(false));
-
-                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
-
-                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
-
-                this.engine.addEntity(newObject);
-            });
-        }
-
-        grid.height = elementSize * 200 + "px";
-        listSlate.content = sv;
-
-        return listSlate;
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
@@ -182,60 +75,7 @@ export class WebXrSystem extends IterativeSystem {
                             return Utils.room != null;
                         }).then(_ => {
                             if (motionController.handedness[0] === 'l' && inputSource.inputSource.hand == undefined) {
-                                let mesh = inputSource.grip;
-                                let manager = Utils.gui3dmanager;
-
-                                let controllerMenu = new TouchHolographicMenu("objectMenu");
-                                controllerMenu.columns = 1;
-                                manager.addControl(controllerMenu);
-                                controllerMenu.mesh.parent = mesh;
-                                controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
-                                controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
-
-                                let displayList = false;
-
-                                var roomInfo = new TouchHolographicButton();
-                                controllerMenu.addButton(roomInfo);
-                                roomInfo.text = "Room id: " + Utils.room.id.toString();
-                                console.log(Utils.room.id.toString());
-
-                                roomInfo.onPointerDownObservable.add(async () => {
-                                    Utils.copyMessage(Utils.room.id.toString());
-
-                                });
-
-                                var leaveRoomBtn = new TouchHolographicButton();
-                                controllerMenu.addButton(leaveRoomBtn);
-                                leaveRoomBtn.text = "Leave Room";
-                                leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png"
-
-                                leaveRoomBtn.onPointerDownObservable.add(async () => {
-                                    Utils.room.leave();
-                                    window.location.reload();
-                                });
-
-
-                                let addObject = new TouchHolographicButton();
-                                controllerMenu.addButton(addObject);
-                                addObject.text = "Add 3d Object";
-                                addObject.imageUrl = "icon/object.png";
-
-                                let listDiplay: HolographicSlate;
-
-                                addObject.onPointerDownObservable.add(async () => {
-
-                                    if (displayList == true) {
-                                        listDiplay.dispose();
-                                        displayList = false;
-                                        addObject.text = "Add 3d Object";
-                                    } else {
-                                        //spawn slate con elenco
-                                        listDiplay = this.createListObject(entity);
-                                        addObject.text = "Hide 3d Object List";
-                                        displayList = true;
-                                    }
-
-                                });
+                                GuiUtils.controllerMenu(inputSource, entity);
                             } else {
                                 //controllerMenu.position = new Vector3(-0.1, 0, 0);
                             }
@@ -269,7 +109,7 @@ export class WebXrSystem extends IterativeSystem {
                                         //se l'entità è libera compare il menu
                                         if (entityPicked.get(EntityMultiplayerComponent).busy == undefined || entityPicked.get(EntityMultiplayerComponent).busy == Utils.room.sessionId) {
 
-                                            let manager = Utils.gui3dmanager;
+                                            let manager = GuiUtils.gui3dmanager;
                                             let entityMesh = entityPicked.get(MeshArrayComponent).meshes[0];
 
                                             if (entityPicked.get(EntityMultiplayerComponent).busy != Utils.room.sessionId) {
