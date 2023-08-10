@@ -108,13 +108,17 @@ export class Utils {
 
                     Utils.savedEntities.set(serverEntity.id, joiner.id);
 
-                    serverEntity.onChange(async () => {
-                        //aggiorno lo stato dell'entità
-                        let localEntity = engine.getEntityById(Utils.savedEntities.get(serverEntity.id));
 
-                        localEntity.get(EntityMultiplayerComponent).busy = serverEntity.busy;
-                    });
                 }
+
+                serverEntity.onChange(async () => {
+                    //aggiorno lo stato dell'entità
+                    let localEntity = engine.getEntityById(Utils.savedEntities.get(serverEntity.id));
+
+                    if (localEntity != undefined) {
+                        localEntity.get(EntityMultiplayerComponent).busy = serverEntity.busy;
+                    }
+                });
 
 
             });
@@ -254,6 +258,8 @@ export class Utils {
 
                         if (localEntity.has(AnimationComponent)) {
                             localEntity.get(AnimationComponent).id = entityServer.id;
+                            localEntity.get(AnimationComponent).state = entityServer.state;
+                            localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
                         }
 
                         entityServer.onChange(async () => {
@@ -261,19 +267,21 @@ export class Utils {
                             let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
                             //aggiorno solo se non sono io a mandare l'update
-                            if (entityServer.sender != Utils.room.sessionId) {
+                            if (entityServer.sender != Utils.room.sessionId && localEntity.has(AnimationComponent)) {
 
-                                let lastAnimation;
+                                let lastAnimation = 0;
                                 let animations = localEntity.get(AnimationComponent).animGroup;
                                 localEntity.get(AnimationComponent).state = entityServer.state;
                                 localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
 
-                                if (entityServer.state != "pause") {
+                                if (entityServer.state != "pause" && localEntity.get(AnimationComponent).isStoppable == false) {
                                     animations[+entityServer.state].goToFrame(entityServer.currentFrame);
                                     animations[+entityServer.state].play(true);
                                     lastAnimation = +entityServer.state;
+                                    localEntity.get(AnimationComponent).isStoppable = true;
                                 } else {
                                     animations[lastAnimation].pause();
+                                    localEntity.get(AnimationComponent).isStoppable = false;
 
                                 }
                             }

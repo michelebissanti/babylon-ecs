@@ -11,6 +11,7 @@ import { Room } from "colyseus.js";
 import { MeshMultiComponent } from "../components/MeshMultiComponent";
 import { ClientComponent } from "../components/ClientComponent";
 import { Utils } from "../utils";
+import { AnimationComponent } from "../components/AnimationComponent";
 
 // Create a simple system that extends an iterative base class
 // The iterative system class simply iterates over all entities it finds
@@ -38,7 +39,23 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     entity.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
                     entity.get(MeshComponent).mesh.isPickable = false;
                 } else {
-                    entity.add(new MeshArrayComponent(await Utils.importModel(meshMultiComponent.location, meshMultiComponent.name), entity.id));
+
+                    let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+                        null,
+                        meshMultiComponent.location,
+                        meshMultiComponent.name
+                    );
+
+                    entity.add(new MeshArrayComponent(meshes, entity.id));
+
+                    if (animationGroups.length != 0) {
+                        entity.add(new AnimationComponent(animationGroups));
+                        animationGroups[0].stop();
+                        entity.get(AnimationComponent).currentFrame = 0;
+                        entity.get(AnimationComponent).state = "pause";
+                    }
+
+
                 }
 
 
