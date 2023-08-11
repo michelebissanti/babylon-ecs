@@ -41,7 +41,7 @@ export class AnimationSystem extends IterativeSystem {
                     animComponent.id = entityServer.serverId;
                 }
 
-                if (animComponent.id != undefined && animComponent.state != "pause") {
+                if (animComponent.id != undefined && animComponent.state != "pause" && entityServer.busy == Utils.room.sessionId) {
 
                     animComponent.currentFrame = animComponent.animGroup[+animComponent.state].animatables[0].masterFrame;
 
@@ -55,11 +55,9 @@ export class AnimationSystem extends IterativeSystem {
 
                 }
 
-                if (animComponent.id != undefined && animComponent.state != "pause" && animComponent.isStoppable == true) {
+                if (animComponent.id != undefined && animComponent.state == "pause" && animComponent.isStoppable == true && entityServer.busy == Utils.room.sessionId) {
 
                     animComponent.isStoppable = false;
-
-                    console.log("ciao");
 
                     Utils.room.send("updateAnimationComponent", {
                         id: "" + entityServer.serverId,

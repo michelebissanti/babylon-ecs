@@ -248,6 +248,7 @@ export class WebXrSystem extends IterativeSystem {
 
                                         } else {
                                             //panel di warning perchè oggetto è occupato
+                                            GuiUtils.warningSlate("Warning", "This object is busy by another user.");
 
                                         }
 

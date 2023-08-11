@@ -1,5 +1,5 @@
 import { BoundingBoxGizmo, Color3, CreatePlane, MultiPointerScaleBehavior, SceneLoader, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3, WebXRFeatureName } from "@babylonjs/core";
-import { GUI3DManager, AdvancedDynamicTexture, HandMenu, HolographicSlate, InputText, NearMenu, TouchHolographicButton, Button, Grid, ScrollViewer, TouchHolographicMenu } from "@babylonjs/gui";
+import { GUI3DManager, AdvancedDynamicTexture, HandMenu, HolographicSlate, InputText, NearMenu, TouchHolographicButton, Button, Grid, ScrollViewer, TouchHolographicMenu, TextBlock, TextWrapping, Control } from "@babylonjs/gui";
 import { Entity } from "tick-knock";
 import { ClientComponent } from "./components/ClientComponent";
 import { Object3d, Utils } from "./utils";
@@ -31,23 +31,37 @@ export class GuiUtils {
 
 
         var createButton = new TouchHolographicButton();
-        var joinButton = new TouchHolographicButton();
-
         nearMenu.addButton(createButton);
-        nearMenu.addButton(joinButton);
-
-
-        //nearMenu.addButton(button3);
-
         createButton.text = "Create Room";
-        createButton.imageUrl = "icon/create-room.png"
+        createButton.imageUrl = "icon/create-room.png";
+
+        createButton.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room = await player.get(ClientComponent).client.create(ROOM_TYPE);
+            Utils.room = player.get(ClientComponent).room;
+
+            if (player.get(ClientComponent).room != null) {
+                nearMenu.dispose();
+                Utils.setServerTrigger(Utils.engineEcs);
+                GuiUtils.initRoom(player);
+            }
+        });
+
+
+        var joinButton = new TouchHolographicButton();
+        nearMenu.addButton(joinButton);
         joinButton.text = "Join Room";
         joinButton.imageUrl = "icon/join.png";
-        //button3.text = "Exit";
 
+        joinButton.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room = await player.get(ClientComponent).client.joinById(inputText.text);
+            Utils.room = player.get(ClientComponent).room;
 
-
-        //button3.onPointerDownObservable.add(()=>{});
+            if (player.get(ClientComponent).room != null) {
+                nearMenu.dispose();
+                Utils.setServerTrigger(Utils.engineEcs);
+                GuiUtils.initRoom(player);
+            }
+        });
 
         var textArea = CreatePlane("textArea", { width: 2, height: 1 }, Utils.scene);
         textArea.parent = nearMenu.mesh;
@@ -63,27 +77,32 @@ export class GuiUtils {
         inputText.background = "green";
         advancedTexture.addControl(inputText);
 
-        createButton.onPointerDownObservable.add(async () => {
-            player.get(ClientComponent).room = await player.get(ClientComponent).client.create(ROOM_TYPE);
-            Utils.room = player.get(ClientComponent).room;
 
-            if (player.get(ClientComponent).room != null) {
-                nearMenu.dispose();
-                Utils.setServerTrigger(Utils.engineEcs);
-                GuiUtils.initRoom(player);
+        var listButton = new TouchHolographicButton();
+        nearMenu.addButton(listButton);
+        listButton.text = "Room List";
+        listButton.imageUrl = "icon/join.png";
+
+        let displayList = false;
+        let listDiplay: HolographicSlate;
+
+        listButton.onPointerDownObservable.add(async () => {
+
+            if (displayList == true) {
+                listDiplay.dispose();
+                displayList = false;
+                listButton.text = "Room List";
+            } else {
+                //spawn slate con elenco
+                listDiplay = await GuiUtils.createListRoom(player, nearMenu);
+                listButton.text = "Hide Room List";
+                displayList = true;
             }
+
+
         });
 
-        joinButton.onPointerDownObservable.add(async () => {
-            player.get(ClientComponent).room = await player.get(ClientComponent).client.joinById(inputText.text);
-            Utils.room = player.get(ClientComponent).room;
 
-            if (player.get(ClientComponent).room != null) {
-                nearMenu.dispose();
-                Utils.setServerTrigger(Utils.engineEcs);
-                GuiUtils.initRoom(player);
-            }
-        });
 
     }
 
@@ -280,9 +299,10 @@ export class GuiUtils {
         let manager = GuiUtils.gui3dmanager;
 
         let controllerMenu = new TouchHolographicMenu("objectMenu");
+        controllerMenu.blockLayout = true;
         controllerMenu.columns = 1;
         manager.addControl(controllerMenu);
-        controllerMenu.mesh.parent = mesh;
+        controllerMenu.linkToTransformNode(mesh);
         controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
         controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
 
@@ -330,6 +350,124 @@ export class GuiUtils {
             }
 
         });
+    }
+
+    static warningSlate(titleString: string, textString: string) {
+        var dialogSlate = new HolographicSlate("dialogSlate");
+
+        dialogSlate.titleBarHeight = 0; // Hides default slate controls and title bar
+        dialogSlate.dimensions = new Vector2(1, 1);
+        dialogSlate.position = new Vector3(0, 0, 0);
+
+        GuiUtils.gui3dmanager.addControl(dialogSlate);
+
+        var contentGrid = new Grid("grid");
+        var buttonLeft = Button.CreateSimpleButton("left", "Okay");
+        var title = new TextBlock("title");
+        var text = new TextBlock("text");
+
+        buttonLeft.width = 1;
+        buttonLeft.height = 0.2;
+        buttonLeft.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        buttonLeft.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        buttonLeft.textBlock.color = "white";
+        buttonLeft.onPointerUpObservable.add(() => {
+            dialogSlate.dispose();
+        });
+
+        title.height = 0.2;
+        title.color = "white";
+        title.textWrapping = TextWrapping.WordWrap;
+        title.setPadding("5%", "5%", "5%", "5%");
+        title.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        title.text = titleString;
+        title.fontWeight = "bold";
+
+        text.height = 0.8;
+        text.color = "white";
+        text.textWrapping = TextWrapping.WordWrap;
+        text.setPadding("5%", "5%", "5%", "5%");
+        text.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        text.text = textString;
+
+        contentGrid.addControl(buttonLeft);
+        contentGrid.addControl(title);
+        contentGrid.addControl(text);
+        contentGrid.background = "#000080";
+        dialogSlate.content = contentGrid;
+    }
+
+    static async createListRoom(player: Entity, nearMenu): Promise<HolographicSlate> {
+        let manager = GuiUtils.gui3dmanager;
+
+        //creo la lastra olografica dove inserirò la gui 2d
+        let listSlate = new HolographicSlate("listSlate");
+        listSlate.titleBarHeight = 0;
+        listSlate.dimensions = new Vector2(1, 1);
+        listSlate.position = new Vector3(0, 0, 0);
+        listSlate.title = "Room list";
+
+        manager.addControl(listSlate);
+
+        let sv = new ScrollViewer();
+        sv.background = "blue";
+
+        let grid = new Grid();
+        grid.background = "black";
+
+        sv.addControl(grid);
+
+        grid.addColumnDefinition(1);
+
+        let roomAvaible = await player.get(ClientComponent).client.getAvailableRooms("my_room");
+
+        let elementSize = roomAvaible.length;
+
+        if (elementSize > 0) {
+            for (let i = 0; i < elementSize; i++) {
+                grid.addRowDefinition(200, true);
+
+                var textButton = Button.CreateSimpleButton("", roomAvaible[i].roomId);
+                textButton.color = "white";
+                textButton.background = "green";
+                grid.addControl(textButton, i, 0);
+
+                textButton.onPointerClickObservable.add(async () => {
+
+                    player.get(ClientComponent).room = await player.get(ClientComponent).client.joinById(roomAvaible[i].roomId);
+                    Utils.room = player.get(ClientComponent).room;
+
+                    if (player.get(ClientComponent).room != null) {
+                        nearMenu.dispose();
+                        listSlate.dispose();
+                        Utils.setServerTrigger(Utils.engineEcs);
+                        GuiUtils.initRoom(player);
+                    }
+
+                });
+            }
+
+            grid.height = elementSize * 200 + "px";
+
+        } else {
+
+            var title = new TextBlock("title");
+            grid.addControl(title);
+            title.height = 0.2;
+            title.color = "white";
+            title.textWrapping = TextWrapping.WordWrap;
+            title.setPadding("5%", "5%", "5%", "5%");
+            title.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+            title.text = "No avaible Rooms";
+            title.fontWeight = "bold";
+            title.fontSize = 50;
+
+        }
+
+
+        listSlate.content = sv;
+
+        return listSlate;
     }
 
 }

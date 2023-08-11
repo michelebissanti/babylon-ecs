@@ -55,6 +55,16 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                         entity.get(AnimationComponent).state = "pause";
                     }
 
+                    //se sono un player non posso interagire con la mesh
+                    if (entity.get(EntityMultiplayerComponent).isPlayer) {
+                        console.log("ciao");
+                        let meshes = entity.get(MeshArrayComponent).meshes;
+
+                        meshes.forEach((mesh) => {
+                            mesh.isPickable = false;
+                        });
+                    }
+
 
                 }
 

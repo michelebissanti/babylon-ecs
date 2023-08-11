@@ -4,8 +4,10 @@ export class EntityMultiplayerComponent {
     send: boolean = false;
     delete: string = "";
     busy: string = undefined;
+    isPlayer: boolean = false;
 
-    constructor(send?: boolean) {
-        this.send = send
+    constructor(send?: boolean, isPlayer?: boolean) {
+        this.send = send;
+        this.isPlayer = isPlayer;
     }
 }

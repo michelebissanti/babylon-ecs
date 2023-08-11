@@ -91,15 +91,12 @@ class App {
 
         // Create the player entity and attach all the component
         let player = new Entity();
-        /* player.add(new MeshComponent(MeshBuilder.CreateSphere('player', { diameter: 1 }, this.scene), player.id));
-        player.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
-        player.get(MeshComponent).mesh.isPickable = false; */
 
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
         player.add(new ClientComponent(true));
 
-        player.add(new EntityMultiplayerComponent(true));
+        player.add(new EntityMultiplayerComponent(true, true));
 
         player.add(new MeshMultiComponent("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", false));
 

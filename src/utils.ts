@@ -107,6 +107,8 @@ export class Utils {
                         joiner.get(EntityMultiplayerComponent).serverId = serverEntity.id;
                     }
 
+                    joiner.get(EntityMultiplayerComponent).isPlayer = serverEntity.isPlayer;
+
                     Utils.savedEntities.set(serverEntity.id, joiner.id);
 
 
@@ -263,25 +265,37 @@ export class Utils {
                         //aggiorno il modello prendendo la sua entità
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
-                        //aggiorno solo se non sono io a mandare l'update
-                        if (entityServer.sender != Utils.room.sessionId && localEntity.has(AnimationComponent)) {
+                        if (localEntity.has(AnimationComponent)) {
 
-                            let lastAnimation = 0;
-                            let animations = localEntity.get(AnimationComponent).animGroup;
-                            localEntity.get(AnimationComponent).state = entityServer.state;
-                            localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
+                            let animComponent = localEntity.get(AnimationComponent);
 
-                            /* if (entityServer.state != "pause" && localEntity.get(AnimationComponent).isStoppable == false) {
-                                animations[+entityServer.state].goToFrame(entityServer.currentFrame);
-                                animations[+entityServer.state].play(true);
-                                lastAnimation = +entityServer.state;
-                                localEntity.get(AnimationComponent).isStoppable = true;
-                            } else {
-                                animations[lastAnimation].pause();
-                                localEntity.get(AnimationComponent).isStoppable = false;
+                            let lastState = animComponent.state;
 
-                            } */
+                            //aggiorno solo se non sono io a mandare l'update
+                            if (entityServer.sender != Utils.room.sessionId && localEntity.has(AnimationComponent)) {
+
+                                if (lastState != entityServer.state) {
+                                    animComponent.state = entityServer.state;
+                                    animComponent.currentFrame = entityServer.currentFrame;
+
+                                    let animations = animComponent.animGroup;
+
+                                    if (animComponent.state != "pause") {
+
+                                        animations[+animComponent.state].goToFrame(animComponent.currentFrame);
+                                        animations[+animComponent.state].play(true);
+                                        animComponent.isStoppable = true;
+                                    } else {
+                                        animations[+lastState].pause();
+                                        animComponent.isStoppable = false;
+                                    }
+                                }
+
+                            }
+
                         }
+
+
 
                     });
                 }
