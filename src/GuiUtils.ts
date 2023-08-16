@@ -1,4 +1,4 @@
-import { BoundingBoxGizmo, Color3, CreatePlane, MultiPointerScaleBehavior, SceneLoader, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3, WebXRFeatureName } from "@babylonjs/core";
+import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, MultiPointerScaleBehavior, SceneLoader, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3, WebXRFeatureName } from "@babylonjs/core";
 import { GUI3DManager, AdvancedDynamicTexture, HandMenu, HolographicSlate, InputText, NearMenu, TouchHolographicButton, Button, Grid, ScrollViewer, TouchHolographicMenu, TextBlock, TextWrapping, Control } from "@babylonjs/gui";
 import { Entity } from "tick-knock";
 import { ClientComponent } from "./components/ClientComponent";
@@ -20,12 +20,16 @@ export class GuiUtils {
         let manager = GuiUtils.gui3dmanager;
         manager.useRealisticScaling = true;
 
+
         // Create Near Menu with Touch Holographic Buttons + behaviour
         let nearMenu = new NearMenu("NearMenu");
         nearMenu.rows = 1;
         manager.addControl(nearMenu);
         nearMenu.isPinned = false;
         nearMenu.position.y = 2;
+
+        let roomListSlate: HolographicSlate;
+
 
         //nearMenu.scaling = new Vector3(0.1, 0.1, 0.1);
 
@@ -41,6 +45,9 @@ export class GuiUtils {
 
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
+                if (roomListSlate != undefined) {
+                    roomListSlate.dispose();
+                }
                 Utils.setServerTrigger(Utils.engineEcs);
                 GuiUtils.initRoom(player);
             }
@@ -58,6 +65,9 @@ export class GuiUtils {
 
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
+                if (roomListSlate != undefined) {
+                    roomListSlate.dispose();
+                }
                 Utils.setServerTrigger(Utils.engineEcs);
                 GuiUtils.initRoom(player);
             }
@@ -84,17 +94,16 @@ export class GuiUtils {
         listButton.imageUrl = "icon/join.png";
 
         let displayList = false;
-        let listDiplay: HolographicSlate;
 
         listButton.onPointerDownObservable.add(async () => {
 
             if (displayList == true) {
-                listDiplay.dispose();
+                roomListSlate.dispose();
                 displayList = false;
                 listButton.text = "Room List";
             } else {
                 //spawn slate con elenco
-                listDiplay = await GuiUtils.createListRoom(player, nearMenu);
+                roomListSlate = await GuiUtils.createListRoom(player, nearMenu);
                 listButton.text = "Hide Room List";
                 displayList = true;
             }
@@ -116,15 +125,10 @@ export class GuiUtils {
 
         const manager = GuiUtils.gui3dmanager;
 
-        //dovrebbe essere se sono in xr e se ho abilitate le mani
-        if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
-            var handMenu = new HandMenu(player.get(WebXrComponent).exp.baseExperience, "HandMenu");
-            manager.addControl(handMenu);
+        this.createHandMenu(player);
 
-            handMenu.addButton(addObject);
-            handMenu.addButton(roomInfo);
-            handMenu.addButton(leaveRoomBtn);
-        }
+        //dovrebbe essere se sono in xr e se ho abilitate le mani
+        //if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
 
         var nearMenu = new NearMenu("NearMenu");
         nearMenu.rows = 1;
@@ -191,6 +195,54 @@ export class GuiUtils {
 
         });
 
+    }
+
+    static createHandMenu(player) {
+        let displayList = false;
+
+        let handMenu = new HandMenu(player.get(WebXrComponent).exp.baseExperience, "HandMenu");
+        handMenu.handConstraintBehavior.handConstraintVisibility = HandConstraintVisibility.PALM_UP;
+        handMenu.handConstraintBehavior.handedness = "none";
+        GuiUtils.gui3dmanager.addControl(handMenu);
+
+        let leaveRoomBtn = new TouchHolographicButton();
+        leaveRoomBtn.text = "Leave Room";
+        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
+        handMenu.addButton(leaveRoomBtn);
+        leaveRoomBtn.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room.leave();
+            window.location.reload();
+        });
+
+        let roomInfo = new TouchHolographicButton();
+        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
+        handMenu.addButton(roomInfo);
+
+        roomInfo.onPointerDownObservable.add(async () => {
+            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
+
+        });
+
+        let addObject = new TouchHolographicButton();
+        addObject.text = "Add 3d Object";
+        addObject.imageUrl = "icon/object.png";
+        handMenu.addButton(addObject);
+        let listDiplay: HolographicSlate;
+
+        addObject.onPointerDownObservable.add(async () => {
+
+            if (displayList == true) {
+                listDiplay.dispose();
+                displayList = false;
+                addObject.text = "Add 3d Object";
+            } else {
+                //spawn slate con elenco
+                listDiplay = GuiUtils.createListObject(player);
+                addObject.text = "Hide 3d Object List";
+                displayList = true;
+            }
+
+        });
     }
 
     static createListObject(player: Entity): HolographicSlate {
@@ -294,15 +346,13 @@ export class GuiUtils {
         return listSlate;
     }
 
-    static controllerMenu(inputSource, playerEntity) {
-        let mesh = inputSource.grip;
+    static controllerMenu(playerEntity): TouchHolographicMenu {
         let manager = GuiUtils.gui3dmanager;
 
         let controllerMenu = new TouchHolographicMenu("objectMenu");
-        controllerMenu.blockLayout = true;
         controllerMenu.columns = 1;
         manager.addControl(controllerMenu);
-        controllerMenu.linkToTransformNode(mesh);
+
         controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
         controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
 
@@ -350,6 +400,63 @@ export class GuiUtils {
             }
 
         });
+
+        return controllerMenu;
+    }
+
+    static holoMenu(): TouchHolographicMenu {
+        //let mesh = inputSource.grip;
+        let manager = GuiUtils.gui3dmanager;
+
+        let controllerMenu = new TouchHolographicMenu("objectMenu");
+        controllerMenu.columns = 1;
+        manager.addControl(controllerMenu);
+        //controllerMenu.linkToTransformNode(mesh);
+        controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
+        controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
+
+        let displayList = false;
+
+        var roomInfo = new TouchHolographicButton();
+        controllerMenu.addButton(roomInfo);
+        roomInfo.text = "Room id: ";
+        //console.log(Utils.room.id.toString());
+
+
+
+        var leaveRoomBtn = new TouchHolographicButton();
+        controllerMenu.addButton(leaveRoomBtn);
+        leaveRoomBtn.text = "Leave Room";
+        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png"
+
+        leaveRoomBtn.onPointerDownObservable.add(async () => {
+            controllerMenu.mesh.position.y += 0.1;
+        });
+
+
+        let addObject = new TouchHolographicButton();
+        controllerMenu.addButton(addObject);
+        addObject.text = "Add 3d Object";
+        addObject.imageUrl = "icon/object.png";
+
+        let listDiplay: HolographicSlate;
+
+        addObject.onPointerDownObservable.add(async () => {
+
+            if (displayList == true) {
+                listDiplay.dispose();
+                displayList = false;
+                addObject.text = "Add 3d Object";
+            } else {
+                //spawn slate con elenco
+                //listDiplay = GuiUtils.createListObject(playerEntity);
+                addObject.text = "Hide 3d Object List";
+                displayList = true;
+            }
+
+        });
+
+        return controllerMenu
     }
 
     static warningSlate(titleString: string, textString: string) {

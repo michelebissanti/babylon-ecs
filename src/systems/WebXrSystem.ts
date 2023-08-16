@@ -63,28 +63,40 @@ export class WebXrSystem extends IterativeSystem {
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
             });
 
-            //posizionamento del menu sul controller
-            defExp.input.onControllerAddedObservable.add(inputSource => {
-                inputSource.onMotionControllerInitObservable.add(motionController => {
-                    motionController.onModelLoadedObservable.add(mc => {
-                        console.log(inputSource);
+            let controllerMenu: TouchHolographicMenu;
 
-                        controllers.push(mc);
+            Utils.waitForConditionAsync(_ => {
+                return Utils.room != null;
+            }).then(_ => {
+                controllerMenu = GuiUtils.controllerMenu(entity);
 
-                        Utils.waitForConditionAsync(_ => {
-                            return Utils.room != null;
-                        }).then(_ => {
+                //posizionamento del menu sul controller
+                defExp.input.onControllerAddedObservable.add(inputSource => {
+                    inputSource.onMotionControllerInitObservable.add(motionController => {
+                        motionController.onModelLoadedObservable.add(mc => {
+                            console.log(inputSource);
+
+                            controllers.push(mc);
+
                             if (motionController.handedness[0] === 'l' && inputSource.inputSource.hand == undefined) {
-                                GuiUtils.controllerMenu(inputSource, entity);
+                                controllerMenu.mesh.parent = inputSource.grip;
                             } else {
                                 //controllerMenu.position = new Vector3(-0.1, 0, 0);
                             }
-                        });
 
 
+
+
+
+
+                        })
                     })
-                })
+                });
+
             });
+            //controllerMenu = GuiUtils.holoMenu();
+
+
 
 
             let objectMenuShow = false;

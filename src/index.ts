@@ -94,7 +94,7 @@ class App {
 
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
-        player.add(new ClientComponent(true));
+        player.add(new ClientComponent(false));
 
         player.add(new EntityMultiplayerComponent(true, true));
 
@@ -157,6 +157,8 @@ class App {
 
         //create the menu to choose the room
         GuiUtils.createNearMenu(player);
+
+        //GuiUtils.holoMenu();
     }
 
     run() {
