@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2, PointerDragBehavior, SceneLoader, WebXRAbstractMotionController } from "@babylonjs/core";
+import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2, PointerDragBehavior, SceneLoader, WebXRAbstractMotionController, BoundingInfo } from "@babylonjs/core";
 import { PlanePanel, HolographicButton, TouchHolographicButton, TouchHolographicMenu, HolographicSlate, ScrollViewer, Grid, Button } from "@babylonjs/gui";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
@@ -97,8 +97,33 @@ export class WebXrSystem extends IterativeSystem {
                                             //menu sull'oggetto
                                             if (GuiUtils.objectMenuShow == false) {
                                                 objectMenu = GuiUtils.objectMenu(entityPicked, entityMesh);
-                                                objectMenu.linkToTransformNode(entityMesh);
-                                                objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
+                                                objectMenu.position = entityMesh.position.clone();
+
+                                                let childMeshes = entityMesh.getChildMeshes();
+
+                                                let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
+                                                let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
+
+                                                for (let i = 0; i < childMeshes.length; i++) {
+                                                    let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
+                                                    let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
+
+                                                    min = Vector3.Minimize(min, meshMin);
+                                                    max = Vector3.Maximize(max, meshMax);
+                                                }
+
+                                                entityMesh.setBoundingInfo(new BoundingInfo(min, max));
+
+                                                entityMesh.showBoundingBox = true;
+
+
+                                                console.log(entityMesh.absoluteScaling.y);
+                                                //ALTERNATIVA MIGLIORE MA NON FUNZIONANTE E BUGGANTE
+                                                /* let behavior = new AttachToBoxBehavior(objectMenu.node);
+                                                entityMesh.addBehavior(behavior); */
+
+                                                //qui dovrebbe essere l'altezza della mesh
+                                                objectMenu.mesh.position.y += entityMesh.absoluteScaling.y / 2;
                                             } else {
 
                                             }
