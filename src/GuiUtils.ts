@@ -352,6 +352,7 @@ export class GuiUtils {
         let controllerMenu = new TouchHolographicMenu("objectMenu");
         controllerMenu.columns = 1;
         manager.addControl(controllerMenu);
+        controllerMenu.isVisible = false;
 
         controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
         controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);

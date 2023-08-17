@@ -22,6 +22,7 @@ import { GuiUtils } from "../GuiUtils";
 export class WebXrSystem extends IterativeSystem {
     scene: Scene;
     init = true;
+    initRoom = true;
 
     constructor(scene: Scene) {
         super(new QueryBuilder().contains(WebXrComponent).build());
@@ -35,16 +36,6 @@ export class WebXrSystem extends IterativeSystem {
         if (this.init) {
             const featureManager = defExp.baseExperience.featuresManager;
 
-            //abilito se possibile l'hand tracking
-            featureManager.enableFeature(WebXRFeatureName.HAND_TRACKING, "latest", {
-                xrInput: defExp.input,
-            }, true, false);
-
-            //abilito se possibile il walking locomotion
-            featureManager.enableFeature(WebXRFeatureName.WALKING_LOCOMOTION, "latest", {
-                locomotionTarget: entity.get(PlayerCameraComponent).camera
-            }, true, false);
-
             //quando entro nella sessione webxr
             defExp.baseExperience.sessionManager.onXRSessionInit.add(() => {
                 //aggiorno la telecamera dell'entità player
@@ -57,51 +48,27 @@ export class WebXrSystem extends IterativeSystem {
             });
 
 
+            //abilito se possibile l'hand tracking
+            let handTracking = featureManager.enableFeature(WebXRFeatureName.HAND_TRACKING, "latest", {
+                xrInput: defExp.input,
+            }, true, false);
+
+            //abilito se possibile il walking locomotion
+            featureManager.enableFeature(WebXRFeatureName.WALKING_LOCOMOTION, "latest", {
+                locomotionTarget: entity.get(PlayerCameraComponent).camera
+            }, true, false);
+
+
             //quando esco dalla sessione webxr
             defExp.baseExperience.sessionManager.onXRSessionEnded.add(() => {
                 //aggiorno la telecamera dell'entità player
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
             });
 
-            let controllerMenu: TouchHolographicMenu;
-
-            Utils.waitForConditionAsync(_ => {
-                return Utils.room != null;
-            }).then(_ => {
-                controllerMenu = GuiUtils.controllerMenu(entity);
-
-                //posizionamento del menu sul controller
-                defExp.input.onControllerAddedObservable.add(inputSource => {
-                    inputSource.onMotionControllerInitObservable.add(motionController => {
-                        motionController.onModelLoadedObservable.add(mc => {
-                            console.log(inputSource);
-
-                            controllers.push(mc);
-
-                            if (motionController.handedness[0] === 'l' && inputSource.inputSource.hand == undefined) {
-                                controllerMenu.mesh.parent = inputSource.grip;
-                            } else {
-                                //controllerMenu.position = new Vector3(-0.1, 0, 0);
-                            }
-
-
-
-
-
-
-                        })
-                    })
-                });
-
-            });
-            //controllerMenu = GuiUtils.holoMenu();
-
-
-
 
             let objectMenuShow = false;
             let objectMenuList = new Map<Entity, boolean>();
-            let objectMenu;
+            let objectMenu: TouchHolographicMenu;
             let switchEdit = false;
 
             //tocco su un oggetto
@@ -129,8 +96,7 @@ export class WebXrSystem extends IterativeSystem {
                                                 entityPicked.get(EntityMultiplayerComponent).busy = "true";
                                             }
 
-
-
+                                            //se il menu è aperto
                                             if (objectMenuShow == false) {
                                                 objectMenu = new TouchHolographicMenu("objectMenu");
 
@@ -142,6 +108,11 @@ export class WebXrSystem extends IterativeSystem {
                                                 attachToBoxBehavior.distanceAwayFromBottomOfFace = 0;
                                                 attachToBoxBehavior.distanceAwayFromFace = 0;
                                                 entityMesh.addBehavior(attachToBoxBehavior); */
+
+                                                /* let boundingBox = BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(entityMesh as Mesh);
+
+                                                entityMesh = boundingBox; */
+
 
                                                 objectMenu.scaling.x = 0.1;
                                                 objectMenu.scaling.y = 0.1;
@@ -251,7 +222,7 @@ export class WebXrSystem extends IterativeSystem {
                                                     entityPicked.get(EntityMultiplayerComponent).busy = "false";
                                                 });
 
-                                                objectMenu.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
+                                                objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
 
                                                 objectMenuShow = true;
                                             } else {
@@ -276,6 +247,58 @@ export class WebXrSystem extends IterativeSystem {
             });
 
             this.init = false;
+        }
+
+        if (this.initRoom && Utils.room != null) {
+            let controllerMenu: TouchHolographicMenu;
+            let controllerMenuState = true;
+
+            controllerMenu = GuiUtils.controllerMenu(entity);
+
+            //posizionamento del menu sul controller
+            defExp.input.onControllerAddedObservable.add(inputSource => {
+                inputSource.onMotionControllerInitObservable.add(motionController => {
+                    motionController.onModelLoadedObservable.add(mc => {
+                        //console.log(inputSource);
+
+                        controllers.push(mc);
+
+                        //se è un controller sinistro e non è una mano
+                        if (motionController.handedness[0] === 'l' && inputSource.inputSource.hand == undefined) {
+                            //attacco il menu al controller
+                            controllerMenu.mesh.parent = inputSource.grip;
+                            controllerMenu.isVisible = true;
+                        } else {
+                            //controllerMenu.position = new Vector3(-0.1, 0, 0);
+                        }
+
+                        const xr_ids = motionController.getComponentIds();
+
+                        //press x to hide the menu
+                        let xbuttonComponent = motionController.getComponent(xr_ids[3]);//x-button
+                        xbuttonComponent.onButtonStateChangedObservable.add(() => {
+                            if (xbuttonComponent.pressed) {
+                                if (controllerMenuState) {
+                                    controllerMenu.isVisible = false;
+                                    controllerMenuState = false;
+                                } else {
+                                    controllerMenu.isVisible = true;
+                                    controllerMenuState = true;
+                                }
+
+                            }
+                        });
+
+
+
+
+
+
+                    })
+                })
+            });
+
+            this.initRoom = false;
         }
 
     }
