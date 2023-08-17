@@ -14,6 +14,8 @@ import { } from "babylonjs-gui";
 
 export class GuiUtils {
     public static gui3dmanager: GUI3DManager;
+    public static objectMenuShow: boolean = false;
+    static switchEdit: boolean = false;
 
     static createNearMenu(player: Entity) {
         const ROOM_TYPE = "my_room";
@@ -578,4 +580,139 @@ export class GuiUtils {
         return listSlate;
     }
 
+    static objectMenu(entityPicked, entityMesh): TouchHolographicMenu {
+        let objectMenu = new TouchHolographicMenu("objectMenu");
+
+        objectMenu.rows = 1;
+        GuiUtils.gui3dmanager.addControl(objectMenu);
+
+        /* const attachToBoxBehavior = new AttachToBoxBehavior(objectMenu.mesh);
+        attachToBoxBehavior.distanceAwayFromBottomOfFace = 0;
+        attachToBoxBehavior.distanceAwayFromFace = 0;
+        entityMesh.addBehavior(attachToBoxBehavior); */
+
+        /* let boundingBox = BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(entityMesh as Mesh);
+
+        entityMesh = boundingBox; */
+
+
+        objectMenu.scaling.x = 0.1;
+        objectMenu.scaling.y = 0.1;
+        objectMenu.scaling.z = 0.1;
+
+        //objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + 0.5;
+
+        const sixDofDragBehavior = new SixDofDragBehavior();
+        const multiPointerScaleBehavior = new MultiPointerScaleBehavior();
+        let utilLayer, gizmo;
+
+        let editButton = new TouchHolographicButton("editButton");
+        objectMenu.addButton(editButton);
+        editButton.text = "Move/Scale";
+        editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
+        editButton.onPointerDownObservable.add(() => {
+
+            if (GuiUtils.switchEdit == false) {
+                // Create bounding box gizmo
+                utilLayer = new UtilityLayerRenderer(Utils.scene)
+                utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
+                gizmo = new BoundingBoxGizmo(Color3.FromHexString("#0984e3"), utilLayer);
+
+                gizmo.attachedMesh = entityMesh;
+
+                entityMesh.addBehavior(multiPointerScaleBehavior);
+                entityMesh.addBehavior(sixDofDragBehavior);
+                entityPicked.get(TransformComponent).revertLogic = true;
+                entityPicked.get(TransformComponent).update = true;
+                GuiUtils.switchEdit = true;
+            } else {
+                utilLayer.dispose();
+                gizmo.dispose();
+                entityMesh.removeBehavior(multiPointerScaleBehavior);
+                entityMesh.removeBehavior(sixDofDragBehavior);
+                entityPicked.get(TransformComponent).revertLogic = false;
+                entityPicked.get(TransformComponent).update = false;
+                GuiUtils.switchEdit = false;
+            }
+
+
+        });
+
+        if (entityPicked.has(AnimationComponent)) {
+
+            let animComp = entityPicked.get(AnimationComponent);
+
+            for (let i = 0; i < animComp.animGroup.length; i++) {
+                let playButton = new TouchHolographicButton("playButton");
+                objectMenu.addButton(playButton);
+                playButton.text = "Play " + animComp.animGroup[i].name;
+                playButton.imageUrl = "icon/play-button.png";
+
+                playButton.onPointerDownObservable.add(() => {
+                    if (animComp.state == null || animComp.state == "pause") {
+                        animComp.animGroup[i].start(true);
+                        animComp.state = i.toString();
+
+                        playButton.text = "Pause";
+                        playButton.imageUrl = "icon/pause.png";
+
+                    } else if (animComp.state == i.toString()) {
+                        animComp.animGroup[i].stop();
+                        animComp.state = "pause";
+
+                        playButton.text = "Play";
+                        playButton.imageUrl = "icon/play-button.png";
+                    }
+
+                });
+
+            }
+
+        }
+
+
+
+        let removeButton = new TouchHolographicButton("removeButton");
+        objectMenu.addButton(removeButton);
+        removeButton.text = "Delete Object";
+        removeButton.imageUrl = "icon/recycle-bin.png";
+        removeButton.onPointerDownObservable.add(() => {
+            if (GuiUtils.switchEdit) {
+                utilLayer.dispose();
+                gizmo.dispose();
+                entityMesh.removeBehavior(multiPointerScaleBehavior);
+                entityMesh.removeBehavior(sixDofDragBehavior);
+                entityPicked.get(TransformComponent).revertLogic = false;
+                entityPicked.get(TransformComponent).update = false;
+                GuiUtils.switchEdit = false;
+            }
+            objectMenu.dispose();
+            entityPicked.get(EntityMultiplayerComponent).delete = "true";
+            GuiUtils.objectMenuShow = false;
+        });
+
+        let closeButton = new TouchHolographicButton("closeButton");
+        objectMenu.addButton(closeButton);
+        closeButton.text = "Close Menu";
+        closeButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
+        closeButton.onPointerDownObservable.add(() => {
+            //chiudo la modalità di edit se non è stata chiusa prima
+            if (GuiUtils.switchEdit) {
+                utilLayer.dispose();
+                gizmo.dispose();
+                entityMesh.removeBehavior(multiPointerScaleBehavior);
+                entityMesh.removeBehavior(sixDofDragBehavior);
+                entityPicked.get(TransformComponent).revertLogic = false;
+                entityPicked.get(TransformComponent).update = false;
+                GuiUtils.switchEdit = false;
+            }
+            objectMenu.dispose();
+            GuiUtils.objectMenuShow = false;
+            entityPicked.get(EntityMultiplayerComponent).busy = "false";
+        });
+
+        GuiUtils.objectMenuShow = true;
+
+        return objectMenu;
+    }
 }
