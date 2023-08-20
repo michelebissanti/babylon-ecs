@@ -249,6 +249,7 @@ export class Utils {
             Utils.room.state.animationComponents.onAdd(async (entityServer) => {
 
                 if (Utils.savedEntities.has(entityServer.id)) {
+                    //se non sono stato io ad inviarla
                     if (entityServer.sender != Utils.room.sessionId) {
 
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
@@ -269,26 +270,41 @@ export class Utils {
 
                             let animComponent = localEntity.get(AnimationComponent);
 
-                            let lastState = animComponent.state;
+                            let animations = animComponent.animGroup;
 
                             //aggiorno solo se non sono io a mandare l'update
-                            if (entityServer.sender != Utils.room.sessionId && localEntity.has(AnimationComponent)) {
-
-                                if (lastState != entityServer.state) {
+                            if (entityServer.sender != Utils.room.sessionId) {
+                                //se l'animazione era in pausa la avvio
+                                if (animComponent.state == "pause" && entityServer.state != "pause") {
                                     animComponent.state = entityServer.state;
                                     animComponent.currentFrame = entityServer.currentFrame;
 
-                                    let animations = animComponent.animGroup;
+                                    animations[+animComponent.state].goToFrame(animComponent.currentFrame);
+                                    animations[+animComponent.state].play(true);
+                                    animComponent.isStoppable = true;
 
-                                    if (animComponent.state != "pause") {
+                                }
 
-                                        animations[+animComponent.state].goToFrame(animComponent.currentFrame);
-                                        animations[+animComponent.state].play(true);
-                                        animComponent.isStoppable = true;
-                                    } else {
-                                        animations[+lastState].pause();
-                                        animComponent.isStoppable = false;
-                                    }
+                                //se l'animazione è in play e la devo stoppare
+                                if (animComponent.state != "pause" && entityServer.state == "pause") {
+                                    animations[+animComponent.state].pause();
+                                    animComponent.isStoppable = false;
+
+                                    animComponent.state = entityServer.state;
+                                    animComponent.currentFrame = entityServer.currentFrame;
+                                }
+
+                                //se l'animazione è diversa da quella nuova
+                                if (animComponent.state != "pause" && entityServer.state != "pause" && animComponent.state != entityServer.state) {
+                                    animations[+animComponent.state].pause();
+                                    animComponent.isStoppable = false;
+
+                                    animComponent.state = entityServer.state;
+                                    animComponent.currentFrame = entityServer.currentFrame;
+
+                                    animations[+animComponent.state].goToFrame(animComponent.currentFrame);
+                                    animations[+animComponent.state].play(true);
+                                    animComponent.isStoppable = true;
                                 }
 
                             }

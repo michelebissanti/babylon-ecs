@@ -41,6 +41,7 @@ export class AnimationSystem extends IterativeSystem {
                     animComponent.id = entityServer.serverId;
                 }
 
+                //se l'animazione è in riproduzione, invio lo stato al server
                 if (animComponent.id != undefined && animComponent.state != "pause" && entityServer.busy == Utils.room.sessionId) {
 
                     animComponent.currentFrame = animComponent.animGroup[+animComponent.state].animatables[0].masterFrame;
@@ -55,6 +56,7 @@ export class AnimationSystem extends IterativeSystem {
 
                 }
 
+                //quando l'animazione è in pausa
                 if (animComponent.id != undefined && animComponent.state == "pause" && animComponent.isStoppable == true && entityServer.busy == Utils.room.sessionId) {
 
                     animComponent.isStoppable = false;

@@ -10,7 +10,6 @@ import { AnimationComponent } from "./components/AnimationComponent";
 import { EntityMultiplayerComponent } from "./components/EntityMultiplayerComponent";
 import { MeshMultiComponent } from "./components/MeshMultiComponent";
 import { PlayerCameraComponent } from "./components/PlayerCameraComponent";
-import { } from "babylonjs-gui";
 
 export class GuiUtils {
     public static gui3dmanager: GUI3DManager;
