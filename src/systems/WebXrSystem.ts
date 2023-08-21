@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2, PointerDragBehavior, SceneLoader, WebXRAbstractMotionController } from "@babylonjs/core";
+import { FreeCamera, IPointerEvent, KeyboardEventTypes, PointerEventTypes, Scene, Vector3, WebXRState, Node, WebXRFeatureName, BoundingBoxGizmo, Mesh, UtilityLayerRenderer, Color3, SixDofDragBehavior, MultiPointerScaleBehavior, TransformNode, AttachToBoxBehavior, AbstractMesh, MeshBuilder, Vector2, PointerDragBehavior, SceneLoader, WebXRAbstractMotionController, WebXRInputSource } from "@babylonjs/core";
 import { PlanePanel, HolographicButton, TouchHolographicButton, TouchHolographicMenu, HolographicSlate, ScrollViewer, Grid, Button } from "@babylonjs/gui";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
@@ -23,6 +23,10 @@ export class WebXrSystem extends IterativeSystem {
     scene: Scene;
     init = true;
     initRoom = true;
+    inputSourceArray: WebXRInputSource[] = new Array<WebXRInputSource>();
+    motionControllersArray: WebXRAbstractMotionController[] = new Array<WebXRAbstractMotionController>();
+    controllerUpdate: boolean = false;
+    controllerMenu: TouchHolographicMenu;
 
     constructor(scene: Scene) {
         super(new QueryBuilder().contains(WebXrComponent).build());
@@ -31,7 +35,7 @@ export class WebXrSystem extends IterativeSystem {
 
     protected updateEntity(entity: Entity, dt: number): void {
         let defExp = entity.get(WebXrComponent).exp;
-        let controllers: WebXRAbstractMotionController[] = new Array<WebXRAbstractMotionController>();
+
 
         if (this.init) {
             const featureManager = defExp.baseExperience.featuresManager;
@@ -63,6 +67,22 @@ export class WebXrSystem extends IterativeSystem {
             defExp.baseExperience.sessionManager.onXRSessionEnded.add(() => {
                 //aggiorno la telecamera dell'entità player
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
+            });
+
+            //prendo i controller
+            defExp.input.onControllerAddedObservable.add(inputSource => {
+                inputSource.onMotionControllerInitObservable.add(motionController => {
+                    motionController.onModelLoadedObservable.add(mc => {
+                        //console.log(inputSource);
+
+
+                        this.inputSourceArray.push(inputSource);
+                        this.motionControllersArray.push(motionController);
+
+                        this.controllerUpdate = true;
+
+                    })
+                })
             });
 
 
@@ -124,55 +144,47 @@ export class WebXrSystem extends IterativeSystem {
         }
 
         if (this.initRoom && Utils.room != null) {
-            let controllerMenu: TouchHolographicMenu;
-            let controllerMenuState = true;
+            this.controllerMenu = GuiUtils.controllerMenu(entity);
 
-            controllerMenu = GuiUtils.controllerMenu(entity);
+            this.initRoom = false;
+        }
 
-            //posizionamento del menu sul controller
-            defExp.input.onControllerAddedObservable.add(inputSource => {
-                inputSource.onMotionControllerInitObservable.add(motionController => {
-                    motionController.onModelLoadedObservable.add(mc => {
-                        //console.log(inputSource);
+        if (this.controllerUpdate) {
+            if (Utils.room != null) {
+                let controllerMenuState = true;
 
-                        controllers.push(mc);
+                this.inputSourceArray.forEach(controller => {
+                    //se è un controller sinistro e non è una mano
+                    if (controller.motionController.handedness == 'left' && controller.inputSource.hand == undefined) {
+                        //attacco il menu al controller
+                        this.controllerMenu.mesh.parent = controller.grip;
+                        this.controllerMenu.isVisible = true;
+                        console.log("entrato nel controller");
 
-                        //se è un controller sinistro e non è una mano
-                        if (motionController.handedness[0] === 'l' && inputSource.inputSource.hand == undefined) {
-                            //attacco il menu al controller
-                            controllerMenu.mesh.parent = inputSource.grip;
-                            controllerMenu.isVisible = true;
-                        } else {
-                            //controllerMenu.position = new Vector3(-0.1, 0, 0);
-                        }
-
-                        const xr_ids = motionController.getComponentIds();
+                        const xr_ids = controller.motionController.getComponentIds();
 
                         //press x to hide the menu
-                        let xbuttonComponent = motionController.getComponent(xr_ids[3]);//x-button
+                        let xbuttonComponent = controller.motionController.getComponent(xr_ids[3]);//x-button
                         xbuttonComponent.onButtonStateChangedObservable.add(() => {
                             if (xbuttonComponent.pressed) {
                                 if (controllerMenuState) {
-                                    controllerMenu.isVisible = false;
+                                    this.controllerMenu.isVisible = false;
                                     controllerMenuState = false;
                                 } else {
-                                    controllerMenu.isVisible = true;
+                                    this.controllerMenu.isVisible = true;
                                     controllerMenuState = true;
                                 }
 
                             }
                         });
+                    } else {
+                        //controllerMenu.position = new Vector3(-0.1, 0, 0);
+                    }
 
 
+                });
 
-
-
-
-                    })
-                })
-            });
-
-            this.initRoom = false;
+            }
         }
 
     }

@@ -113,6 +113,9 @@ export class GuiUtils {
         });
 
 
+        nearMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
+
+
 
     }
 
@@ -196,6 +199,8 @@ export class GuiUtils {
 
         });
 
+        nearMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
+
     }
 
     static createHandMenu(player) {
@@ -244,6 +249,8 @@ export class GuiUtils {
             }
 
         });
+
+        handMenu.scaling.addInPlace(new Vector3(0.01, 0.01, 0.01));
     }
 
     static createListObject(player: Entity): HolographicSlate {
@@ -402,6 +409,8 @@ export class GuiUtils {
             }
 
         });
+
+        //controllerMenu.scaling.addInPlace(new Vector3(0.01, 0.01, 0.01));
 
         return controllerMenu;
     }
