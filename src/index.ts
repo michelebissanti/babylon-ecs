@@ -94,7 +94,7 @@ class App {
 
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
-        player.add(new ClientComponent(false));
+        player.add(new ClientComponent(true));
 
         player.add(new EntityMultiplayerComponent(true, true));
 
@@ -113,6 +113,18 @@ class App {
         this.ecs.addEntity(player);
 
         GuiUtils.gui3dmanager = new GUI3DManager(this.scene);
+
+
+        let video = new Entity();
+
+        video.add(new EntityMultiplayerComponent(false));
+
+        video.add(new MeshMultiComponent("video", "test.mp4", false));
+
+        video.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+
+        Utils.engineEcs.addEntity(video);
+
 
 
 

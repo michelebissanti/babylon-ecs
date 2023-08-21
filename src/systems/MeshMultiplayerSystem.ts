@@ -1,7 +1,7 @@
 import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder } from "tick-knock";
 import { MeshComponent } from "../components/MeshComponent";
 import { PositionComponent } from "../components/PositionComponent";
-import { AbstractMesh, KeyboardEventTypes, Matrix, MeshBuilder, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Color3, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, Vector3, VideoTexture } from "@babylonjs/core";
 import { PhysicComponent } from "../components/PhysicComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { TransformComponent } from "../components/TransformComponent";
@@ -38,6 +38,21 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     entity.add(new MeshComponent(MeshBuilder.CreateSphere('sphere ' + meshMultiComponent.id, { diameter: 1 }, this.scene), entity.id));
                     entity.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
                     entity.get(MeshComponent).mesh.isPickable = false;
+                } else if (meshMultiComponent.location == "video") {
+                    let plane = MeshBuilder.CreatePlane("video", { height: 5.4762, width: 7.3967, sideOrientation: Mesh.DOUBLESIDE });
+                    plane.isPickable = true;
+                    let videoMat = new StandardMaterial("videoMat");
+                    let videoTex = new VideoTexture("videoTex", meshMultiComponent.location + "/" + meshMultiComponent.name, this.scene);
+
+                    videoMat.diffuseTexture = videoTex;
+                    videoMat.roughness = 1;
+                    videoMat.emissiveColor = Color3.White();
+                    plane.material = videoMat;
+
+                    entity.add(new MeshComponent(plane, entity.id, false));
+                    entity.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(3.69835, 2.7381, 0), false);
+
+
                 } else {
 
                     let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
@@ -57,7 +72,6 @@ export class MeshMultiplayerSystem extends IterativeSystem {
 
                     //se sono un player non posso interagire con la mesh
                     if (entity.get(EntityMultiplayerComponent).isPlayer) {
-                        console.log("ciao");
                         let meshes = entity.get(MeshArrayComponent).meshes;
 
                         meshes.forEach((mesh) => {

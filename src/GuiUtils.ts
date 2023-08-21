@@ -292,7 +292,7 @@ export class GuiUtils {
                 //piazzo una nuovo oggetto selezionato nella scena
                 let newObject = new Entity();
 
-                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+                /* let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
                     null,
                     objectAvaible[i].percorso,
                     objectAvaible[i].nomeFile
@@ -303,11 +303,11 @@ export class GuiUtils {
                 if (animationGroups.length != 0) {
                     newObject.add(new AnimationComponent(animationGroups));
                     animationGroups[0].stop();
-                }
+                } */
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
-                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
+                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
 
                 newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
 
