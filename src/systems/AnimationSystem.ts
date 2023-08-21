@@ -33,7 +33,7 @@ export class AnimationSystem extends IterativeSystem {
                 let entityServer = entity.get(EntityMultiplayerComponent);
 
                 //se l'entità non è stata mai inviata al server, invio il segnale di creazione
-                if (animComponent.id == undefined && entityServer.serverId != undefined) {
+                if (animComponent.id == undefined && entityServer.serverId != undefined && entityServer.busy == Utils.room.sessionId) {
                     Utils.room.send("attachAnimationComponent", {
                         id: "" + entityServer.serverId
                     });
