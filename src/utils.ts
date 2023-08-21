@@ -127,9 +127,12 @@ export class Utils {
             });
 
             Utils.room.state.entities.onRemove((serverEntity) => {
-                let playerEntity = engine.getEntityById(this.savedEntities.get(serverEntity.id));
+                let localEntity = engine.getEntityById(this.savedEntities.get(serverEntity.id));
+                if (localEntity.has(MeshArrayComponent)) {
+                    localEntity.get(MeshArrayComponent).meshes[0].dispose();
+                }
                 Utils.savedEntities.delete(serverEntity.id);
-                engine.removeEntity(playerEntity);
+                engine.removeEntity(localEntity);
 
             });
 
@@ -236,10 +239,10 @@ export class Utils {
             });
 
             Utils.room.state.meshComponents.onRemove((serverEntity) => {
-                let localEntity = engine.getEntityById(this.savedEntities.get(serverEntity.id));
+                /* let localEntity = engine.getEntityById(this.savedEntities.get(serverEntity.id));
                 if (localEntity != null && localEntity.has(MeshArrayComponent)) {
                     localEntity.get(MeshArrayComponent).meshes[0].dispose();
-                }
+                } */
             });
 
 
