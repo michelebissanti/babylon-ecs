@@ -1,11 +1,12 @@
-import { Mesh } from '@babylonjs/core';
+import { AbstractMesh, Mesh } from '@babylonjs/core';
 
 export class MeshComponent {
-    mesh: Mesh;
+    mesh: AbstractMesh;
 
     constructor(mesh: Mesh, eid: number, collision?: boolean) {
         this.mesh = mesh;
-        this.mesh.metadata = eid;
+        this.mesh.metadata = { id: eid.toString() };
+        this.mesh.name = eid.toString();
 
         if (collision) {
             mesh.checkCollisions = true;

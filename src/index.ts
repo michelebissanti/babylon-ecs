@@ -66,7 +66,7 @@ class App {
         let ground = new Entity();
         ground.add(new MeshComponent(MeshBuilder.CreateGround('ground', { width: 50, height: 50 }), ground.id, true));
         //ground.add(new PhysicComponent(new PhysicsAggregate(ground.get(MeshComponent).ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene)))
-        ground.get(MeshComponent).mesh.isVisible = true;
+        ground.get(MeshComponent).mesh.isPickable = false;
         let groundMat = new StandardMaterial("groundMat", this.scene);
         let groundTexture = new Texture("materials/floor/laminate_floor_02_diff_1k.jpg");
         groundTexture.uScale = 10;
@@ -115,15 +115,7 @@ class App {
         GuiUtils.gui3dmanager = new GUI3DManager(this.scene);
 
 
-        let video = new Entity();
 
-        video.add(new EntityMultiplayerComponent(false));
-
-        video.add(new MeshMultiComponent("video", "test.mp4", false));
-
-        video.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
-
-        Utils.engineEcs.addEntity(video);
 
 
 

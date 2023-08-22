@@ -7,6 +7,7 @@ import { TransformComponent } from "./components/TransformComponent";
 import { MeshMultiComponent } from "./components/MeshMultiComponent";
 import { MeshArrayComponent } from "./components/MeshArrayComponent";
 import { AnimationComponent } from "./components/AnimationComponent";
+import { MeshComponent } from "./components/MeshComponent";
 
 export class Object3d {
     nome: string;
@@ -131,6 +132,11 @@ export class Utils {
                 if (localEntity.has(MeshArrayComponent)) {
                     localEntity.get(MeshArrayComponent).meshes[0].dispose();
                 }
+
+                if (localEntity.has(MeshComponent)) {
+                    localEntity.get(MeshComponent).mesh.dispose();
+                }
+
                 Utils.savedEntities.delete(serverEntity.id);
                 engine.removeEntity(localEntity);
 
@@ -261,6 +267,7 @@ export class Utils {
                             localEntity.get(AnimationComponent).id = entityServer.id;
                             localEntity.get(AnimationComponent).state = entityServer.state;
                             localEntity.get(AnimationComponent).currentFrame = entityServer.currentFrame;
+                            localEntity.get(AnimationComponent).isVideo = entityServer.isVideo;
                         }
 
                     }
@@ -282,15 +289,29 @@ export class Utils {
                                     animComponent.state = entityServer.state;
                                     animComponent.currentFrame = entityServer.currentFrame;
 
-                                    animations[+animComponent.state].goToFrame(animComponent.currentFrame);
-                                    animations[+animComponent.state].play(true);
+                                    if (animComponent.isVideo == false) {
+                                        animations[+animComponent.state].goToFrame(animComponent.currentFrame);
+                                        animations[+animComponent.state].play(true);
+
+                                    } else {
+                                        animComponent.video.video.currentTime = animComponent.currentFrame;
+                                        animComponent.video.video.play();
+
+                                    }
+
                                     animComponent.isStoppable = true;
+
 
                                 }
 
                                 //se l'animazione è in play e la devo stoppare
                                 if (animComponent.state != "pause" && entityServer.state == "pause") {
-                                    animations[+animComponent.state].pause();
+                                    if (animComponent.isVideo == false) {
+                                        animations[+animComponent.state].pause();
+                                    } else {
+                                        animComponent.video.video.pause();
+                                    }
+
                                     animComponent.isStoppable = false;
 
                                     animComponent.state = entityServer.state;
@@ -298,7 +319,7 @@ export class Utils {
                                 }
 
                                 //se l'animazione è diversa da quella nuova
-                                if (animComponent.state != "pause" && entityServer.state != "pause" && animComponent.state != entityServer.state) {
+                                if (animComponent.state != "pause" && entityServer.state != "pause" && animComponent.state != entityServer.state && animComponent.isVideo == false) {
                                     animations[+animComponent.state].pause();
                                     animComponent.isStoppable = false;
 

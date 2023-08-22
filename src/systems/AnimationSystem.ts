@@ -33,9 +33,12 @@ export class AnimationSystem extends IterativeSystem {
                 let entityServer = entity.get(EntityMultiplayerComponent);
 
                 //se l'entità non è stata mai inviata al server, invio il segnale di creazione
-                if (animComponent.id == undefined && entityServer.serverId != undefined && entityServer.busy == Utils.room.sessionId) {
+                if (animComponent.id == undefined && entityServer.serverId != undefined) {
                     Utils.room.send("attachAnimationComponent", {
-                        id: "" + entityServer.serverId
+                        id: "" + entityServer.serverId,
+                        state: animComponent.state,
+                        currentFrame: animComponent.currentFrame,
+                        isVideo: animComponent.isVideo
                     });
 
                     animComponent.id = entityServer.serverId;
@@ -44,7 +47,12 @@ export class AnimationSystem extends IterativeSystem {
                 //se l'animazione è in riproduzione, invio lo stato al server
                 if (animComponent.id != undefined && animComponent.state != "pause" && entityServer.busy == Utils.room.sessionId) {
 
-                    animComponent.currentFrame = animComponent.animGroup[+animComponent.state].animatables[0].masterFrame;
+                    if (animComponent.isVideo == false) {
+                        animComponent.currentFrame = animComponent.animGroup[+animComponent.state].animatables[0].masterFrame;
+                    } else {
+                        animComponent.currentFrame = animComponent.video.video.currentTime;
+                    }
+
 
                     Utils.room.send("updateAnimationComponent", {
                         id: "" + entityServer.serverId,

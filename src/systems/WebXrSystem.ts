@@ -102,12 +102,19 @@ export class WebXrSystem extends IterativeSystem {
 
                                 //se l'entità esiste
                                 if (entityPicked != null) {
-                                    if (entityPicked.has(MeshArrayComponent) && entityPicked.has(TransformComponent) && entityPicked.has(EntityMultiplayerComponent)) {
+                                    if ((entityPicked.has(MeshArrayComponent) || entityPicked.has(MeshComponent)) && entityPicked.has(TransformComponent) && entityPicked.has(EntityMultiplayerComponent)) {
 
                                         //se l'entità è libera compare il menu
                                         if (entityPicked.get(EntityMultiplayerComponent).busy == undefined || entityPicked.get(EntityMultiplayerComponent).busy == Utils.room.sessionId) {
 
-                                            let entityMesh = entityPicked.get(MeshArrayComponent).meshes[0];
+                                            let entityMesh;
+
+                                            if (entityPicked.has(MeshArrayComponent)) {
+                                                entityMesh = entityPicked.get(MeshArrayComponent).meshes[0];
+                                            } else if (entityPicked.has(MeshComponent)) {
+                                                entityMesh = entityPicked.get(MeshComponent).mesh;
+                                            }
+
 
                                             //occupo l'entità
                                             if (entityPicked.get(EntityMultiplayerComponent).busy != Utils.room.sessionId) {
@@ -130,6 +137,8 @@ export class WebXrSystem extends IterativeSystem {
                                         }
 
 
+                                    } else {
+                                        console.log("ancora non ci siamo");
                                     }
                                 } else {
                                     console.log("nessuna entità");

@@ -35,11 +35,14 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                 meshMultiComponent.render = true;
 
                 if (meshMultiComponent.location == "local" && meshMultiComponent.name == "sphere") {
+
                     entity.add(new MeshComponent(MeshBuilder.CreateSphere('sphere ' + meshMultiComponent.id, { diameter: 1 }, this.scene), entity.id));
                     entity.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
                     entity.get(MeshComponent).mesh.isPickable = false;
+
                 } else if (meshMultiComponent.location == "video") {
-                    let plane = MeshBuilder.CreatePlane("video", { height: 5.4762, width: 7.3967, sideOrientation: Mesh.DOUBLESIDE });
+
+                    let plane = MeshBuilder.CreateBox("", { height: 0.875, width: 2, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
                     plane.isPickable = true;
                     let videoMat = new StandardMaterial("videoMat");
                     let videoTex = new VideoTexture("videoTex", meshMultiComponent.location + "/" + meshMultiComponent.name, this.scene);
@@ -47,10 +50,14 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     videoMat.diffuseTexture = videoTex;
                     videoMat.roughness = 1;
                     videoMat.emissiveColor = Color3.White();
+                    videoTex.video.muted = false;
+                    videoTex.video.pause();
                     plane.material = videoMat;
 
+                    plane.setPivotMatrix(Matrix.Translation(0, plane.getBoundingInfo().boundingBox.extendSize.y, 0), false);
+
                     entity.add(new MeshComponent(plane, entity.id, false));
-                    entity.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(3.69835, 2.7381, 0), false);
+                    entity.add(new AnimationComponent(null, videoTex, true));
 
 
                 } else {
@@ -64,7 +71,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     entity.add(new MeshArrayComponent(meshes, entity.id));
 
                     if (animationGroups.length != 0) {
-                        entity.add(new AnimationComponent(animationGroups));
+                        entity.add(new AnimationComponent(animationGroups, null, false));
                         animationGroups[0].stop();
                         entity.get(AnimationComponent).currentFrame = 0;
                         entity.get(AnimationComponent).state = "pause";

@@ -123,7 +123,7 @@ export class GuiUtils {
         var spawnTazza = new TouchHolographicButton();
         var roomInfo = new TouchHolographicButton();
         var leaveRoomBtn = new TouchHolographicButton();
-        let addObject = new TouchHolographicButton();
+
         let displayList = false;
 
 
@@ -140,7 +140,7 @@ export class GuiUtils {
         nearMenu.isPinned = false;
         nearMenu.position.y = 2;
 
-        nearMenu.addButton(addObject);
+
         nearMenu.addButton(roomInfo);
         nearMenu.addButton(leaveRoomBtn);
 
@@ -179,6 +179,8 @@ export class GuiUtils {
         });
 
 
+        let addObject = new TouchHolographicButton();
+        nearMenu.addButton(addObject);
         addObject.text = "Add 3d Object";
         addObject.imageUrl = "icon/object.png";
 
@@ -199,7 +201,30 @@ export class GuiUtils {
 
         });
 
+        let addVideo = new TouchHolographicButton();
+        nearMenu.addButton(addVideo);
+        addVideo.text = "Add Video";
+        addVideo.imageUrl = "icon/object.png";
+
+        addVideo.onPointerDownObservable.add(async () => {
+
+            let video = new Entity();
+
+            video.add(new EntityMultiplayerComponent(false));
+
+            video.add(new MeshMultiComponent("video", "test.mp4", false));
+
+            video.add(new TransformComponent(false, 0, 1, 2));
+
+            Utils.engineEcs.addEntity(video);
+
+        });
+
         nearMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
+
+
+
+
 
     }
 
@@ -650,22 +675,50 @@ export class GuiUtils {
 
             let animComp = entityPicked.get(AnimationComponent);
 
-            for (let i = 0; i < animComp.animGroup.length; i++) {
+            if (animComp.isVideo == false) {
+
+                for (let i = 0; i < animComp.animGroup.length; i++) {
+                    let playButton = new TouchHolographicButton("playButton");
+                    objectMenu.addButton(playButton);
+                    playButton.text = "Play " + animComp.animGroup[i].name;
+                    playButton.imageUrl = "icon/play-button.png";
+
+                    playButton.onPointerDownObservable.add(() => {
+                        if (animComp.state == null || animComp.state == "pause") {
+                            animComp.animGroup[i].start(true);
+                            animComp.state = i.toString();
+
+                            playButton.text = "Pause";
+                            playButton.imageUrl = "icon/pause.png";
+
+                        } else if (animComp.state == i.toString()) {
+                            animComp.animGroup[i].stop();
+                            animComp.state = "pause";
+
+                            playButton.text = "Play";
+                            playButton.imageUrl = "icon/play-button.png";
+                        }
+
+                    });
+
+                }
+
+            } else {
                 let playButton = new TouchHolographicButton("playButton");
                 objectMenu.addButton(playButton);
-                playButton.text = "Play " + animComp.animGroup[i].name;
+                playButton.text = "Play";
                 playButton.imageUrl = "icon/play-button.png";
 
                 playButton.onPointerDownObservable.add(() => {
                     if (animComp.state == null || animComp.state == "pause") {
-                        animComp.animGroup[i].start(true);
-                        animComp.state = i.toString();
+                        animComp.video.video.play();
+                        animComp.state = "play";
 
                         playButton.text = "Pause";
                         playButton.imageUrl = "icon/pause.png";
 
-                    } else if (animComp.state == i.toString()) {
-                        animComp.animGroup[i].stop();
+                    } else if (animComp.state == "play") {
+                        animComp.video.video.pause();
                         animComp.state = "pause";
 
                         playButton.text = "Play";
@@ -673,8 +726,9 @@ export class GuiUtils {
                     }
 
                 });
-
             }
+
+
 
         }
 

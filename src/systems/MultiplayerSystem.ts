@@ -66,7 +66,7 @@ export class MultiplayerSystem extends IterativeSystem {
 
                     });
 
-                    //console.log(entity.get(EntityMultiplayerComponent).serverId);
+                    console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
 
                 //per rimuovere un entità
