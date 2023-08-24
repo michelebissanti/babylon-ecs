@@ -1,17 +1,17 @@
-import { Engine, Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder, System } from "tick-knock";
-import { AbstractMesh, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Quaternion, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
-import { ClientComponent } from "../components/ClientComponent";
+import { Scene } from "@babylonjs/core";
+import { Entity, IterativeSystem, Query } from "tick-knock";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
-import { Room } from "colyseus.js";
 import { Utils } from "../utils";
 
+// MultiplayerSystem: gestisce l'entità che possiede EntityMultiplayerComponent
+// in generale serve a sincronizzare con il server le entità ecs
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
-    private Entities: { [playerId: string]: number } = {};
     private entityCodeResponse: string = undefined;
     private init = true;
 
     constructor(scene: Scene) {
+        //entra nel loop del sistema solo se ha EntityMultiplayerComponent
         super(new Query((entity) => entity.hasComponent(EntityMultiplayerComponent)));
         this.scene = scene;
     }
@@ -19,6 +19,9 @@ export class MultiplayerSystem extends IterativeSystem {
     protected updateEntity(entity: Entity, dt: number): void {
         if (Utils.room != null) {
             if (this.init) {
+                // se sono in una stanza setto i listener
+
+                //questi listener servono e ricevere il codice entità deciso dal server quando riceve una nuova entità
                 Utils.room.onMessage("playerCreated", (message) => {
                     this.entityCodeResponse = message;
                 });
@@ -30,7 +33,7 @@ export class MultiplayerSystem extends IterativeSystem {
                 this.init = false;
             }
 
-            //invio al server la presenza di nuove entità
+            // invio al server la presenza di nuove entità
             if (entity.has(EntityMultiplayerComponent)) {
 
                 //caso del player che joina la stanza
@@ -66,7 +69,7 @@ export class MultiplayerSystem extends IterativeSystem {
 
                     });
 
-                    console.log(entity.get(EntityMultiplayerComponent).serverId);
+                    //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
 
                 //per rimuovere un entità

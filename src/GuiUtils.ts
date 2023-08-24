@@ -1,21 +1,30 @@
-import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, MultiPointerScaleBehavior, SceneLoader, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3, WebXRFeatureName } from "@babylonjs/core";
-import { GUI3DManager, AdvancedDynamicTexture, HandMenu, HolographicSlate, InputText, NearMenu, TouchHolographicButton, Button, Grid, ScrollViewer, TouchHolographicMenu, TextBlock, TextWrapping, Control } from "@babylonjs/gui";
+import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
+import { AdvancedDynamicTexture, Button, Control, GUI3DManager, Grid, HandMenu, HolographicSlate, InputText, NearMenu, ScrollViewer, TextBlock, TextWrapping, TouchHolographicButton, TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity } from "tick-knock";
-import { ClientComponent } from "./components/ClientComponent";
-import { Object3d, Utils } from "./utils";
-import { WebXrComponent } from "./components/WebXrComponent";
-import { TransformComponent } from "./components/TransformComponent";
-import { MeshArrayComponent } from "./components/MeshArrayComponent";
 import { AnimationComponent } from "./components/AnimationComponent";
+import { ClientComponent } from "./components/ClientComponent";
 import { EntityMultiplayerComponent } from "./components/EntityMultiplayerComponent";
 import { MeshMultiComponent } from "./components/MeshMultiComponent";
 import { PlayerCameraComponent } from "./components/PlayerCameraComponent";
+import { TransformComponent } from "./components/TransformComponent";
+import { WebXrComponent } from "./components/WebXrComponent";
+import { Object3d, Utils } from "./utils";
 
+// questa classe serve a contenere tutti i metodi statici che riguardano l'interfaccia utente
 export class GuiUtils {
+    // riferimento al manager della gui 3d
     public static gui3dmanager: GUI3DManager;
+
+    // booleano che indica la visualizzazione del menu degli oggetti
     public static objectMenuShow: boolean = false;
+
+    // booleano che indica se sono in modalità di edit
     static switchEdit: boolean = false;
 
+    // questo metodo crea il menu di benvenuto, opzioni disponibili:
+    //  - Create room
+    //  - Join room (con codice inserito da tastiera)
+    //  - Room list (visualizzazione elenco di stanze)
     static createNearMenu(player: Entity) {
         const ROOM_TYPE = "my_room";
         let manager = GuiUtils.gui3dmanager;
@@ -119,65 +128,25 @@ export class GuiUtils {
 
     }
 
+    // questo metodo crea il near menu principale della stanza, opzioni disponibili:
+    //  - Add 3d object (visualizzazione elenco di oggetti)
+    //  - Add video (visualizzazione elenco video) WIP
+    //  - Room id
+    //  - Leave room (ricarica la pagina)
     static async initRoom(player: Entity) {
-        var spawnTazza = new TouchHolographicButton();
-        var roomInfo = new TouchHolographicButton();
-        var leaveRoomBtn = new TouchHolographicButton();
 
         let displayList = false;
 
-
         const manager = GuiUtils.gui3dmanager;
 
+        // creo l'hand menu uguale a quello creato in questo metodo
         this.createHandMenu(player);
-
-        //dovrebbe essere se sono in xr e se ho abilitate le mani
-        //if (player.get(WebXrComponent).exp.baseExperience.featuresManager.getEnabledFeature(WebXRFeatureName.HAND_TRACKING)) {
 
         var nearMenu = new NearMenu("NearMenu");
         nearMenu.rows = 1;
         manager.addControl(nearMenu);
         nearMenu.isPinned = false;
         nearMenu.position.y = 2;
-
-
-        nearMenu.addButton(roomInfo);
-        nearMenu.addButton(leaveRoomBtn);
-
-
-        /* spawnTazza.text = "Spawn Tazza";
-        spawnTazza.imageUrl = "icon/coffee-cup.png";
-
-        spawnTazza.onPointerDownObservable.add(async () => {
-            //piazzo una tazza nella scena
-            let tazza = new Entity();
-            tazza.add(new MeshArrayComponent(await this.importModel("models/", "coffee_cup.glb"), tazza.id));
-
-            tazza.add(new EntityMultiplayerComponent(false));
-
-            tazza.add(new MeshMultiComponent("models/", "coffee_cup.glb", true));
-
-            tazza.add(new TransformComponent(false, player.get(TransformComponent).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
-
-            this.ecs.addEntity(tazza);
-        }); */
-
-        leaveRoomBtn.text = "Leave Room";
-        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
-
-        leaveRoomBtn.onPointerDownObservable.add(async () => {
-            player.get(ClientComponent).room.leave();
-            window.location.reload();
-        });
-
-        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
-        console.log(player.get(ClientComponent).room.id.toString());
-
-        roomInfo.onPointerDownObservable.add(async () => {
-            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
-
-        });
-
 
         let addObject = new TouchHolographicButton();
         nearMenu.addButton(addObject);
@@ -220,14 +189,38 @@ export class GuiUtils {
 
         });
 
+        var roomInfo = new TouchHolographicButton();
+        nearMenu.addButton(roomInfo);
+        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
+        console.log(player.get(ClientComponent).room.id.toString());
+
+        roomInfo.onPointerDownObservable.add(async () => {
+            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
+
+        });
+
+        var leaveRoomBtn = new TouchHolographicButton();
+        nearMenu.addButton(leaveRoomBtn);
+        leaveRoomBtn.text = "Leave Room";
+        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
+
+        leaveRoomBtn.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room.leave();
+            window.location.reload();
+        });
+
+
+
+
         nearMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
-
-
-
-
 
     }
 
+    // questo metodo crea l'hand menu principale della stanza, opzioni disponibili:
+    //  - Add 3d object (visualizzazione elenco di oggetti)
+    //  - Add video (visualizzazione elenco video) WIP
+    //  - Room id
+    //  - Leave room (ricarica la pagina)
     static createHandMenu(player) {
         let displayList = false;
 
@@ -278,6 +271,8 @@ export class GuiUtils {
         handMenu.scaling.addInPlace(new Vector3(0.01, 0.01, 0.01));
     }
 
+    // questo metodo crea una list slate con tutti gli oggetti disponibili
+    // è possibile cliccare sugli oggetti per farli spawnare davanti al player
     static createListObject(player: Entity): HolographicSlate {
         let manager = GuiUtils.gui3dmanager;
         let playerTransform = player.get(TransformComponent);
@@ -334,7 +329,10 @@ export class GuiUtils {
 
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
 
-                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+                // posiziono l'oggetto difronte al player
+                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
+
+                newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
                 Utils.engineEcs.addEntity(newObject);
             });
@@ -348,7 +346,7 @@ export class GuiUtils {
                 //piazzo una nuovo oggetto selezionato nella scena
                 let newObject = new Entity();
 
-                let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+                /* let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
                     null,
                     objectAvaible[i].percorso,
                     objectAvaible[i].nomeFile
@@ -356,18 +354,19 @@ export class GuiUtils {
 
                 newObject.add(new MeshArrayComponent(meshes, newObject.id));
 
-                console.log(animationGroups);
-
                 if (animationGroups.length != 0) {
                     newObject.add(new AnimationComponent(animationGroups));
                     animationGroups[0].stop();
-                }
+                } */
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
-                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, true));
+                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
 
-                newObject.add(new TransformComponent(false, player.get(PlayerCameraComponent).camera.getDirection(Vector3.Zero()).x, player.get(TransformComponent).y + 1, player.get(TransformComponent).z + 1));
+                // posiziono l'oggetto difronte al player
+                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
+
+                newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
                 Utils.engineEcs.addEntity(newObject);
             });
@@ -379,6 +378,12 @@ export class GuiUtils {
         return listSlate;
     }
 
+    // questo metodo crea il touch holographic menu della stanza, opzioni disponibili:
+    //  - Add 3d object (visualizzazione elenco di oggetti)
+    //  - Add video (visualizzazione elenco video) WIP
+    //  - Room id
+    //  - Leave room (ricarica la pagina)
+    // questo menu dovrebbe essere attaccato a runtime alla mesh del controller sinistro
     static controllerMenu(playerEntity): TouchHolographicMenu {
         let manager = GuiUtils.gui3dmanager;
 
@@ -440,6 +445,7 @@ export class GuiUtils {
         return controllerMenu;
     }
 
+    // testing menu, non serve a niente
     static holoMenu(): TouchHolographicMenu {
         //let mesh = inputSource.grip;
         let manager = GuiUtils.gui3dmanager;
@@ -495,6 +501,7 @@ export class GuiUtils {
         return controllerMenu
     }
 
+    // crea una holographic slate con un warning dato in input
     static warningSlate(titleString: string, textString: string) {
         var dialogSlate = new HolographicSlate("dialogSlate");
 
@@ -540,6 +547,8 @@ export class GuiUtils {
         dialogSlate.content = contentGrid;
     }
 
+    // questo metodo crea una list slate con tutte le stanza disponibili
+    // è possibile cliccare sul codice della stanza per entrarci
     static async createListRoom(player: Entity, nearMenu): Promise<HolographicSlate> {
         let manager = GuiUtils.gui3dmanager;
 
@@ -613,6 +622,12 @@ export class GuiUtils {
         return listSlate;
     }
 
+    // questo metodo crea il touch holographic menu per il singolo oggetto, opzioni disponibili:
+    //  - Move/Scale
+    //  - Play/Stop (in caso di animazioni)
+    //  - Delete object
+    //  - Close menu
+    // questo menu dovrebbe essere attaccato a runtime alla mesh del controller sinistro
     static objectMenu(entityPicked, entityMesh): TouchHolographicMenu {
         let objectMenu = new TouchHolographicMenu("objectMenu");
 

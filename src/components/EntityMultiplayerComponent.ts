@@ -1,4 +1,4 @@
-
+// questa componente serve a sincronizzare l'entità ecs con il server
 export class EntityMultiplayerComponent {
     serverId: string;
     send: boolean = false;

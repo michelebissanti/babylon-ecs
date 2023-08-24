@@ -1,6 +1,7 @@
-
+// questa componente serve a gestire la trasformata di un'entità
 export class TransformComponent {
     id: string = null;
+
     x: number;
     y: number;
     z: number;
@@ -11,7 +12,11 @@ export class TransformComponent {
     scale_x: number = 1;
     scale_y: number = 1;
     scale_z: number = 1;
+
+    // "update" serve a comunicare quando l'aggiornamento del componente deve essere inviato al server
     update: boolean = false;
+
+    // "revertLogic" serve ad invertire la logica del sistema, se è true la trasformata viene presa dalla mesh
     revertLogic: boolean = false;
 
     constructor(update?: boolean, x?, y?, z?) {

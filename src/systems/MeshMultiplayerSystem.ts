@@ -1,46 +1,42 @@
-import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder } from "tick-knock";
-import { MeshComponent } from "../components/MeshComponent";
-import { PositionComponent } from "../components/PositionComponent";
-import { AbstractMesh, Color3, KeyboardEventTypes, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, Vector3, VideoTexture } from "@babylonjs/core";
-import { PhysicComponent } from "../components/PhysicComponent";
-import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
-import { TransformComponent } from "../components/TransformComponent";
-import { MeshArrayComponent } from "../components/MeshArrayComponent";
-import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
-import { Room } from "colyseus.js";
-import { MeshMultiComponent } from "../components/MeshMultiComponent";
-import { ClientComponent } from "../components/ClientComponent";
-import { Utils } from "../utils";
+import { Color3, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, VideoTexture } from "@babylonjs/core";
+import { Entity, IterativeSystem, Query } from "tick-knock";
 import { AnimationComponent } from "../components/AnimationComponent";
+import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
+import { MeshArrayComponent } from "../components/MeshArrayComponent";
+import { MeshComponent } from "../components/MeshComponent";
+import { MeshMultiComponent } from "../components/MeshMultiComponent";
+import { Utils } from "../utils";
 
-// Create a simple system that extends an iterative base class
-// The iterative system class simply iterates over all entities it finds
-// that matches its query.
+// MeshMultiplayerSystem: gestisce tutte le entità che possiedono un MeshMultiComponent o che devono istanziarlo
+// in generale si occupa di sincronizzare le mesh con il server
 export class MeshMultiplayerSystem extends IterativeSystem {
     scene: Scene;
-    init = true;
 
     constructor(scene: Scene) {
+        //entra nel loop del sistema solo se ha MeshMultiComponent o EntityMultiplayerComponent
         super(new Query((entity) => (entity.hasComponent(MeshMultiComponent) || entity.hasComponent(EntityMultiplayerComponent))));
         this.scene = scene;
     }
 
     protected async updateEntity(entity: Entity, dt: number): Promise<void> {
 
-        //istanzio la mesh se necessario
         if (entity.has(MeshMultiComponent)) {
             let meshMultiComponent = entity.get(MeshMultiComponent);
 
+            // se la mesh non è stata istanziata, la istanzio
             if (meshMultiComponent.render == false) {
                 meshMultiComponent.render = true;
 
+
                 if (meshMultiComponent.location == "local" && meshMultiComponent.name == "sphere") {
+                    //debug branch
 
                     entity.add(new MeshComponent(MeshBuilder.CreateSphere('sphere ' + meshMultiComponent.id, { diameter: 1 }, this.scene), entity.id));
                     entity.get(MeshComponent).mesh.setPivotMatrix(Matrix.Translation(0, 0.5, 0), false);
                     entity.get(MeshComponent).mesh.isPickable = false;
 
                 } else if (meshMultiComponent.location == "video") {
+                    //se la mesh da istanziare è un video
 
                     let plane = MeshBuilder.CreateBox("", { height: 0.875, width: 2, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
                     plane.isPickable = true;
@@ -54,13 +50,16 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     videoTex.video.pause();
                     plane.material = videoMat;
 
+                    //setto l'origine ai piedi della mesh, centrata orizzontalmente
                     plane.setPivotMatrix(Matrix.Translation(0, plane.getBoundingInfo().boundingBox.extendSize.y, 0), false);
 
+                    //aggiungo la componente di mesh locale e la componente di animazione
                     entity.add(new MeshComponent(plane, entity.id, false));
                     entity.add(new AnimationComponent(null, videoTex, true));
 
 
                 } else {
+                    //se la mesh da istanziare è un oggetto 3d
 
                     let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
                         null,
@@ -68,24 +67,38 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                         meshMultiComponent.name
                     );
 
+                    //aggiungo la componente di mesh locale
                     entity.add(new MeshArrayComponent(meshes, entity.id));
 
+                    //se l'oggetto importato ha delle animazioni
                     if (animationGroups.length != 0) {
+                        //aggiungo la componente di animazione
                         entity.add(new AnimationComponent(animationGroups, null, false));
                         animationGroups[0].stop();
                         entity.get(AnimationComponent).currentFrame = 0;
                         entity.get(AnimationComponent).state = "pause";
                     }
 
-                    //se sono un player non posso interagire con la mesh
+                    //se l'entità è un player
                     if (entity.get(EntityMultiplayerComponent).isPlayer) {
                         let meshes = entity.get(MeshArrayComponent).meshes;
 
+                        //non posso interagire con la sua mesh
                         meshes.forEach((mesh) => {
                             mesh.isPickable = false;
                         });
                     }
 
+                    //se l'entità è il player locale
+                    if (entity.get(MeshMultiComponent).isLocalPlayer) {
+                        let meshes = entity.get(MeshArrayComponent).meshes;
+
+                        //non posso interagire con la sua mesh
+                        meshes.forEach((mesh) => {
+                            mesh.isPickable = false;
+                            mesh.visibility = 0;
+                        });
+                    }
 
                 }
 

@@ -2,13 +2,15 @@ import { AbstractMesh, AnimationGroup, Quaternion, Scene, SceneLoader } from "@b
 
 import { Room } from "colyseus.js";
 import { Engine, Entity } from "tick-knock";
-import { EntityMultiplayerComponent } from "./components/EntityMultiplayerComponent";
-import { TransformComponent } from "./components/TransformComponent";
-import { MeshMultiComponent } from "./components/MeshMultiComponent";
-import { MeshArrayComponent } from "./components/MeshArrayComponent";
 import { AnimationComponent } from "./components/AnimationComponent";
+import { EntityMultiplayerComponent } from "./components/EntityMultiplayerComponent";
+import { MeshArrayComponent } from "./components/MeshArrayComponent";
 import { MeshComponent } from "./components/MeshComponent";
+import { MeshMultiComponent } from "./components/MeshMultiComponent";
+import { TransformComponent } from "./components/TransformComponent";
 
+// classe che rappresenta le informazioni per un oggetto 3d da poter inserire
+// questa classe viene utilizzata per fornire un array di oggetti da visualizzare nella gui
 export class Object3d {
     nome: string;
     urlIcona: string;
@@ -23,6 +25,7 @@ export class Object3d {
     }
 }
 
+// classe di utilità che contiene riferimenti a oggetti unici e globali e metodi statici
 export class Utils {
     public static room: Room;
     public static engineEcs: Engine;
@@ -34,6 +37,7 @@ export class Utils {
         return Quaternion.RotationYawPitchRoll(eulerY, eulerX, eulerZ);
     }
 
+    // restituisce la lista di oggetti 3d che si possono inserire in una stanza
     static getAvaiableObjects(): Array<Object3d> {
         let objects: Array<Object3d> = [];
 
@@ -76,6 +80,7 @@ export class Utils {
         return meshes;
     }
 
+    // questa funzione serve a copiare negli appunti una stringa
     static copyMessage(val: string) {
         const selBox = document.createElement('textarea');
         selBox.style.position = 'fixed';
@@ -90,14 +95,17 @@ export class Utils {
         document.body.removeChild(selBox);
     }
 
+    // questa funzione inizializza tutti i listener che servono per la gestione multiplayer
     static setServerTrigger(engine: Engine) {
 
+        // aspetto che l'utente sia in una stanza
         Utils.waitForConditionAsync(_ => {
             return Utils.room != null;
         }).then(_ => {
-            //quando si aggiunge un entità al server
+
+            // quando si aggiunge un entità al server
             Utils.room.state.entities.onAdd(async (serverEntity) => {
-                //entra solo se chi ha inviato il messaggio non sono io
+                // entra solo se chi ha inviato il messaggio non sono io
                 if (serverEntity.sender != Utils.room.sessionId) {
                     console.log("nuova entita da server");
                     let joiner = new Entity();
@@ -116,7 +124,7 @@ export class Utils {
                 }
 
                 serverEntity.onChange(async () => {
-                    //aggiorno lo stato dell'entità
+                    // aggiorno lo stato dell'entità
                     let localEntity = engine.getEntityById(Utils.savedEntities.get(serverEntity.id));
 
                     if (localEntity != undefined) {
@@ -127,8 +135,11 @@ export class Utils {
 
             });
 
+            // quando una entità viene rimossa dal server
             Utils.room.state.entities.onRemove((serverEntity) => {
                 let localEntity = engine.getEntityById(this.savedEntities.get(serverEntity.id));
+
+                // se ha una mesh la distruggo
                 if (localEntity.has(MeshArrayComponent)) {
                     localEntity.get(MeshArrayComponent).meshes[0].dispose();
                 }
@@ -138,6 +149,8 @@ export class Utils {
                 }
 
                 Utils.savedEntities.delete(serverEntity.id);
+
+                // tutte le componenti vengono rimosse quando rimuovo dall'engine
                 engine.removeEntity(localEntity);
 
             });
@@ -148,12 +161,13 @@ export class Utils {
 
 
 
-            //quando si aggiunge un componente di transform
+            // quando si aggiunge una componente di transform
             Utils.room.state.transformComponents.onAdd(async (entityServer, client) => {
-                //cercare se esiste un entità con quel server id
+
+                // cercare se esiste un entità con quel server id
                 if (Utils.savedEntities.has(entityServer.id)) {
                     if (entityServer.sender != Utils.room.sessionId) {
-                        console.log("nuova comp transform");
+                        //console.log("nuova comp transform");
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
                         localEntity.add(new TransformComponent());
                         localEntity.get(TransformComponent).id = entityServer.id;
@@ -173,10 +187,10 @@ export class Utils {
                     }
 
                     entityServer.onChange(() => {
-                        //aggiorno il modello prendendo la sua entità
+                        // aggiorno il modello prendendo la sua entità
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
-                        //aggiorno solo se non sono io a mandare l'update
+                        // aggiorno solo se non sono io a mandare l'update
                         if (entityServer.sender != Utils.room.sessionId) {
 
                             let transform = localEntity.get(TransformComponent);
@@ -209,30 +223,30 @@ export class Utils {
 
 
 
-            //quando si aggiunge un componente di mesh
+            // quando si aggiunge un componente di mesh
             Utils.room.state.meshComponents.onAdd(async (entityServer) => {
 
                 if (Utils.savedEntities.has(entityServer.id)) {
                     if (entityServer.sender != Utils.room.sessionId) {
-                        console.log("nuova comp mesh");
+                        //console.log("nuova comp mesh");
 
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
-                        //gli id coincidono quindi questa entità ha anche la componente di transform
+
                         localEntity.add(new MeshMultiComponent(entityServer.location, entityServer.name, false));
                         localEntity.get(MeshMultiComponent).id = entityServer.id;
                     }
 
                     entityServer.onChange(async () => {
-                        //aggiorno il modello prendendo la sua entità
+                        // aggiorno il modello prendendo la sua entità
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
-                        //aggiorno solo se non sono io a mandare l'update
+                        // aggiorno solo se non sono io a mandare l'update
                         if (entityServer.sender != Utils.room.sessionId) {
                             localEntity.get(MeshMultiComponent).location = entityServer.location;
                             localEntity.get(MeshMultiComponent).name = entityServer.name;
                             localEntity.get(MeshMultiComponent).render = false;
 
-                            //aggiorno e istanzio le modifiche
+                            // aggiorno e istanzio le modifiche
                             if (localEntity.has(MeshArrayComponent)) {
                                 localEntity.get(MeshArrayComponent).meshes[0].dispose();
                             }
@@ -254,11 +268,11 @@ export class Utils {
 
 
 
-            //quando si aggiunge un componente di animazione
+            // quando si aggiunge un componente di animazione
             Utils.room.state.animationComponents.onAdd(async (entityServer) => {
 
                 if (Utils.savedEntities.has(entityServer.id)) {
-                    //se non sono stato io ad inviarla
+                    // se non sono stato io ad inviarla
                     if (entityServer.sender != Utils.room.sessionId) {
 
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
@@ -273,7 +287,7 @@ export class Utils {
                     }
 
                     entityServer.onChange(async () => {
-                        //aggiorno il modello prendendo la sua entità
+                        // aggiorno la componente prendendo la sua entità
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
                         if (localEntity.has(AnimationComponent)) {
@@ -282,18 +296,21 @@ export class Utils {
 
                             let animations = animComponent.animGroup;
 
-                            //aggiorno solo se non sono io a mandare l'update
+                            // aggiorno solo se non sono io a mandare l'update
                             if (entityServer.sender != Utils.room.sessionId) {
-                                //se l'animazione era in pausa la avvio
+
+                                // se l'animazione era in pausa la avvio
                                 if (animComponent.state == "pause" && entityServer.state != "pause") {
                                     animComponent.state = entityServer.state;
                                     animComponent.currentFrame = entityServer.currentFrame;
 
                                     if (animComponent.isVideo == false) {
+                                        // se devo aggiornare un modello 3d
                                         animations[+animComponent.state].goToFrame(animComponent.currentFrame);
                                         animations[+animComponent.state].play(true);
 
                                     } else {
+                                        // se devo aggiornare un video
                                         animComponent.video.video.currentTime = animComponent.currentFrame;
                                         animComponent.video.video.play();
 
@@ -301,14 +318,16 @@ export class Utils {
 
                                     animComponent.isStoppable = true;
 
-
                                 }
 
-                                //se l'animazione è in play e la devo stoppare
+                                // se l'animazione è in play e la devo stoppare
                                 if (animComponent.state != "pause" && entityServer.state == "pause") {
+
                                     if (animComponent.isVideo == false) {
+                                        // se devo aggiornare un modello 3d
                                         animations[+animComponent.state].pause();
                                     } else {
+                                        // se devo aggiornare un video
                                         animComponent.video.video.pause();
                                     }
 
@@ -318,7 +337,7 @@ export class Utils {
                                     animComponent.currentFrame = entityServer.currentFrame;
                                 }
 
-                                //se l'animazione è diversa da quella nuova
+                                // se l'animazione è diversa da quella nuova (caso unico del modello 3d)
                                 if (animComponent.state != "pause" && entityServer.state != "pause" && animComponent.state != entityServer.state && animComponent.isVideo == false) {
                                     animations[+animComponent.state].pause();
                                     animComponent.isStoppable = false;

@@ -1,51 +1,45 @@
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { Matrix, Vector2, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
-import { GUI3DManager, TouchHolographicButton, NearMenu, InputText, AdvancedDynamicTexture, HandMenu, HolographicSlate, ScrollViewer, Grid, Button } from '@babylonjs/gui';
+import { GUI3DManager } from '@babylonjs/gui';
 
 import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug methods
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
+import { CubeTexture, MeshBuilder, StandardMaterial, Texture } from '@babylonjs/core';
 import { Engine as EngineECS, Entity } from "tick-knock";
-import { AbstractMesh, AnimationGroup, CreatePlane, CubeTexture, HavokPlugin, Material, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, SceneLoader, SceneLoaderAnimationGroupLoadingMode, StandardMaterial, Texture, WebXRFeatureName } from '@babylonjs/core';
-import { MeshComponent } from './components/MeshComponent';
-import { MovementSystem } from './systems/MovementSystem';
-import { PositionComponent } from './components/PositionComponent';
-import { PlayerCameraComponent } from './components/PlayerCameraComponent';
-import { WebXrComponent } from './components/WebXrComponent';
-import { WebXrSystem } from './systems/WebXrSystem';
-import { WorldLightComponent } from './components/WorldLightComponent';
-import { PhysicComponent } from './components/PhysicComponent';
-import { GroundComponent } from './components/GroundComponent';
-import { ClientComponent } from './components/ClientComponent';
-import { Gui3dComponent } from './components/Gui3dComponent';
-import { MultiplayerSystem } from './systems/MultiplayerSystem';
-import { MeshArrayComponent } from './components/MeshArrayComponent';
-import { MeshMultiComponent } from './components/MeshMultiComponent';
-import { EntityMultiplayerComponent } from './components/EntityMultiplayerComponent';
-import { TransformSystem } from './systems/TransformSystem';
-import { MeshMultiplayerSystem } from './systems/MeshMultiplayerSystem';
-import { TransformComponent } from './components/TransformComponent';
-import { Object3d, Utils } from './utils';
-import { AnimationComponent } from './components/AnimationComponent';
-import { AnimationSystem } from './systems/AnimationSystem';
 import { GuiUtils } from './GuiUtils';
+import { ClientComponent } from './components/ClientComponent';
+import { EntityMultiplayerComponent } from './components/EntityMultiplayerComponent';
+import { MeshComponent } from './components/MeshComponent';
+import { MeshMultiComponent } from './components/MeshMultiComponent';
+import { PlayerCameraComponent } from './components/PlayerCameraComponent';
+import { TransformComponent } from './components/TransformComponent';
+import { WebXrComponent } from './components/WebXrComponent';
+import { WorldLightComponent } from './components/WorldLightComponent';
+import { AnimationSystem } from './systems/AnimationSystem';
+import { MeshMultiplayerSystem } from './systems/MeshMultiplayerSystem';
+import { MovementSystem } from './systems/MovementSystem';
+import { MultiplayerSystem } from './systems/MultiplayerSystem';
+import { TransformSystem } from './systems/TransformSystem';
+import { WebXrSystem } from './systems/WebXrSystem';
+import { Utils } from './utils';
 
 class App {
     engine: Engine;
     scene: Scene;
     ecs: EngineECS;
-    guiManager: Gui3dComponent;
 
     constructor() {
-        // Set up Babylon
+        // set up Babylon
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
         Utils.scene = this.scene;
         this.scene.debugLayer.show();
 
+        // set up libreria ECS
         this.ecs = new EngineECS();
         Utils.engineEcs = this.ecs;
     }
@@ -53,6 +47,7 @@ class App {
     async setup() {
         //this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin(true, await HavokPhysics()));
 
+        // settaggio dell'ambiente
         let envTexture = CubeTexture.CreateFromPrefilteredData("sky/sky.env", this.scene);
         this.scene.environmentTexture = envTexture;
 
@@ -89,16 +84,16 @@ class App {
 
 
 
-        // Create the player entity and attach all the component
+        // creo l'entità del player locale
         let player = new Entity();
 
         player.add(new PlayerCameraComponent(new FreeCamera("cameraPlayer", new Vector3(0, 1.67, 0), this.scene)));
 
-        player.add(new ClientComponent(true));
+        player.add(new ClientComponent(false));
 
         player.add(new EntityMultiplayerComponent(true, true));
 
-        player.add(new MeshMultiComponent("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", false));
+        player.add(new MeshMultiComponent("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", false, false, true));
 
         player.add(new TransformComponent(true));
 
@@ -113,14 +108,6 @@ class App {
         this.ecs.addEntity(player);
 
         GuiUtils.gui3dmanager = new GUI3DManager(this.scene);
-
-
-
-
-
-
-
-
 
         //test per le animazioni del player
 
@@ -139,19 +126,7 @@ class App {
             });
         }); */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // faccio partire tutti i sistemi ECS
         this.ecs.addSystem(new MovementSystem(this.scene));
         this.ecs.addSystem(new WebXrSystem(this.scene));
         this.ecs.addSystem(new MultiplayerSystem(this.scene));
@@ -159,10 +134,8 @@ class App {
         this.ecs.addSystem(new MeshMultiplayerSystem(this.scene));
         this.ecs.addSystem(new AnimationSystem(this.scene));
 
-        //create the menu to choose the room
+        // creazione del menu della lobby
         GuiUtils.createNearMenu(player);
-
-        //GuiUtils.holoMenu();
     }
 
     run() {

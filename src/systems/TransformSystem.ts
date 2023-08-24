@@ -1,24 +1,18 @@
-import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder } from "tick-knock";
-import { MeshComponent } from "../components/MeshComponent";
-import { PositionComponent } from "../components/PositionComponent";
-import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
-import { PhysicComponent } from "../components/PhysicComponent";
-import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
-import { TransformComponent } from "../components/TransformComponent";
-import { MeshArrayComponent } from "../components/MeshArrayComponent";
+import { Scene } from "@babylonjs/core";
+import { Entity, IterativeSystem, Query } from "tick-knock";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
-import { Room } from "colyseus.js";
-import { ClientComponent } from "../components/ClientComponent";
+import { MeshArrayComponent } from "../components/MeshArrayComponent";
+import { MeshComponent } from "../components/MeshComponent";
+import { TransformComponent } from "../components/TransformComponent";
 import { Utils } from "../utils";
 
-// Create a simple system that extends an iterative base class
-// The iterative system class simply iterates over all entities it finds
-// that matches its query.
+// TransformSystem: gestisce tutte le entità che possiedono un TransformComponent
+// in generale si occupa di sincronizzare il transform con il server
 export class TransformSystem extends IterativeSystem {
     scene: Scene;
-    init = true;
 
     constructor(scene: Scene) {
+        //entra nel loop del sistema solo se ha TransformComponent o EntityMultiplayerComponent
         super(new Query((entity) => entity.hasComponent(TransformComponent) || entity.hasComponent(EntityMultiplayerComponent)));
         this.scene = scene;
     }
@@ -27,7 +21,12 @@ export class TransformSystem extends IterativeSystem {
 
         if (entity.has(TransformComponent)) {
             let transformComponent = entity.get(TransformComponent);
+
+            // se l'entità ha settato il componente con la logica normale
+            // aggiorno la trasformata della mesh con le informazioni derivate dal TransformComponent
             if (transformComponent.revertLogic == false) {
+
+                //caso con MeshComponent
                 if (entity.has(MeshComponent)) {
                     let mesh = entity.get(MeshComponent).mesh;
 
@@ -43,6 +42,7 @@ export class TransformSystem extends IterativeSystem {
                     mesh.scaling.z = transformComponent.scale_z;
                 }
 
+                //caso con MeshArrayComponent
                 if (entity.has(MeshArrayComponent)) {
                     let meshes = entity.get(MeshArrayComponent).meshes;
                     let mesh = meshes[0];
@@ -59,6 +59,10 @@ export class TransformSystem extends IterativeSystem {
                     mesh.scaling.z = transformComponent.scale_z;
                 }
             } else {
+                // se l'entità ha settato il componente con la logica inversa
+                // aggiorno il componente con le informazioni date dalla mesh
+
+                //caso con MeshComponent
                 if (entity.has(MeshComponent)) {
                     let mesh = entity.get(MeshComponent).mesh;
 
@@ -74,6 +78,7 @@ export class TransformSystem extends IterativeSystem {
                     transformComponent.scale_z = mesh.scaling.z;
                 }
 
+                //caso con MeshArrayComponent
                 if (entity.has(MeshArrayComponent)) {
                     let meshes = entity.get(MeshArrayComponent).meshes;
                     let mesh = meshes[0];

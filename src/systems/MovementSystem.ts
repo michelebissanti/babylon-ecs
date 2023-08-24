@@ -1,22 +1,19 @@
-import { Entity, EntitySnapshot, IterativeSystem, QueryBuilder } from "tick-knock";
-import { MeshComponent } from "../components/MeshComponent";
-import { PositionComponent } from "../components/PositionComponent";
-import { KeyboardEventTypes, Mesh, Scene, Vector3 } from "@babylonjs/core";
-import { PhysicComponent } from "../components/PhysicComponent";
+import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
+import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
+import { MeshArrayComponent } from "../components/MeshArrayComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { TransformComponent } from "../components/TransformComponent";
-import { MeshArrayComponent } from "../components/MeshArrayComponent";
 import { Utils } from "../utils";
 
-// Create a simple system that extends an iterative base class
-// The iterative system class simply iterates over all entities it finds
-// that matches its query.
+// MovementSystem: gestisce l'entità che possiede sia TransformComponent che PlayerCameraComponent
+// dovrebbe gestire solo il player locale nei suoi spostamenti fuori dalla webxr
 export class MovementSystem extends IterativeSystem {
     scene: Scene;
     init = true;
     private vel = { x: 0, y: 0, z: 0 };
 
     constructor(scene: Scene) {
+        // entra nel loop del sistema solo se ha TransformComponent e PlayerCameraComponent
         super(new QueryBuilder().contains(TransformComponent).contains(PlayerCameraComponent).build())
         this.scene = scene;
     }
@@ -27,10 +24,15 @@ export class MovementSystem extends IterativeSystem {
         let transformPlayer = entity.get(TransformComponent);
 
 
+        // se il player è in prima persona
         if (cameraComponent.firstPerson) {
-            var camera = cameraComponent.camera;
+            let camera = cameraComponent.camera;
+
+            // setto dei parametri al primo giro
             if (this.init) {
+
                 camera.attachControl();
+
                 //inserisco il controllo tramite wasd
                 camera.keysUp.push(87);
                 camera.keysDown.push(83);
@@ -49,7 +51,7 @@ export class MovementSystem extends IterativeSystem {
             }
 
 
-            //setto la componente in base alla camera
+            // setto la componente di Transform in base alla camera
             transformPlayer.x = camera.position.x;
             transformPlayer.y = 0;
             transformPlayer.z = camera.position.z;
@@ -61,18 +63,13 @@ export class MovementSystem extends IterativeSystem {
             transformPlayer.rotation_z = cameraQuaternion.z;
             transformPlayer.rotation_w = cameraQuaternion.w;
 
-            //andrebbe fatto solo una volta questo
-            if (entity.has(MeshArrayComponent)) {
-                let meshComponent = entity.get(MeshArrayComponent).meshes;
 
-                meshComponent.map(mesh => {
-                    mesh.isPickable = false;
-                    mesh.visibility = 0;
-                });
-            }
+
+
+
 
         } else {
-            //sono in terza persona
+            // sono in terza persona
 
             this.scene.onKeyboardObservable.add((kbInfo) => {
                 switch (kbInfo.type) {

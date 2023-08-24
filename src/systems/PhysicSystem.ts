@@ -1,6 +1,7 @@
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { HavokPlugin, Scene, Vector3 } from "@babylonjs/core";
 
+// TO DO
 export class PhysicSistem extends IterativeSystem {
     scene: Scene
 

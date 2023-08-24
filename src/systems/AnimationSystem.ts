@@ -1,26 +1,16 @@
-import { Entity, EntitySnapshot, IterativeSystem, Query, QueryBuilder } from "tick-knock";
-import { MeshComponent } from "../components/MeshComponent";
-import { PositionComponent } from "../components/PositionComponent";
-import { AbstractMesh, KeyboardEventTypes, Matrix, MeshBuilder, Scene, SceneLoader, Vector3 } from "@babylonjs/core";
-import { PhysicComponent } from "../components/PhysicComponent";
-import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
-import { TransformComponent } from "../components/TransformComponent";
-import { MeshArrayComponent } from "../components/MeshArrayComponent";
-import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
-import { Room } from "colyseus.js";
-import { MeshMultiComponent } from "../components/MeshMultiComponent";
-import { ClientComponent } from "../components/ClientComponent";
-import { Utils } from "../utils";
+import { Scene } from "@babylonjs/core";
+import { Entity, IterativeSystem, Query } from "tick-knock";
 import { AnimationComponent } from "../components/AnimationComponent";
+import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
+import { Utils } from "../utils";
 
-// Create a simple system that extends an iterative base class
-// The iterative system class simply iterates over all entities it finds
-// that matches its query.
+// Animation System: gestisce tutte le entità che possiedono un AnimationComponent o che devono istanziarlo
+// in generale si occupa di sincronizzare le animazioni con il server
 export class AnimationSystem extends IterativeSystem {
     scene: Scene;
-    init = true;
 
     constructor(scene: Scene) {
+        //entra nel loop del sistema solo se ha AnimationComponent o EntityMultiplayerComponent
         super(new Query((entity) => (entity.hasComponent(AnimationComponent) || entity.hasComponent(EntityMultiplayerComponent))));
         this.scene = scene;
     }
@@ -28,6 +18,7 @@ export class AnimationSystem extends IterativeSystem {
     protected async updateEntity(entity: Entity, dt: number): Promise<void> {
 
         if (Utils.room != null) {
+
             if (entity.has(AnimationComponent) && entity.has(EntityMultiplayerComponent)) {
                 let animComponent = entity.get(AnimationComponent);
                 let entityServer = entity.get(EntityMultiplayerComponent);
@@ -48,8 +39,10 @@ export class AnimationSystem extends IterativeSystem {
                 if (animComponent.id != undefined && animComponent.state != "pause" && entityServer.busy == Utils.room.sessionId) {
 
                     if (animComponent.isVideo == false) {
+                        //se il sistema deve gestire un oggetto 3d animato
                         animComponent.currentFrame = animComponent.animGroup[+animComponent.state].animatables[0].masterFrame;
                     } else {
+                        //se il sistema deve gestire un video
                         animComponent.currentFrame = animComponent.video.video.currentTime;
                     }
 
