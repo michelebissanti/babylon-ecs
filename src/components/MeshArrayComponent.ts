@@ -13,6 +13,7 @@ export class MeshArrayComponent {
         //ad ogni mesh aggiungo come metadato l'entity id locale
         this.meshes.forEach(mesh => {
             mesh.metadata = { id: eid.toString() };
+            mesh.isNearGrabbable = true;
         });
 
         if (collision) {

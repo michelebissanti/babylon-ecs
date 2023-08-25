@@ -26,6 +26,7 @@ import { MultiplayerSystem } from './systems/MultiplayerSystem';
 import { TransformSystem } from './systems/TransformSystem';
 import { WebXrSystem } from './systems/WebXrSystem';
 import { Utils } from './utils';
+import { FollowSystem } from './systems/FollowSystem';
 
 class App {
     engine: Engine;
@@ -133,6 +134,7 @@ class App {
         this.ecs.addSystem(new TransformSystem(this.scene));
         this.ecs.addSystem(new MeshMultiplayerSystem(this.scene));
         this.ecs.addSystem(new AnimationSystem(this.scene));
+        this.ecs.addSystem(new FollowSystem(this.scene));
 
         // creazione del menu della lobby
         GuiUtils.createNearMenu(player);

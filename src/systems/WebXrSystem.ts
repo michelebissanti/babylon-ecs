@@ -1,4 +1,4 @@
-import { FreeCamera, PointerEventTypes, Scene, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
+import { AbstractMesh, BoundingBoxGizmo, Color3, FreeCamera, PointerEventTypes, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
 import { TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { GuiUtils } from "../GuiUtils";
@@ -9,6 +9,7 @@ import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { TransformComponent } from "../components/TransformComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
 import { Utils } from "../utils";
+import { FollowComponent } from "../components/FollowComponent";
 
 // WebXrSystem: gestisce l'entità che possiede WebXrComponent
 // dovrebbe gestire solo il player locale nelle sue interazioni con la webxr
@@ -139,10 +140,24 @@ export class WebXrSystem extends IterativeSystem {
                                                 objectMenu = GuiUtils.objectMenu(entityPicked, entityMesh);
 
                                                 // lego il menu all'entità
-                                                objectMenu.linkToTransformNode(entityMesh);
+                                                //objectMenu.linkToTransformNode(entityMesh);
+                                                let objectMenuEntity = new Entity();
+                                                objectMenuEntity.add(new MeshComponent(objectMenu.mesh, objectMenuEntity.id, false));
+                                                objectMenuEntity.add(new TransformComponent(false, 1, 1, 1));
+                                                objectMenuEntity.get(TransformComponent).scale_x = 0.1;
+                                                objectMenuEntity.get(TransformComponent).scale_y = 0.1;
+                                                objectMenuEntity.get(TransformComponent).scale_z = 0.1;
+
+                                                let meshSize = Utils.getParentSize(entityMesh);
+
+                                                let meshHeight = meshSize.y * 2;
+
+                                                objectMenuEntity.add(new FollowComponent(entityPicked.get(TransformComponent), new Vector3(0, meshHeight, 0)));
+                                                Utils.engineEcs.addEntity(objectMenuEntity);
+
 
                                                 // sposto il menu NOT WORKING
-                                                objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
+                                                //objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
                                             } else {
 
                                             }

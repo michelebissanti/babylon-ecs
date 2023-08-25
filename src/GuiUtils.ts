@@ -21,6 +21,9 @@ export class GuiUtils {
     // booleano che indica se sono in modalità di edit
     static switchEdit: boolean = false;
 
+    // booleano che indica se sono in modalità di edit
+    static switchMove: boolean = false;
+
     // questo metodo crea il menu di benvenuto, opzioni disponibili:
     //  - Create room
     //  - Join room (con codice inserito da tastiera)
@@ -643,11 +646,6 @@ export class GuiUtils {
 
         entityMesh = boundingBox; */
 
-
-        objectMenu.scaling.x = 0.1;
-        objectMenu.scaling.y = 0.1;
-        objectMenu.scaling.z = 0.1;
-
         //objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + 0.5;
 
         const sixDofDragBehavior = new SixDofDragBehavior();
@@ -656,7 +654,7 @@ export class GuiUtils {
 
         let editButton = new TouchHolographicButton("editButton");
         objectMenu.addButton(editButton);
-        editButton.text = "Move/Scale";
+        editButton.text = "Scale";
         editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
         editButton.onPointerDownObservable.add(() => {
 

@@ -4,7 +4,7 @@ import { AbstractMesh, Mesh } from '@babylonjs/core';
 export class MeshComponent {
     mesh: AbstractMesh;
 
-    constructor(mesh: Mesh, eid: number, collision?: boolean) {
+    constructor(mesh: AbstractMesh, eid: number, collision?: boolean) {
         this.mesh = mesh;
 
         //rinomino la mesh principale con il suo entity id locale
@@ -12,6 +12,8 @@ export class MeshComponent {
 
         //aggiungo come metadato l'entity id locale
         this.mesh.metadata = { id: eid.toString() };
+
+        this.mesh.isNearGrabbable = true;
 
         if (collision) {
             mesh.checkCollisions = true;
