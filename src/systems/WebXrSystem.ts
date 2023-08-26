@@ -203,9 +203,22 @@ export class WebXrSystem extends IterativeSystem {
                     // se è un controller sinistro e non è una mano
                     if (controller.motionController.handedness == 'left' && controller.inputSource.hand == undefined) {
 
-                        // attacco il menu al controller
-                        this.controllerMenu.mesh.parent = controller.grip;
                         this.controllerMenu.isVisible = true;
+
+                        // attacco il menu al controller
+                        let controllerMenuEntity = new Entity();
+                        controllerMenuEntity.add(new MeshComponent(this.controllerMenu.mesh, controllerMenuEntity.id, false));
+                        controllerMenuEntity.add(new TransformComponent(false, 1, 1, 1));
+                        controllerMenuEntity.get(TransformComponent).scale_x = 0.1;
+                        controllerMenuEntity.get(TransformComponent).scale_y = 0.1;
+                        controllerMenuEntity.get(TransformComponent).scale_z = 0.1;
+
+                        let controllerEntity = new Entity();
+                        controllerEntity.add(new TransformComponent(false, 1, 1, 1));
+                        controllerEntity.get(TransformComponent).revertLogic = true;
+
+                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent)));
+
                         controllerMenuState = true;
 
                         // console.log("entrato nel controller");
