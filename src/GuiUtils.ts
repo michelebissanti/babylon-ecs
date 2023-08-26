@@ -176,7 +176,7 @@ export class GuiUtils {
         let addVideo = new TouchHolographicButton();
         nearMenu.addButton(addVideo);
         addVideo.text = "Add Video";
-        addVideo.imageUrl = "icon/object.png";
+        addVideo.imageUrl = "icon/video.png";
 
         addVideo.onPointerDownObservable.add(async () => {
 
@@ -736,6 +736,30 @@ export class GuiUtils {
 
                         playButton.text = "Play";
                         playButton.imageUrl = "icon/play-button.png";
+                    }
+
+                });
+
+                let muteButton = new TouchHolographicButton("muteButton");
+                objectMenu.addButton(muteButton);
+                muteButton.text = "Mute";
+                muteButton.imageUrl = "icon/volume.png";
+
+                muteButton.onPointerDownObservable.add(() => {
+
+                    if (animComp.video.video.mute) {
+                        // se è mutato, lo smuto
+                        animComp.video.video.mute = false;
+
+                        muteButton.text = "Mute";
+                        muteButton.imageUrl = "icon/volume.png";
+
+                    } else {
+                        // se è smutato, lo muto
+                        animComp.video.video.mute = true;
+
+                        muteButton.text = "Unmute";
+                        muteButton.imageUrl = "icon/mute.png";
                     }
 
                 });
