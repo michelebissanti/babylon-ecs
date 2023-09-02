@@ -8,7 +8,7 @@ import { MeshMultiComponent } from "./components/MeshMultiComponent";
 import { PlayerCameraComponent } from "./components/PlayerCameraComponent";
 import { TransformComponent } from "./components/TransformComponent";
 import { WebXrComponent } from "./components/WebXrComponent";
-import { Object3d, Utils } from "./utils";
+import { CustomVideo, Object3d, Utils } from "./utils";
 
 // questa classe serve a contenere tutti i metodi statici che riguardano l'interfaccia utente
 export class GuiUtils {
@@ -139,6 +139,7 @@ export class GuiUtils {
     static async initRoom(player: Entity) {
 
         let displayList = false;
+        let displayListVideo = false;
 
         const manager = GuiUtils.gui3dmanager;
 
@@ -178,17 +179,20 @@ export class GuiUtils {
         addVideo.text = "Add Video";
         addVideo.imageUrl = "icon/video.png";
 
+        let listVideo: HolographicSlate;
+
         addVideo.onPointerDownObservable.add(async () => {
 
-            let video = new Entity();
-
-            video.add(new EntityMultiplayerComponent(false));
-
-            video.add(new MeshMultiComponent("video", "test.mp4", false));
-
-            video.add(new TransformComponent(false, 0, 1, 2));
-
-            Utils.engineEcs.addEntity(video);
+            if (displayListVideo == true) {
+                listVideo.dispose();
+                displayListVideo = false;
+                addVideo.text = "Add Video";
+            } else {
+                //spawn slate con elenco
+                listVideo = GuiUtils.createListVideo(player);
+                addVideo.text = "Hide Video List";
+                displayListVideo = true;
+            }
 
         });
 
@@ -372,6 +376,87 @@ export class GuiUtils {
                 newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
                 Utils.engineEcs.addEntity(newObject);
+            });
+        }
+
+        grid.height = elementSize * 200 + "px";
+        listSlate.content = sv;
+
+        return listSlate;
+    }
+
+    // questo metodo crea una list slate con tutti i video disponibili
+    // è possibile cliccare sui video per farli spawnare davanti al player
+    static createListVideo(player: Entity): HolographicSlate {
+        let manager = GuiUtils.gui3dmanager;
+        let playerTransform = player.get(TransformComponent);
+
+        //creo la lastra olografica dove inserirò la gui 2d
+        let listSlate = new HolographicSlate("listSlate");
+        listSlate.titleBarHeight = 0;
+        listSlate.dimensions = new Vector2(1, 1);
+        listSlate.position = new Vector3(0, 0, 0);
+        listSlate.title = "Add Video";
+
+        manager.addControl(listSlate);
+
+        let sv = new ScrollViewer();
+        sv.background = "blue";
+
+        let grid = new Grid();
+        grid.background = "black";
+
+        sv.addControl(grid);
+
+        grid.addColumnDefinition(0.5);
+        grid.addColumnDefinition(0.5);
+
+        let videoAvaible: Array<CustomVideo> = Utils.getAvaiableVideo();
+
+        //console.log(videoAvaible);
+
+        let elementSize = videoAvaible.length;
+
+        for (let i = 0; i < elementSize; i++) {
+            grid.addRowDefinition(200, true);
+            var imgButton = Button.CreateImageOnlyButton("", videoAvaible[i].urlIcona);
+            grid.addControl(imgButton, i, 0);
+
+            imgButton.onPointerClickObservable.add(async () => {
+                //piazzo una nuovo video selezionato nella scena
+                let video = new Entity();
+
+                video.add(new EntityMultiplayerComponent(false));
+
+                video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
+
+                // posiziono l'oggetto difronte al player
+                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
+
+                video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
+
+                Utils.engineEcs.addEntity(video);
+            });
+
+            var textButton = Button.CreateSimpleButton("", videoAvaible[i].nome);
+            textButton.color = "white";
+            textButton.background = "green";
+            grid.addControl(textButton, i, 1);
+
+            textButton.onPointerClickObservable.add(async () => {
+                //piazzo una nuovo video selezionato nella scena
+                let video = new Entity();
+
+                video.add(new EntityMultiplayerComponent(false));
+
+                video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
+
+                // posiziono l'oggetto difronte al player
+                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
+
+                video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
+
+                Utils.engineEcs.addEntity(video);
             });
         }
 

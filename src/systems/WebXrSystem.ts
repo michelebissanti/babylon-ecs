@@ -152,12 +152,8 @@ export class WebXrSystem extends IterativeSystem {
 
                                                 let meshHeight = meshSize.y * 2;
 
-                                                objectMenuEntity.add(new FollowComponent(entityPicked.get(TransformComponent), new Vector3(0, meshHeight, 0)));
+                                                objectMenuEntity.add(new FollowComponent(entityPicked.get(TransformComponent), new Vector3(0, meshHeight, 0), entity.get(TransformComponent)));
                                                 Utils.engineEcs.addEntity(objectMenuEntity);
-
-
-                                                // sposto il menu NOT WORKING
-                                                //objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + (objectMenu.mesh.getBoundingInfo().boundingBox.extendSize.y / 2) + 0.3;
                                             } else {
 
                                             }
@@ -196,6 +192,7 @@ export class WebXrSystem extends IterativeSystem {
         if (this.controllerUpdate) {
             if (Utils.room != null) {
                 let controllerMenuState = false;
+                this.controllerUpdate = false;
 
                 // giro tutti i controller collegati
                 this.inputSourceArray.forEach(controller => {
@@ -205,18 +202,21 @@ export class WebXrSystem extends IterativeSystem {
 
                         this.controllerMenu.isVisible = true;
 
-                        // attacco il menu al controller
+                        // creo l'entità per il menu
                         let controllerMenuEntity = new Entity();
                         controllerMenuEntity.add(new MeshComponent(this.controllerMenu.mesh, controllerMenuEntity.id, false));
                         controllerMenuEntity.add(new TransformComponent(false, 1, 1, 1));
-                        controllerMenuEntity.get(TransformComponent).scale_x = 0.1;
-                        controllerMenuEntity.get(TransformComponent).scale_y = 0.1;
-                        controllerMenuEntity.get(TransformComponent).scale_z = 0.1;
+                        controllerMenuEntity.get(TransformComponent).scale_x = 2;
+                        controllerMenuEntity.get(TransformComponent).scale_y = 2;
+                        controllerMenuEntity.get(TransformComponent).scale_z = 2;
 
+                        // creo l'entità per il controller
                         let controllerEntity = new Entity();
                         controllerEntity.add(new TransformComponent(false, 1, 1, 1));
+                        controllerEntity.add(new MeshComponent(controller.grip, controllerEntity.id, false));
                         controllerEntity.get(TransformComponent).revertLogic = true;
 
+                        // lego le due entità
                         controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent)));
 
                         controllerMenuState = true;

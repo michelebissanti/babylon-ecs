@@ -18,8 +18,24 @@ export class Object3d {
     nomeFile: string;
 
     constructor(nome, urlIcona, percorso, nomeFile) {
-        this.nome = nome,
-            this.urlIcona = urlIcona;
+        this.nome = nome;
+        this.urlIcona = urlIcona;
+        this.percorso = percorso;
+        this.nomeFile = nomeFile;
+    }
+}
+
+// classe che rappresenta le informazioni per un video da poter inserire nella stanza
+// questa classe viene utilizzata per fornire un array di video da visualizzare nella gui
+export class CustomVideo {
+    nome: string;
+    urlIcona: string;
+    percorso: string;
+    nomeFile: string;
+
+    constructor(nome, urlIcona, percorso, nomeFile) {
+        this.nome = nome;
+        this.urlIcona = urlIcona;
         this.percorso = percorso;
         this.nomeFile = nomeFile;
     }
@@ -47,6 +63,16 @@ export class Utils {
         objects[3] = new Object3d("Table Football", "models_image/table_football.png", "models/", "table_football.glb");
         objects[4] = new Object3d("Mystery Block", "models_image/mystery_block.png", "models/", "mystery_block.glb");
         objects[5] = new Object3d("Bee", "models_image/bee.png", "models/", "bee.glb");
+
+        return objects;
+
+    }
+
+    // restituisce la lista di video che si possono inserire in una stanza
+    static getAvaiableVideo(): Array<Object3d> {
+        let objects: Array<CustomVideo> = [];
+
+        objects[0] = new Object3d("Train", "video_image/train.png", "video", "train.mp4");
 
         return objects;
 

@@ -30,12 +30,23 @@ export class FollowSystem extends IterativeSystem {
             transformComponent.z = targetTransformComponet.z;
         }
 
+        if (followComponent.direction != undefined) {
+            let directionTransformComponet = followComponent.direction;
+            transformComponent.rotation_x = directionTransformComponet.rotation_x;
+            transformComponent.rotation_y = directionTransformComponet.rotation_y;
+            transformComponent.rotation_z = directionTransformComponet.rotation_z;
+            transformComponent.rotation_w = directionTransformComponet.rotation_w;
+
+        } else {
+            transformComponent.rotation_x = targetTransformComponet.rotation_x;
+            transformComponent.rotation_y = targetTransformComponet.rotation_y;
+            transformComponent.rotation_z = targetTransformComponet.rotation_z;
+            transformComponent.rotation_w = targetTransformComponet.rotation_w;
+        }
 
 
-        transformComponent.rotation_x = targetTransformComponet.rotation_x;
-        transformComponent.rotation_y = targetTransformComponet.rotation_y;
-        transformComponent.rotation_z = targetTransformComponet.rotation_z;
-        transformComponent.rotation_w = targetTransformComponet.rotation_w;
+
+
 
 
 
