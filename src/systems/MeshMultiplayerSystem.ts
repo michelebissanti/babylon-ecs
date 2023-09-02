@@ -1,4 +1,4 @@
-import { Color3, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, VideoTexture } from "@babylonjs/core";
+import { Color3, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, Texture, Vector3, VideoTexture } from "@babylonjs/core";
 import { Entity, IterativeSystem, Query } from "tick-knock";
 import { AnimationComponent } from "../components/AnimationComponent";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
@@ -56,6 +56,25 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     //aggiungo la componente di mesh locale e la componente di animazione
                     entity.add(new MeshComponent(plane, entity.id, false));
                     entity.add(new AnimationComponent(null, videoTex, true));
+
+                } else if (meshMultiComponent.location == "image") {
+                    //se la mesh da istanziare è un immagine
+
+                    let plane = MeshBuilder.CreateBox("", { height: 0.875, width: 2, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
+                    plane.isPickable = true;
+                    let decalMaterial = new StandardMaterial("decalMat", this.scene);
+                    decalMaterial.diffuseTexture = new Texture(meshMultiComponent.location + "/" + meshMultiComponent.name, this.scene);
+                    decalMaterial.diffuseTexture.hasAlpha = true;
+                    decalMaterial.zOffset = -2;
+
+                    const decal = MeshBuilder.CreateDecal("decal", plane, { position: new Vector3(0, 0, -0.1), normal: new Vector3(0, 0, -1), size: new Vector3(2, 0.875, 1), localMode: true });
+                    decal.material = decalMaterial;
+
+                    //setto l'origine ai piedi della mesh, centrata orizzontalmente
+                    plane.setPivotMatrix(Matrix.Translation(0, plane.getBoundingInfo().boundingBox.extendSize.y, 0), false);
+
+                    //aggiungo la componente di mesh locale
+                    entity.add(new MeshComponent(plane, entity.id, false));
 
 
                 } else {

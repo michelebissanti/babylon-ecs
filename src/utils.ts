@@ -41,6 +41,22 @@ export class CustomVideo {
     }
 }
 
+// classe che rappresenta le informazioni per un immagine da poter inserire nella stanza
+// questa classe viene utilizzata per fornire un array di immagini da visualizzare nella gui
+export class CustomImage {
+    nome: string;
+    urlIcona: string;
+    percorso: string;
+    nomeFile: string;
+
+    constructor(nome, urlIcona, percorso, nomeFile) {
+        this.nome = nome;
+        this.urlIcona = urlIcona;
+        this.percorso = percorso;
+        this.nomeFile = nomeFile;
+    }
+}
+
 // classe di utilità che contiene riferimenti a oggetti unici e globali e metodi statici
 export class Utils {
     public static room: Room;
@@ -69,10 +85,20 @@ export class Utils {
     }
 
     // restituisce la lista di video che si possono inserire in una stanza
-    static getAvaiableVideo(): Array<Object3d> {
+    static getAvaiableVideo(): Array<CustomVideo> {
         let objects: Array<CustomVideo> = [];
 
-        objects[0] = new Object3d("Train", "video_image/train.png", "video", "train.mp4");
+        objects[0] = new CustomVideo("Train", "video_thumb/train.png", "video", "train.mp4");
+
+        return objects;
+
+    }
+
+    // restituisce la lista di immagini che si possono inserire in una stanza
+    static getAvaiableImages(): Array<CustomImage> {
+        let objects: Array<CustomImage> = [];
+
+        objects[0] = new CustomImage("Future", "image/future.jpeg", "image", "future.jpeg");
 
         return objects;
 
