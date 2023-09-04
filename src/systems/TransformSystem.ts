@@ -1,4 +1,4 @@
-import { Scene } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Quaternion, Scene } from "@babylonjs/core";
 import { Entity, IterativeSystem, Query } from "tick-knock";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";
@@ -28,15 +28,20 @@ export class TransformSystem extends IterativeSystem {
 
                 //caso con MeshComponent
                 if (entity.has(MeshComponent)) {
-                    let mesh = entity.get(MeshComponent).mesh;
+
+                    let mesh: AbstractMesh = entity.get(MeshComponent).mesh;
+
+                    if (mesh.rotationQuaternion == null) {
+                        mesh.rotationQuaternion = mesh.rotation.toQuaternion();
+                    }
 
                     mesh.position.x = transformComponent.x;
                     mesh.position.y = transformComponent.y;
                     mesh.position.z = transformComponent.z;
-                    mesh.rotation.x = transformComponent.rotation_x;
-                    mesh.rotation.y = transformComponent.rotation_y;
-                    mesh.rotation.z = transformComponent.rotation_z;
-                    //mesh.rotation.w = transformComponent.rotation_w;
+                    mesh.rotationQuaternion.x = transformComponent.rotation_x;
+                    mesh.rotationQuaternion.y = transformComponent.rotation_y;
+                    mesh.rotationQuaternion.z = transformComponent.rotation_z;
+                    mesh.rotationQuaternion.w = transformComponent.rotation_w;
                     mesh.scaling.x = transformComponent.scale_x;
                     mesh.scaling.y = transformComponent.scale_y;
                     mesh.scaling.z = transformComponent.scale_z;
@@ -46,6 +51,10 @@ export class TransformSystem extends IterativeSystem {
                 if (entity.has(MeshArrayComponent)) {
                     let meshes = entity.get(MeshArrayComponent).meshes;
                     let mesh = meshes[0];
+
+                    if (mesh.rotationQuaternion == null) {
+                        mesh.rotationQuaternion = mesh.rotation.toQuaternion();
+                    }
 
                     mesh.position.x = transformComponent.x;
                     mesh.position.y = transformComponent.y;
@@ -66,13 +75,17 @@ export class TransformSystem extends IterativeSystem {
                 if (entity.has(MeshComponent)) {
                     let mesh = entity.get(MeshComponent).mesh;
 
+                    if (mesh.rotationQuaternion == null) {
+                        mesh.rotationQuaternion = mesh.rotation.toQuaternion();
+                    }
+
                     transformComponent.x = mesh.position.x;
                     transformComponent.y = mesh.position.y;
                     transformComponent.z = mesh.position.z;
-                    transformComponent.rotation_x = mesh.rotation.x;
-                    transformComponent.rotation_y = mesh.rotation.y;
-                    transformComponent.rotation_z = mesh.rotation.z;
-                    //transformComponent.rotation_w = mesh.rotation.w;
+                    transformComponent.rotation_x = mesh.rotationQuaternion.x;
+                    transformComponent.rotation_y = mesh.rotationQuaternion.y;
+                    transformComponent.rotation_z = mesh.rotationQuaternion.z;
+                    transformComponent.rotation_w = mesh.rotationQuaternion.w;
                     transformComponent.scale_x = mesh.scaling.x;
                     transformComponent.scale_y = mesh.scaling.y;
                     transformComponent.scale_z = mesh.scaling.z;
@@ -82,6 +95,10 @@ export class TransformSystem extends IterativeSystem {
                 if (entity.has(MeshArrayComponent)) {
                     let meshes = entity.get(MeshArrayComponent).meshes;
                     let mesh = meshes[0];
+
+                    if (mesh.rotationQuaternion == null) {
+                        mesh.rotationQuaternion = mesh.rotation.toQuaternion();
+                    }
 
                     transformComponent.x = mesh.position.x;
                     transformComponent.y = mesh.position.y;

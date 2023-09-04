@@ -4,13 +4,13 @@ import { TransformComponent } from "./TransformComponent";
 // questa componente serve a far seguire un target ad un oggetto
 export class FollowComponent {
     target: TransformComponent;
-    direction: TransformComponent;
-
     spacing: Vector3;
+    followRotation: boolean = false;
 
-    constructor(target: TransformComponent, spacing?: Vector3, direction?: TransformComponent) {
+    constructor(target: TransformComponent, spacing?: Vector3, followRotation?: boolean) {
         this.target = target;
         this.spacing = spacing;
-        this.direction = direction;
+        this.followRotation = followRotation;
+
     }
 }

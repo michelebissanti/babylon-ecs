@@ -46,7 +46,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                     videoMat.diffuseTexture = videoTex;
                     videoMat.roughness = 1;
                     videoMat.emissiveColor = Color3.White();
-                    videoTex.video.muted = true;
+                    //videoTex.video.volume = 0;
                     videoTex.video.pause();
                     plane.material = videoMat;
 

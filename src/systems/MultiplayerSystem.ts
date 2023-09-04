@@ -16,7 +16,7 @@ export class MultiplayerSystem extends IterativeSystem {
         this.scene = scene;
     }
 
-    protected updateEntity(entity: Entity, dt: number): void {
+    protected async updateEntity(entity: Entity, dt: number): Promise<void> {
         if (Utils.room != null) {
             if (this.init) {
                 // se sono in una stanza setto i listener
@@ -59,7 +59,7 @@ export class MultiplayerSystem extends IterativeSystem {
                     Utils.room.send("createEntity", {
                     });
 
-                    Utils.waitForConditionAsync(_ => {
+                    await Utils.waitForConditionAsync(_ => {
                         return this.entityCodeResponse != undefined;
                     }).then(_ => {
 

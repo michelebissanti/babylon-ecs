@@ -90,6 +90,7 @@ export class WebXrSystem extends IterativeSystem {
 
 
                         this.inputSourceArray.push(inputSource);
+                        GuiUtils.warningSlate("log", inputSource.inputSource.profiles[0])
                         this.motionControllersArray.push(motionController);
 
                         this.controllerUpdate = true;
@@ -100,12 +101,11 @@ export class WebXrSystem extends IterativeSystem {
 
 
             let objectMenu: TouchHolographicMenu;
-
             // listener per quando tocco un oggetto
             this.scene.onPointerObservable.add((pointerInfo) => {
                 switch (pointerInfo?.type) {
                     case PointerEventTypes.POINTERDOWN:
-                        if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+                        if (GuiUtils.objectMenuShow == false && pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
 
                             // se ci sono dei metadati
                             if (pointerInfo.pickInfo.pickedMesh.metadata != null) {
@@ -141,7 +141,7 @@ export class WebXrSystem extends IterativeSystem {
 
                                                 // lego il menu all'entità
                                                 //objectMenu.linkToTransformNode(entityMesh);
-                                                let objectMenuEntity = new Entity();
+                                                /* let objectMenuEntity = new Entity();
                                                 objectMenuEntity.add(new MeshComponent(objectMenu.mesh, objectMenuEntity.id, false));
                                                 objectMenuEntity.add(new TransformComponent(false, 1, 1, 1));
                                                 objectMenuEntity.get(TransformComponent).scale_x = 0.1;
@@ -150,10 +150,10 @@ export class WebXrSystem extends IterativeSystem {
 
                                                 let meshSize = Utils.getParentSize(entityMesh);
 
-                                                let meshHeight = meshSize.y * 2;
+                                                let meshHeight = meshSize.y;
 
                                                 objectMenuEntity.add(new FollowComponent(entityPicked.get(TransformComponent), new Vector3(0, meshHeight, 0), entity.get(TransformComponent)));
-                                                Utils.engineEcs.addEntity(objectMenuEntity);
+                                                Utils.engineEcs.addEntity(objectMenuEntity); */
                                             } else {
 
                                             }
@@ -171,10 +171,14 @@ export class WebXrSystem extends IterativeSystem {
                                 } else {
                                     console.log("nessuna entità");
                                 }
-                            }
+
+
+                            };
 
                         }
+                        break;
                 }
+
             });
 
             this.init = false;
@@ -206,18 +210,20 @@ export class WebXrSystem extends IterativeSystem {
                         let controllerMenuEntity = new Entity();
                         controllerMenuEntity.add(new MeshComponent(this.controllerMenu.mesh, controllerMenuEntity.id, false));
                         controllerMenuEntity.add(new TransformComponent(false, 1, 1, 1));
-                        controllerMenuEntity.get(TransformComponent).scale_x = 2;
-                        controllerMenuEntity.get(TransformComponent).scale_y = 2;
-                        controllerMenuEntity.get(TransformComponent).scale_z = 2;
+                        controllerMenuEntity.get(TransformComponent).scale_x = 0.05;
+                        controllerMenuEntity.get(TransformComponent).scale_y = 0.05;
+                        controllerMenuEntity.get(TransformComponent).scale_z = 0.05;
+                        Utils.engineEcs.addEntity(controllerMenuEntity);
 
                         // creo l'entità per il controller
                         let controllerEntity = new Entity();
                         controllerEntity.add(new TransformComponent(false, 1, 1, 1));
                         controllerEntity.add(new MeshComponent(controller.grip, controllerEntity.id, false));
                         controllerEntity.get(TransformComponent).revertLogic = true;
+                        Utils.engineEcs.addEntity(controllerEntity);
 
                         // lego le due entità
-                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent)));
+                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(0.10, 0, -0.1), false));
 
                         controllerMenuState = true;
 
@@ -229,7 +235,7 @@ export class WebXrSystem extends IterativeSystem {
                         let xbuttonComponent = controller.motionController.getComponent(xr_ids[3]);
 
                         // setto il listener sul bottone x per aprire e chiudere il menu
-                        xbuttonComponent.onButtonStateChangedObservable.add(() => {
+                        xbuttonComponent?.onButtonStateChangedObservable.add(() => {
                             if (xbuttonComponent.pressed) {
                                 if (controllerMenuState) {
                                     this.controllerMenu.isVisible = false;
@@ -241,6 +247,7 @@ export class WebXrSystem extends IterativeSystem {
 
                             }
                         });
+
                     } else {
                         //controllerMenu.position = new Vector3(-0.1, 0, 0);
                     }

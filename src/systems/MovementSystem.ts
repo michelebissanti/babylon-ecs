@@ -63,8 +63,6 @@ export class MovementSystem extends IterativeSystem {
             transformPlayer.rotation_z = cameraQuaternion.z;
             transformPlayer.rotation_w = cameraQuaternion.w;
 
-            console.log(camera.absoluteRotation.toEulerAngles());
-
 
 
 

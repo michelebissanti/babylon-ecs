@@ -1,4 +1,4 @@
-import { Scene } from "@babylonjs/core";
+import { Quaternion, Scene } from "@babylonjs/core";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { FollowComponent } from "../components/FollowComponent";
 import { TransformComponent } from "../components/TransformComponent";
@@ -20,7 +20,7 @@ export class FollowSystem extends IterativeSystem {
 
         let targetTransformComponet = followComponent.target;
 
-        if (followComponent.spacing != undefined) {
+        if (followComponent.spacing != null) {
             transformComponent.x = targetTransformComponet.x + followComponent.spacing.x;
             transformComponent.y = targetTransformComponet.y + followComponent.spacing.y;
             transformComponent.z = targetTransformComponet.z + followComponent.spacing.z;
@@ -30,14 +30,7 @@ export class FollowSystem extends IterativeSystem {
             transformComponent.z = targetTransformComponet.z;
         }
 
-        if (followComponent.direction != undefined) {
-            let directionTransformComponet = followComponent.direction;
-            transformComponent.rotation_x = directionTransformComponet.rotation_x;
-            transformComponent.rotation_y = directionTransformComponet.rotation_y;
-            transformComponent.rotation_z = directionTransformComponet.rotation_z;
-            transformComponent.rotation_w = directionTransformComponet.rotation_w;
-
-        } else {
+        if (followComponent.followRotation) {
             transformComponent.rotation_x = targetTransformComponet.rotation_x;
             transformComponent.rotation_y = targetTransformComponet.rotation_y;
             transformComponent.rotation_z = targetTransformComponet.rotation_z;
