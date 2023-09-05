@@ -38,10 +38,17 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                 } else if (meshMultiComponent.location == "video") {
                     //se la mesh da istanziare è un video
 
-                    let plane = MeshBuilder.CreateBox("", { height: 0.875, width: 2, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
-                    plane.isPickable = true;
+
                     let videoMat = new StandardMaterial("videoMat");
                     let videoTex = new VideoTexture("videoTex", meshMultiComponent.location + "/" + meshMultiComponent.name, this.scene);
+
+                    let planeHeight = videoTex.video.height / videoTex.video.width;
+
+                    console.log(planeHeight);
+                    console.log(videoTex.video.width);
+
+                    let plane = MeshBuilder.CreateBox("", { height: planeHeight, width: 1, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
+                    plane.isPickable = true;
 
                     videoMat.diffuseTexture = videoTex;
                     videoMat.roughness = 1;

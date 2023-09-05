@@ -39,7 +39,7 @@ export class MultiplayerSystem extends IterativeSystem {
                 //caso del player che joina la stanza
                 if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined) {
 
-                    Utils.waitForConditionAsync(_ => {
+                    await Utils.waitForConditionAsync(_ => {
                         return this.entityCodeResponse != undefined;
                     }).then(_ => {
                         entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
