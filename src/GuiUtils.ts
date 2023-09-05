@@ -951,6 +951,8 @@ export class GuiUtils {
                 utilLayer = new UtilityLayerRenderer(Utils.scene)
                 utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
                 gizmo = new BoundingBoxGizmo(Color3.FromHexString("#0984e3"), utilLayer);
+                gizmo.rotationSphereSize = 0.05;
+                gizmo.scaleBoxSize = 0.05;
 
 
                 gizmo.attachedMesh = entityMesh;

@@ -90,7 +90,7 @@ export class WebXrSystem extends IterativeSystem {
 
 
                         this.inputSourceArray.push(inputSource);
-                        GuiUtils.warningSlate("log", inputSource.inputSource.profiles[0])
+                        //GuiUtils.warningSlate("log", inputSource.inputSource.profiles[0])
                         this.motionControllersArray.push(motionController);
 
                         this.controllerUpdate = true;
@@ -218,12 +218,12 @@ export class WebXrSystem extends IterativeSystem {
                         // creo l'entità per il controller
                         let controllerEntity = new Entity();
                         controllerEntity.add(new TransformComponent(false, 1, 1, 1));
-                        controllerEntity.add(new MeshComponent(controller.grip, controllerEntity.id, false));
+                        controllerEntity.add(new MeshComponent(controller.pointer, controllerEntity.id, false));
                         controllerEntity.get(TransformComponent).revertLogic = true;
                         Utils.engineEcs.addEntity(controllerEntity);
 
                         // lego le due entità
-                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(0.10, 0, -0.1), false));
+                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(0.20, 0, -0.1), true));
 
                         controllerMenuState = true;
 
