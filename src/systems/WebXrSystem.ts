@@ -84,19 +84,25 @@ export class WebXrSystem extends IterativeSystem {
 
             // listener per ottenere i riferimenti ai controller collegati
             defExp.input.onControllerAddedObservable.add(inputSource => {
+                this.inputSourceArray.push(inputSource);
+                this.controllerUpdate = true;
+
                 inputSource.onMotionControllerInitObservable.add(motionController => {
                     motionController.onModelLoadedObservable.add(mc => {
-                        //console.log(inputSource);
-
-
-                        this.inputSourceArray.push(inputSource);
-                        //GuiUtils.warningSlate("log", inputSource.inputSource.profiles[0])
                         this.motionControllersArray.push(motionController);
-
-                        this.controllerUpdate = true;
-
                     })
                 })
+            });
+
+            // listener per rimuovere i riferimenti ai controller collegati
+            defExp.input.onControllerRemovedObservable.add(inputSource => {
+                let index = this.inputSourceArray.indexOf(inputSource);
+                this.inputSourceArray[index] = null;
+
+                if (this.controllerMenu != null) {
+                    this.controllerMenu.dispose();
+                }
+
             });
 
 
@@ -195,6 +201,7 @@ export class WebXrSystem extends IterativeSystem {
         // se devo aggiornare il menu sul controller
         if (this.controllerUpdate) {
             if (Utils.room != null) {
+                let found = false;
                 let controllerMenuState = false;
                 this.controllerUpdate = false;
 
@@ -202,7 +209,7 @@ export class WebXrSystem extends IterativeSystem {
                 this.inputSourceArray.forEach(controller => {
 
                     // se è un controller sinistro e non è una mano
-                    if (controller.motionController.handedness == 'left' && controller.inputSource.hand == undefined) {
+                    if (controller.motionController.handedness == 'left' && controller.inputSource.hand == null) {
 
                         this.controllerMenu.isVisible = true;
 
@@ -223,7 +230,7 @@ export class WebXrSystem extends IterativeSystem {
                         Utils.engineEcs.addEntity(controllerEntity);
 
                         // lego le due entità
-                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(0.20, 0, -0.1), true));
+                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(0.15, 0, 0.1), true));
 
                         controllerMenuState = true;
 
@@ -248,12 +255,78 @@ export class WebXrSystem extends IterativeSystem {
                             }
                         });
 
-                    } else {
-                        //controllerMenu.position = new Vector3(-0.1, 0, 0);
+                        found = true;
+
                     }
 
 
+
+
                 });
+
+                // posiziono il menu sul controller destro se non sono riuscito a farlo sul sinistro
+                if (found == false) {
+
+                    // giro tutti i controller collegati
+                    this.inputSourceArray.forEach(controller => {
+
+                        // se è un controller sinistro e non è una mano
+                        if (controller.motionController?.handedness == 'right' && controller.inputSource.hand == null) {
+
+                            this.controllerMenu.isVisible = true;
+
+                            // creo l'entità per il menu
+                            let controllerMenuEntity = new Entity();
+                            controllerMenuEntity.add(new MeshComponent(this.controllerMenu.mesh, controllerMenuEntity.id, false));
+                            controllerMenuEntity.add(new TransformComponent(false, 1, 1, 1));
+                            controllerMenuEntity.get(TransformComponent).scale_x = 0.05;
+                            controllerMenuEntity.get(TransformComponent).scale_y = 0.05;
+                            controllerMenuEntity.get(TransformComponent).scale_z = 0.05;
+                            Utils.engineEcs.addEntity(controllerMenuEntity);
+
+                            // creo l'entità per il controller
+                            let controllerEntity = new Entity();
+                            controllerEntity.add(new TransformComponent(false, 1, 1, 1));
+                            controllerEntity.add(new MeshComponent(controller.pointer, controllerEntity.id, false));
+                            controllerEntity.get(TransformComponent).revertLogic = true;
+                            Utils.engineEcs.addEntity(controllerEntity);
+
+                            // lego le due entità
+                            controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(-0.20, 0, -0.1), true));
+
+                            controllerMenuState = true;
+
+                            // console.log("entrato nel controller");
+
+                            const xr_ids = controller.motionController.getComponentIds();
+
+                            // prendo la componente uguale al "a-button"
+                            let xbuttonComponent = controller.motionController.getComponent(xr_ids[4]);
+
+                            // setto il listener sul bottone a per aprire e chiudere il menu
+                            xbuttonComponent?.onButtonStateChangedObservable.add(() => {
+                                if (xbuttonComponent.pressed) {
+                                    if (controllerMenuState) {
+                                        this.controllerMenu.isVisible = false;
+                                        controllerMenuState = false;
+                                    } else {
+                                        this.controllerMenu.isVisible = true;
+                                        controllerMenuState = true;
+                                    }
+
+                                }
+                            });
+
+                            found = true;
+
+                        }
+
+
+
+
+                    });
+
+                }
 
             }
         }

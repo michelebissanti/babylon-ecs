@@ -60,10 +60,12 @@ class App {
         this.ecs.addEntity(light);
 
         let ground = new Entity();
-        ground.add(new MeshComponent(MeshBuilder.CreateGround('ground', { width: 50, height: 50 }), ground.id, true));
+        ground.add(new MeshComponent(MeshBuilder.CreateGround('ground', { width: 10, height: 10 }), ground.id, true));
         //ground.add(new PhysicComponent(new PhysicsAggregate(ground.get(MeshComponent).ground, PhysicsShapeType.BOX, { mass: 0 }, this.scene)))
         ground.get(MeshComponent).mesh.isPickable = false;
-        let groundMat = new StandardMaterial("groundMat", this.scene);
+        ground.get(MeshComponent).mesh.isVisible = false;
+        ground.get(MeshComponent).mesh.position.z = 4;
+        /* let groundMat = new StandardMaterial("groundMat", this.scene);
         let groundTexture = new Texture("materials/floor/laminate_floor_02_diff_1k.jpg");
         groundTexture.uScale = 10;
         groundTexture.vScale = 10;
@@ -79,8 +81,10 @@ class App {
         groundAO.uScale = 10;
         groundAO.vScale = 10;
 
-        ground.get(MeshComponent).mesh.material = groundMat;
+        ground.get(MeshComponent).mesh.material = groundMat; */
         this.ecs.addEntity(ground);
+
+        Utils.createBackgroundScene();
 
 
 

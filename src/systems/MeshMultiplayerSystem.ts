@@ -41,28 +41,36 @@ export class MeshMultiplayerSystem extends IterativeSystem {
 
                     let videoMat = new StandardMaterial("videoMat");
                     let videoTex = new VideoTexture("videoTex", meshMultiComponent.location + "/" + meshMultiComponent.name, this.scene);
+                    let planeHeight = null;
 
-                    let planeHeight = videoTex.video.height / videoTex.video.width;
+                    videoTex.video.onloadeddata = () => {
+                        planeHeight = videoTex.video.videoHeight / videoTex.video.videoWidth;
+                    };
 
-                    console.log(planeHeight);
-                    console.log(videoTex.video.width);
+                    await Utils.waitForConditionAsync(_ => {
+                        return planeHeight != null;
+                    }).then(_ => {
 
-                    let plane = MeshBuilder.CreateBox("", { height: planeHeight, width: 1, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
-                    plane.isPickable = true;
+                        let plane = MeshBuilder.CreateBox("", { height: planeHeight, width: 1, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
+                        plane.isPickable = true;
 
-                    videoMat.diffuseTexture = videoTex;
-                    videoMat.roughness = 1;
-                    videoMat.emissiveColor = Color3.White();
-                    //videoTex.video.volume = 0;
-                    videoTex.video.pause();
-                    plane.material = videoMat;
+                        videoMat.diffuseTexture = videoTex;
+                        videoMat.roughness = 1;
+                        videoMat.emissiveColor = Color3.White();
+                        //videoTex.video.volume = 0;
+                        videoTex.video.pause();
+                        plane.material = videoMat;
 
-                    //setto l'origine ai piedi della mesh, centrata orizzontalmente
-                    plane.setPivotMatrix(Matrix.Translation(0, plane.getBoundingInfo().boundingBox.extendSize.y, 0), false);
+                        //setto l'origine ai piedi della mesh, centrata orizzontalmente
+                        plane.setPivotMatrix(Matrix.Translation(0, plane.getBoundingInfo().boundingBox.extendSize.y, 0), false);
 
-                    //aggiungo la componente di mesh locale e la componente di animazione
-                    entity.add(new MeshComponent(plane, entity.id, false));
-                    entity.add(new AnimationComponent(null, videoTex, true));
+                        //aggiungo la componente di mesh locale e la componente di animazione
+                        entity.add(new MeshComponent(plane, entity.id, false));
+                        entity.add(new AnimationComponent(null, videoTex, true));
+
+                    });
+
+
 
                 } else if (meshMultiComponent.location == "image") {
                     //se la mesh da istanziare è un immagine

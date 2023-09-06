@@ -40,6 +40,7 @@ export class GuiUtils {
         manager.addControl(nearMenu);
         nearMenu.isPinned = false;
         nearMenu.position.y = 2;
+        nearMenu.defaultBehavior.followBehavior.defaultDistance = 1;
 
         let roomListSlate: HolographicSlate;
 
@@ -922,6 +923,8 @@ export class GuiUtils {
     static objectMenu(entityPicked, entityMesh): TouchHolographicMenu {
         let objectMenu = new NearMenu("objectMenu");
 
+        objectMenu.defaultBehavior.followBehavior.defaultDistance = 1;
+
         objectMenu.rows = 1;
         GuiUtils.gui3dmanager.addControl(objectMenu);
 
@@ -935,6 +938,21 @@ export class GuiUtils {
         entityMesh = boundingBox; */
 
         //objectMenu.mesh.position.y = entityMesh.getBoundingInfo().boundingBox.extendSize.y + 0.5;
+
+        var textName = CreatePlane("textName", { width: 4, height: 2 }, Utils.scene);
+        textName.parent = objectMenu.mesh;
+        textName.position.y = 1.5;
+
+        var advancedTexture = AdvancedDynamicTexture.CreateForMesh(textName);
+
+        let objectName = entityPicked.get(MeshMultiComponent).name;
+
+        let nameText = new TextBlock("inputRoom", objectName);
+        nameText.width = 4;
+        nameText.height = 2;
+        nameText.color = "white";
+        nameText.fontSize = 150;
+        advancedTexture.addControl(nameText);
 
         const sixDofDragBehavior = new SixDofDragBehavior();
         const multiPointerScaleBehavior = new MultiPointerScaleBehavior();

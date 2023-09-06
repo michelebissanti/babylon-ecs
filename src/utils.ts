@@ -429,4 +429,21 @@ export class Utils {
         }
         return size;
     }
+
+    public static async createBackgroundScene() {
+        let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+            null,
+            "background/",
+            "mesh.gltf",
+            this.scene
+        );
+
+        meshes.forEach((mesh) => {
+            mesh.isPickable = false;
+            mesh.checkCollisions = true;
+        });
+
+        meshes[0].position.z = 4;
+
+    }
 }
