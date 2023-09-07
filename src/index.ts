@@ -8,7 +8,7 @@ import { GUI3DManager } from '@babylonjs/gui';
 import "@babylonjs/core/Debug/debugLayer"; // Augments the scene with the debug methods
 import "@babylonjs/inspector"; // Injects a local ES6 version of the inspector to prevent automatically relying on the none compatible version
 
-import { CubeTexture, MeshBuilder, StandardMaterial, Texture } from '@babylonjs/core';
+import { CubeTexture, MeshBuilder } from '@babylonjs/core';
 import { Engine as EngineECS, Entity } from "tick-knock";
 import { GuiUtils } from './GuiUtils';
 import { ClientComponent } from './components/ClientComponent';
