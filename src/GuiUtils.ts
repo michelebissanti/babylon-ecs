@@ -651,17 +651,17 @@ export class GuiUtils {
         addObject.text = "Add 3d Object";
         addObject.imageUrl = "icon/object.png";
 
-        let listDiplay: HolographicSlate;
+        let objectList: HolographicSlate;
 
         addObject.onPointerDownObservable.add(async () => {
 
             if (displayList == true) {
-                listDiplay.dispose();
+                objectList.dispose();
                 displayList = false;
                 addObject.text = "Add 3d Object";
             } else {
                 //spawn slate con elenco
-                listDiplay = GuiUtils.createListObject(player);
+                objectList = GuiUtils.createListObject(player);
                 addObject.text = "Hide 3d Object List";
                 displayList = true;
             }

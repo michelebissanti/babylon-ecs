@@ -98,7 +98,7 @@ class App {
 
         player.add(new EntityMultiplayerComponent(true, true));
 
-        player.add(new MeshMultiComponent("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", false, false, true));
+        player.add(new MeshMultiComponent("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb?quality=low", false, false, true));
 
         player.add(new TransformComponent(true));
 
