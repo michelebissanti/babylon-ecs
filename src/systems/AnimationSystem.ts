@@ -46,12 +46,15 @@ export class AnimationSystem extends IterativeSystem {
                         animComponent.currentFrame = animComponent.video.video.currentTime;
                     }
 
+                    if (Number.isInteger(animComponent.currentFrame)) {
 
-                    Utils.room.send("updateAnimationComponent", {
-                        id: "" + entityServer.serverId,
-                        state: animComponent.state,
-                        currentFrame: animComponent.currentFrame
-                    });
+                        Utils.room.send("updateAnimationComponent", {
+                            id: "" + entityServer.serverId,
+                            state: animComponent.state,
+                            currentFrame: animComponent.currentFrame
+                        });
+                    }
+
 
                     animComponent.isStoppable = true;
 
