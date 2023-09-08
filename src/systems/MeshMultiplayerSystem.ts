@@ -1,4 +1,4 @@
-import { Color3, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, Texture, Vector3, VideoTexture } from "@babylonjs/core";
+import { Color3, DynamicTexture, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, Texture, Vector3, VideoTexture } from "@babylonjs/core";
 import { Entity, IterativeSystem, Query } from "tick-knock";
 import { AnimationComponent } from "../components/AnimationComponent";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
@@ -45,11 +45,6 @@ export class MeshMultiplayerSystem extends IterativeSystem {
 
                     videoTex.video.onloadeddata = () => {
                         planeHeight = videoTex.video.videoHeight / videoTex.video.videoWidth;
-                    };
-
-                    await Utils.waitForConditionAsync(_ => {
-                        return planeHeight != null;
-                    }).then(_ => {
 
                         let plane = MeshBuilder.CreateBox("", { height: planeHeight, width: 1, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
                         plane.isPickable = true;
@@ -67,30 +62,44 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                         //aggiungo la componente di mesh locale e la componente di animazione
                         entity.add(new MeshComponent(plane, entity.id, false));
                         entity.add(new AnimationComponent(null, videoTex, true));
-
-                    });
+                    };
 
 
 
                 } else if (meshMultiComponent.location == "image") {
                     //se la mesh da istanziare è un immagine
 
-                    let plane = MeshBuilder.CreateBox("", { height: 0.875, width: 2, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
-                    plane.isPickable = true;
-                    let decalMaterial = new StandardMaterial("decalMat", this.scene);
-                    decalMaterial.diffuseTexture = new Texture(meshMultiComponent.location + "/" + meshMultiComponent.name, this.scene);
-                    decalMaterial.diffuseTexture.hasAlpha = true;
-                    decalMaterial.zOffset = -2;
+                    //Create dynamic texture
+                    let img = new Image();
+                    img.src = meshMultiComponent.location + "/" + meshMultiComponent.name;
+                    let planeHeight = null;
 
-                    const decal = MeshBuilder.CreateDecal("decal", plane, { position: new Vector3(0, 0, -0.1), normal: new Vector3(0, 0, -1), size: new Vector3(2, 0.875, 1), localMode: true });
-                    decal.material = decalMaterial;
+                    img.onload = function () {
+                        planeHeight = img.height / img.width;
 
-                    //setto l'origine ai piedi della mesh, centrata orizzontalmente
-                    plane.setPivotMatrix(Matrix.Translation(0, plane.getBoundingInfo().boundingBox.extendSize.y, 0), false);
+                        let textureGround = new DynamicTexture("dynamic texture", img);
+                        let textureContext = textureGround.getContext();
 
-                    //aggiungo la componente di mesh locale
-                    entity.add(new MeshComponent(plane, entity.id, false));
+                        let boxMaterial = new StandardMaterial("Mat");
+                        boxMaterial.diffuseTexture = textureGround;
 
+                        //Add image to dynamic texture
+                        textureContext.drawImage(this, 0, 0);
+                        textureGround.update();
+
+                        let plane = MeshBuilder.CreateBox("", { height: planeHeight, width: 1, depth: 0.01, sideOrientation: Mesh.DOUBLESIDE });
+                        plane.isPickable = true;
+
+                        plane.material = boxMaterial;
+                        textureGround.update();
+
+                        //setto l'origine ai piedi della mesh, centrata orizzontalmente
+                        plane.setPivotMatrix(Matrix.Translation(0, plane.getBoundingInfo().boundingBox.extendSize.y, 0), false);
+
+                        //aggiungo la componente di mesh locale
+                        entity.add(new MeshComponent(plane, entity.id, false));
+
+                    }
 
                 } else {
                     //se la mesh da istanziare è un oggetto 3d

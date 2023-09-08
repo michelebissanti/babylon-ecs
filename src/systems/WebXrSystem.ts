@@ -144,22 +144,6 @@ export class WebXrSystem extends IterativeSystem {
                                             if (GuiUtils.objectMenuShow == false) {
                                                 // istanzio il menu
                                                 objectMenu = GuiUtils.objectMenu(entityPicked, entityMesh);
-
-                                                // lego il menu all'entità
-                                                //objectMenu.linkToTransformNode(entityMesh);
-                                                /* let objectMenuEntity = new Entity();
-                                                objectMenuEntity.add(new MeshComponent(objectMenu.mesh, objectMenuEntity.id, false));
-                                                objectMenuEntity.add(new TransformComponent(false, 1, 1, 1));
-                                                objectMenuEntity.get(TransformComponent).scale_x = 0.1;
-                                                objectMenuEntity.get(TransformComponent).scale_y = 0.1;
-                                                objectMenuEntity.get(TransformComponent).scale_z = 0.1;
-
-                                                let meshSize = Utils.getParentSize(entityMesh);
-
-                                                let meshHeight = meshSize.y;
-
-                                                objectMenuEntity.add(new FollowComponent(entityPicked.get(TransformComponent), new Vector3(0, meshHeight, 0), entity.get(TransformComponent)));
-                                                Utils.engineEcs.addEntity(objectMenuEntity); */
                                             } else {
 
                                             }
