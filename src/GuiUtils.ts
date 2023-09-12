@@ -445,6 +445,8 @@ export class GuiUtils {
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
+                Utils.engineEcs.addEntity(newObject);
+
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
@@ -452,7 +454,7 @@ export class GuiUtils {
 
                 newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
-                Utils.engineEcs.addEntity(newObject);
+
 
                 listSlate.dispose();
                 this.objectListShow = false;
@@ -505,6 +507,8 @@ export class GuiUtils {
 
                 video.add(new EntityMultiplayerComponent(false));
 
+                Utils.engineEcs.addEntity(video);
+
                 video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
@@ -512,7 +516,7 @@ export class GuiUtils {
 
                 video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
-                Utils.engineEcs.addEntity(video);
+
 
                 listSlate.dispose();
                 this.videoListShow = false;
@@ -529,6 +533,8 @@ export class GuiUtils {
 
                 video.add(new EntityMultiplayerComponent(false));
 
+                Utils.engineEcs.addEntity(video);
+
                 video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
@@ -536,7 +542,7 @@ export class GuiUtils {
 
                 video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
-                Utils.engineEcs.addEntity(video);
+
 
                 listSlate.dispose();
                 this.videoListShow = false;
@@ -589,6 +595,8 @@ export class GuiUtils {
 
                 video.add(new EntityMultiplayerComponent(false));
 
+                Utils.engineEcs.addEntity(video);
+
                 video.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
@@ -596,7 +604,7 @@ export class GuiUtils {
 
                 video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
-                Utils.engineEcs.addEntity(video);
+
 
                 listSlate.dispose();
                 this.imageListShow = false;
@@ -613,6 +621,8 @@ export class GuiUtils {
 
                 video.add(new EntityMultiplayerComponent(false));
 
+                Utils.engineEcs.addEntity(video);
+
                 video.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
@@ -620,7 +630,7 @@ export class GuiUtils {
 
                 video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
-                Utils.engineEcs.addEntity(video);
+
 
                 listSlate.dispose();
                 this.imageListShow = false;
