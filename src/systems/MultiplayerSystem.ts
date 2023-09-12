@@ -11,6 +11,7 @@ import { AnimationComponent } from "../components/AnimationComponent";
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
     private entityCodeResponse: string = null;
+    private entityPlayerCodeResponse: string = null;
     private init = true;
 
     constructor(scene: Scene) {
@@ -26,7 +27,7 @@ export class MultiplayerSystem extends IterativeSystem {
 
                 //questi listener servono e ricevere il codice entità deciso dal server quando riceve una nuova entità
                 Utils.room.onMessage("playerCreated", (message) => {
-                    this.entityCodeResponse = message;
+                    this.entityPlayerCodeResponse = message;
                 });
 
                 Utils.room.onMessage("entityCreated", (message) => {
@@ -40,17 +41,11 @@ export class MultiplayerSystem extends IterativeSystem {
             if (entity.has(EntityMultiplayerComponent)) {
 
                 //caso del player che joina la stanza
-                if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined && entity.get(EntityMultiplayerComponent).loading == false) {
+                if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined && entity.get(EntityMultiplayerComponent).loading == false && this.entityPlayerCodeResponse != null) {
 
-                    await Utils.waitForConditionAsync(_ => {
-                        return this.entityCodeResponse != null;
-                    }).then(_ => {
-                        entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
-                        Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
-                        this.entityCodeResponse = null;
-                    });
-
-
+                    entity.get(EntityMultiplayerComponent).serverId = this.entityPlayerCodeResponse;
+                    Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
+                    this.entityPlayerCodeResponse = null;
 
                     //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
@@ -63,18 +58,15 @@ export class MultiplayerSystem extends IterativeSystem {
                     Utils.room.send("createEntity", {
                     });
 
-                    /*  await Utils.waitForConditionAsync(_ => {
-                         return this.entityCodeResponse != null;
-                     }); */
-
-
-
                 }
 
+
+                // se sto aspettando il codice dal server
                 if (entity.get(EntityMultiplayerComponent).loading == true && this.entityCodeResponse != null) {
                     entity.get(EntityMultiplayerComponent).loading = false;
-                    console.log(this.entityCodeResponse);
+                    //console.log(this.entityCodeResponse);
                     entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
+
                     Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
                     this.entityCodeResponse = null;
                 }

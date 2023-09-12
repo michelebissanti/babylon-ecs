@@ -212,7 +212,7 @@ export class WebXrSystem extends IterativeSystem {
                         this.sphereController.isVisible = false;
 
 
-                        if (this.followerObj != null) {
+                        if (this.followerObj != null && this.sphereController != null && this.controllerMenu != null) {
 
                             this.sphereController.parent = this.followerObj;
 
@@ -281,7 +281,7 @@ export class WebXrSystem extends IterativeSystem {
             this.followerObj.position = this.usedController.pointer.position;
 
             // controllo che l'utente stia guardando il controller
-            if (this.lastDt >= 1) {
+            if (this.lastDt >= 0.5) {
                 let ray = Utils.scene.activeCamera.getForwardRay(20);
 
                 let isWatching = ray.intersectsMesh(this.sphereController).hit;

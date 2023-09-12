@@ -141,7 +141,7 @@ class App {
         this.ecs.addSystem(new FollowSystem(this.scene));
 
         // creazione del menu della lobby
-        GuiUtils.createNearMenu(player);
+        GuiUtils.createLobbyMenu(player);
     }
 
     run() {

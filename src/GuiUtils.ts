@@ -41,7 +41,7 @@ export class GuiUtils {
     //  - Create room
     //  - Join room (con codice inserito da tastiera)
     //  - Room list (visualizzazione elenco di stanze)
-    static createNearMenu(player: Entity) {
+    static createLobbyMenu(player: Entity) {
         const ROOM_TYPE = "my_room";
         let manager = GuiUtils.gui3dmanager;
         manager.useRealisticScaling = true;
@@ -63,7 +63,7 @@ export class GuiUtils {
 
         var createButton = new TouchHolographicButton();
         nearMenu.addButton(createButton);
-        createButton.text = "Create Room";
+        createButton.text = "Crea una stanza";
         createButton.imageUrl = "icon/create-room.png";
 
         createButton.onPointerDownObservable.add(async () => {
@@ -83,7 +83,7 @@ export class GuiUtils {
 
         var joinButton = new TouchHolographicButton();
         nearMenu.addButton(joinButton);
-        joinButton.text = "Join Room";
+        joinButton.text = "Entra in una stanza";
         joinButton.imageUrl = "icon/join.png";
 
         joinButton.onPointerDownObservable.add(async () => {
@@ -117,7 +117,7 @@ export class GuiUtils {
 
         var listButton = new TouchHolographicButton();
         nearMenu.addButton(listButton);
-        listButton.text = "Room List";
+        listButton.text = "Lista delle stanze";
         listButton.imageUrl = "icon/join.png";
 
         let displayList = false;
@@ -127,11 +127,11 @@ export class GuiUtils {
             if (displayList == true) {
                 roomListSlate.dispose();
                 displayList = false;
-                listButton.text = "Room List";
+                listButton.text = "Lista delle stanze";
             } else {
                 //spawn slate con elenco
                 roomListSlate = await GuiUtils.createListRoom(player, nearMenu);
-                listButton.text = "Hide Room List";
+                listButton.text = "Nascondi lista delle stanze";
                 displayList = true;
             }
 
@@ -145,11 +145,18 @@ export class GuiUtils {
 
     }
 
+    // questo metodo serve ad istanziare tutti i pulsanti presenti nei menu che lo invocano
+    // i pulsanti sono:
+    //  - Add 3d object (visualizzazione elenco di oggetti)
+    //  - Add video (visualizzazione elenco video)
+    //  - Add image (visualizzazione elenco immagini)
+    //  - Room id
+    //  - Leave room (ricarica la pagina)
     static buttonMenu(menu, player) {
 
         let addObject = new TouchHolographicButton();
         menu.addButton(addObject);
-        addObject.text = "Add 3d Object";
+        addObject.text = "Aggiungi un oggetto 3d";
         addObject.imageUrl = "icon/object.png";
 
         let listObject: HolographicSlate;
@@ -159,7 +166,7 @@ export class GuiUtils {
             if (this.objectListShow == true) {
                 listObject.dispose();
                 this.objectListShow = false;
-                addObject.text = "Add 3d Object";
+                addObject.text = "Aggiungi un oggetto 3d";
             } else {
                 //spawn slate con elenco
                 listObject = GuiUtils.createListObject(player);
@@ -172,7 +179,7 @@ export class GuiUtils {
 
         let addVideo = new TouchHolographicButton();
         menu.addButton(addVideo);
-        addVideo.text = "Add Video";
+        addVideo.text = "Aggiungi un video";
         addVideo.imageUrl = "icon/video.png";
 
         let listVideo: HolographicSlate;
@@ -182,7 +189,7 @@ export class GuiUtils {
             if (this.videoListShow == true) {
                 listVideo.dispose();
                 this.videoListShow = false;
-                addVideo.text = "Add Video";
+                addVideo.text = "Aggiungi un video";
             } else {
                 //spawn slate con elenco
                 listVideo = GuiUtils.createListVideo(player);
@@ -195,7 +202,7 @@ export class GuiUtils {
 
         let addImage = new TouchHolographicButton();
         menu.addButton(addImage);
-        addImage.text = "Add Image";
+        addImage.text = "Aggiungi un immagine";
         addImage.imageUrl = "icon/image.png";
 
         let listImage: HolographicSlate;
@@ -205,7 +212,7 @@ export class GuiUtils {
             if (this.imageListShow == true) {
                 listImage.dispose();
                 this.imageListShow = false;
-                addImage.text = "Add Image";
+                addImage.text = "Aggiungi un immagine";
             } else {
                 //spawn slate con elenco
                 listImage = GuiUtils.createListImage(player);
@@ -222,13 +229,13 @@ export class GuiUtils {
         console.log(player.get(ClientComponent).room.id.toString());
 
         roomInfo.onPointerDownObservable.add(async () => {
-            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
+            //Utils.copyMessage(player.get(ClientComponent).room.id.toString());
 
         });
 
         var leaveRoomBtn = new TouchHolographicButton();
         menu.addButton(leaveRoomBtn);
-        leaveRoomBtn.text = "Leave Room";
+        leaveRoomBtn.text = "Lascia la stanza";
         leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
 
         leaveRoomBtn.onPointerDownObservable.add(async () => {
@@ -245,7 +252,7 @@ export class GuiUtils {
     //  - Leave room (ricarica la pagina)
     static async initRoom(player: Entity) {
 
-        // creo l'hand menu uguale a quello creato in questo metodo
+        // istanzio l'hand menu uguale a quello creato in questo metodo
         this.createHandMenu(player);
 
         if (player.get(WebXrComponent).exp.baseExperience.sessionManager.inXRSession == false) {
@@ -260,94 +267,7 @@ export class GuiUtils {
 
             nearMenu.defaultBehavior.followBehavior.defaultDistance = 1;
 
-            let addObject = new TouchHolographicButton();
-            nearMenu.addButton(addObject);
-            addObject.text = "Add 3d Object";
-            addObject.imageUrl = "icon/object.png";
-
-            let listObject: HolographicSlate;
-
-            addObject.onPointerDownObservable.add(async () => {
-
-                if (this.objectListShow == true) {
-                    listObject.dispose();
-                    this.objectListShow = false;
-                    addObject.text = "Add 3d Object";
-                } else {
-                    //spawn slate con elenco
-                    listObject = GuiUtils.createListObject(player);
-                    //addObject.text = "Hide 3d Object List";
-                    this.objectListShow = true;
-                    listObject.defaultBehavior.followBehaviorEnabled = true;
-                }
-
-            });
-
-            let addVideo = new TouchHolographicButton();
-            nearMenu.addButton(addVideo);
-            addVideo.text = "Add Video";
-            addVideo.imageUrl = "icon/video.png";
-
-            let listVideo: HolographicSlate;
-
-            addVideo.onPointerDownObservable.add(async () => {
-
-                if (this.videoListShow == true) {
-                    listVideo.dispose();
-                    this.videoListShow = false;
-                    addVideo.text = "Add Video";
-                } else {
-                    //spawn slate con elenco
-                    listVideo = GuiUtils.createListVideo(player);
-                    //addVideo.text = "Hide Video List";
-                    this.videoListShow = true;
-                    listVideo.defaultBehavior.followBehaviorEnabled = true;
-                }
-
-            });
-
-            let addImage = new TouchHolographicButton();
-            nearMenu.addButton(addImage);
-            addImage.text = "Add Image";
-            addImage.imageUrl = "icon/image.png";
-
-            let listImage: HolographicSlate;
-
-            addImage.onPointerDownObservable.add(async () => {
-
-                if (this.imageListShow == true) {
-                    listImage.dispose();
-                    this.imageListShow = false;
-                    addImage.text = "Add Image";
-                } else {
-                    //spawn slate con elenco
-                    listImage = GuiUtils.createListImage(player);
-                    //addImage.text = "Hide Image List";
-                    this.imageListShow = true;
-                    listImage.defaultBehavior.followBehaviorEnabled = true;
-                }
-
-            });
-
-            var roomInfo = new TouchHolographicButton();
-            nearMenu.addButton(roomInfo);
-            roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
-            console.log(player.get(ClientComponent).room.id.toString());
-
-            roomInfo.onPointerDownObservable.add(async () => {
-                Utils.copyMessage(player.get(ClientComponent).room.id.toString());
-
-            });
-
-            var leaveRoomBtn = new TouchHolographicButton();
-            nearMenu.addButton(leaveRoomBtn);
-            leaveRoomBtn.text = "Leave Room";
-            leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
-
-            leaveRoomBtn.onPointerDownObservable.add(async () => {
-                player.get(ClientComponent).room.leave();
-                window.location.reload();
-            });
+            this.buttonMenu(nearMenu, player);
 
             nearMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
 
@@ -371,98 +291,35 @@ export class GuiUtils {
         handMenu.handConstraintBehavior.handConstraintVisibility = HandConstraintVisibility.PALM_UP;
         handMenu.handConstraintBehavior.handedness = "none";
         GuiUtils.gui3dmanager.addControl(handMenu);
+        handMenu.columns = 1;
 
-        let addObject = new TouchHolographicButton();
-        handMenu.addButton(addObject);
-        addObject.text = "Add 3d Object";
-        addObject.imageUrl = "icon/object.png";
-
-        let listObject: HolographicSlate;
-
-        addObject.onPointerDownObservable.add(async () => {
-
-            if (this.objectListShow == true) {
-                listObject.dispose();
-                this.objectListShow = false;
-                addObject.text = "Add 3d Object";
-            } else {
-                //spawn slate con elenco
-                listObject = GuiUtils.createListObject(player);
-                //addObject.text = "Hide 3d Object List";
-                this.objectListShow = true;
-                listObject.defaultBehavior.followBehaviorEnabled = true;
-            }
-
-        });
-
-        let addVideo = new TouchHolographicButton();
-        handMenu.addButton(addVideo);
-        addVideo.text = "Add Video";
-        addVideo.imageUrl = "icon/video.png";
-
-        let listVideo: HolographicSlate;
-
-        addVideo.onPointerDownObservable.add(async () => {
-
-            if (this.videoListShow == true) {
-                listVideo.dispose();
-                this.videoListShow = false;
-                addVideo.text = "Add Video";
-            } else {
-                //spawn slate con elenco
-                listVideo = GuiUtils.createListVideo(player);
-                //addVideo.text = "Hide Video List";
-                this.videoListShow = true;
-                listVideo.defaultBehavior.followBehaviorEnabled = true;
-            }
-
-        });
-
-        let addImage = new TouchHolographicButton();
-        handMenu.addButton(addImage);
-        addImage.text = "Add Image";
-        addImage.imageUrl = "icon/image.png";
-
-        let listImage: HolographicSlate;
-
-        addImage.onPointerDownObservable.add(async () => {
-
-            if (this.imageListShow == true) {
-                listImage.dispose();
-                this.imageListShow = false;
-                addImage.text = "Add Image";
-            } else {
-                //spawn slate con elenco
-                listImage = GuiUtils.createListImage(player);
-                //addImage.text = "Hide Image List";
-                this.imageListShow = true;
-                listImage.defaultBehavior.followBehaviorEnabled = true;
-            }
-
-        });
-
-        var roomInfo = new TouchHolographicButton();
-        handMenu.addButton(roomInfo);
-        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
-        console.log(player.get(ClientComponent).room.id.toString());
-
-        roomInfo.onPointerDownObservable.add(async () => {
-            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
-
-        });
-
-        var leaveRoomBtn = new TouchHolographicButton();
-        handMenu.addButton(leaveRoomBtn);
-        leaveRoomBtn.text = "Leave Room";
-        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
-
-        leaveRoomBtn.onPointerDownObservable.add(async () => {
-            player.get(ClientComponent).room.leave();
-            window.location.reload();
-        });
+        this.buttonMenu(handMenu, player);
 
 
-        handMenu.scaling.addInPlace(new Vector3(0.01, 0.01, 0.01));
+        handMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
+    }
+
+    // questo metodo crea il touch holographic menu della stanza, opzioni disponibili:
+    //  - Add 3d object (visualizzazione elenco di oggetti)
+    //  - Add video (visualizzazione elenco video)
+    //  - Add image (visualizzazione elenco immagini)
+    //  - Room id
+    //  - Leave room (ricarica la pagina)
+    // questo menu dovrebbe essere attaccato a runtime alla mesh del controller sinistro
+    static controllerMenu(player): TouchHolographicMenu {
+
+        let manager = GuiUtils.gui3dmanager;
+
+        let controllerMenu = new TouchHolographicMenu("objectMenu");
+        controllerMenu.columns = 1;
+        manager.addControl(controllerMenu);
+        controllerMenu.isVisible = false;
+
+        this.buttonMenu(controllerMenu, player);
+
+        controllerMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
+
+        return controllerMenu;
     }
 
     // questo metodo crea una list slate con tutti gli oggetti disponibili
@@ -506,8 +363,11 @@ export class GuiUtils {
                 let newObject = new Entity();
 
                 newObject.add(new EntityMultiplayerComponent(false));
-
                 Utils.engineEcs.addEntity(newObject);
+
+                await Utils.waitForConditionAsync(() => {
+                    return newObject.get(EntityMultiplayerComponent).serverId != null;
+                });
 
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
 
@@ -521,9 +381,6 @@ export class GuiUtils {
                 listSlate.dispose();
                 this.objectListShow = false;
 
-
-
-
             });
 
             var textButton = Button.CreateSimpleButton("", objectAvaible[i].nome);
@@ -536,8 +393,11 @@ export class GuiUtils {
                 let newObject = new Entity();
 
                 newObject.add(new EntityMultiplayerComponent(false));
-
                 Utils.engineEcs.addEntity(newObject);
+
+                await Utils.waitForConditionAsync(() => {
+                    return newObject.get(EntityMultiplayerComponent).serverId != null;
+                });
 
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
 
@@ -598,8 +458,11 @@ export class GuiUtils {
                 let video = new Entity();
 
                 video.add(new EntityMultiplayerComponent(false));
-
                 Utils.engineEcs.addEntity(video);
+
+                await Utils.waitForConditionAsync(() => {
+                    return video.get(EntityMultiplayerComponent).serverId != null;
+                });
 
                 video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
 
@@ -624,8 +487,11 @@ export class GuiUtils {
                 let video = new Entity();
 
                 video.add(new EntityMultiplayerComponent(false));
-
                 Utils.engineEcs.addEntity(video);
+
+                await Utils.waitForConditionAsync(() => {
+                    return video.get(EntityMultiplayerComponent).serverId != null;
+                });
 
                 video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
 
@@ -682,19 +548,22 @@ export class GuiUtils {
             grid.addControl(imgButton, i, 0);
 
             imgButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo video selezionato nella scena
-                let video = new Entity();
+                //piazzo una nuova immagine selezionata nella scena
+                let newImage = new Entity();
 
-                video.add(new EntityMultiplayerComponent(false));
+                newImage.add(new EntityMultiplayerComponent(false));
+                Utils.engineEcs.addEntity(newImage);
 
-                Utils.engineEcs.addEntity(video);
+                await Utils.waitForConditionAsync(() => {
+                    return newImage.get(EntityMultiplayerComponent).serverId != null;
+                });
 
-                video.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
+                newImage.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
                 let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
 
-                video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
+                newImage.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
 
 
@@ -708,19 +577,22 @@ export class GuiUtils {
             grid.addControl(textButton, i, 1);
 
             textButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo video selezionato nella scena
-                let video = new Entity();
+                //piazzo una nuova immagine selezionata nella scena
+                let newImage = new Entity();
 
-                video.add(new EntityMultiplayerComponent(false));
+                newImage.add(new EntityMultiplayerComponent(false));
+                Utils.engineEcs.addEntity(newImage);
 
-                Utils.engineEcs.addEntity(video);
+                await Utils.waitForConditionAsync(() => {
+                    return newImage.get(EntityMultiplayerComponent).serverId != null;
+                });
 
-                video.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
+                newImage.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
                 let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
 
-                video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
+                newImage.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
 
 
@@ -735,182 +607,7 @@ export class GuiUtils {
         return listSlate;
     }
 
-    // questo metodo crea il touch holographic menu della stanza, opzioni disponibili:
-    //  - Add 3d object (visualizzazione elenco di oggetti)
-    //  - Add video (visualizzazione elenco video)
-    //  - Add image (visualizzazione elenco immagini)
-    //  - Room id
-    //  - Leave room (ricarica la pagina)
-    // questo menu dovrebbe essere attaccato a runtime alla mesh del controller sinistro
-    static controllerMenu(player): TouchHolographicMenu {
 
-        let manager = GuiUtils.gui3dmanager;
-
-        let controllerMenu = new TouchHolographicMenu("objectMenu");
-        console.log("maring is " + controllerMenu.margin);
-        controllerMenu.columns = 1;
-        manager.addControl(controllerMenu);
-        controllerMenu.isVisible = false;
-
-
-
-
-
-
-
-        //controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
-        //controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
-
-        let addObject = new TouchHolographicButton();
-        controllerMenu.addButton(addObject);
-        addObject.text = "Add 3d Object";
-        addObject.imageUrl = "icon/object.png";
-
-        let listObject: HolographicSlate;
-
-        addObject.onPointerDownObservable.add(async () => {
-
-            if (this.objectListShow == true) {
-                listObject.dispose();
-                this.objectListShow = false;
-                addObject.text = "Add 3d Object";
-            } else {
-                //spawn slate con elenco
-                listObject = GuiUtils.createListObject(player);
-                //addObject.text = "Hide 3d Object List";
-                this.objectListShow = true;
-                listObject.defaultBehavior.followBehaviorEnabled = true;
-            }
-
-        });
-
-        let addVideo = new TouchHolographicButton();
-        controllerMenu.addButton(addVideo);
-        addVideo.text = "Add Video";
-        addVideo.imageUrl = "icon/video.png";
-
-        let listVideo: HolographicSlate;
-
-        addVideo.onPointerDownObservable.add(async () => {
-
-            if (this.videoListShow == true) {
-                listVideo.dispose();
-                this.videoListShow = false;
-                addVideo.text = "Add Video";
-            } else {
-                //spawn slate con elenco
-                listVideo = GuiUtils.createListVideo(player);
-                //addVideo.text = "Hide Video List";
-                this.videoListShow = true;
-                listVideo.defaultBehavior.followBehaviorEnabled = true;
-            }
-
-        });
-
-        let addImage = new TouchHolographicButton();
-        controllerMenu.addButton(addImage);
-        addImage.text = "Add Image";
-        addImage.imageUrl = "icon/image.png";
-
-        let listImage: HolographicSlate;
-
-        addImage.onPointerDownObservable.add(async () => {
-
-            if (this.imageListShow == true) {
-                listImage.dispose();
-                this.imageListShow = false;
-                addImage.text = "Add Image";
-            } else {
-                //spawn slate con elenco
-                listImage = GuiUtils.createListImage(player);
-                //addImage.text = "Hide Image List";
-                this.imageListShow = true;
-                listImage.defaultBehavior.followBehaviorEnabled = true;
-            }
-
-        });
-
-        var roomInfo = new TouchHolographicButton();
-        controllerMenu.addButton(roomInfo);
-        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
-        console.log(player.get(ClientComponent).room.id.toString());
-
-        roomInfo.onPointerDownObservable.add(async () => {
-            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
-
-        });
-
-        var leaveRoomBtn = new TouchHolographicButton();
-        controllerMenu.addButton(leaveRoomBtn);
-        leaveRoomBtn.text = "Leave Room";
-        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
-
-        leaveRoomBtn.onPointerDownObservable.add(async () => {
-            player.get(ClientComponent).room.leave();
-            window.location.reload();
-        });
-
-
-        //controllerMenu.scaling.addInPlace(new Vector3(0.01, 0.01, 0.01));
-
-        return controllerMenu;
-    }
-
-    // testing menu, non serve a niente
-    static holoMenu(): TouchHolographicMenu {
-        //let mesh = inputSource.grip;
-        let manager = GuiUtils.gui3dmanager;
-
-        let controllerMenu = new TouchHolographicMenu("objectMenu");
-        controllerMenu.columns = 1;
-        manager.addControl(controllerMenu);
-        //controllerMenu.linkToTransformNode(mesh);
-        controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
-        controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
-
-        let displayList = false;
-
-        var roomInfo = new TouchHolographicButton();
-        controllerMenu.addButton(roomInfo);
-        roomInfo.text = "Room id: ";
-        //console.log(Utils.room.id.toString());
-
-
-
-        var leaveRoomBtn = new TouchHolographicButton();
-        controllerMenu.addButton(leaveRoomBtn);
-        leaveRoomBtn.text = "Leave Room";
-        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png"
-
-        leaveRoomBtn.onPointerDownObservable.add(async () => {
-            controllerMenu.mesh.position.y += 0.1;
-        });
-
-
-        let addObject = new TouchHolographicButton();
-        controllerMenu.addButton(addObject);
-        addObject.text = "Add 3d Object";
-        addObject.imageUrl = "icon/object.png";
-
-        let listDiplay: HolographicSlate;
-
-        addObject.onPointerDownObservable.add(async () => {
-
-            if (displayList == true) {
-                listDiplay.dispose();
-                displayList = false;
-                addObject.text = "Add 3d Object";
-            } else {
-                //spawn slate con elenco
-                //listDiplay = GuiUtils.createListObject(playerEntity);
-                addObject.text = "Hide 3d Object List";
-                displayList = true;
-            }
-
-        });
-
-        return controllerMenu
-    }
 
     // crea una holographic slate con un warning dato in input
     static warningSlate(titleString: string, textString: string) {
@@ -1073,7 +770,7 @@ export class GuiUtils {
 
         let editButton = new TouchHolographicButton("editButton");
         objectMenu.addButton(editButton);
-        editButton.text = "Scale";
+        editButton.text = "Modifica e sposta";
         editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
         editButton.onPointerDownObservable.add(() => {
 
@@ -1150,7 +847,7 @@ export class GuiUtils {
                         animComp.video.video.play();
                         animComp.state = "play";
 
-                        playButton.text = "Pause";
+                        playButton.text = "Pausa";
                         playButton.imageUrl = "icon/pause.png";
 
                     } else if (animComp.state == "play") {
@@ -1165,7 +862,7 @@ export class GuiUtils {
 
                 let muteButton = new TouchHolographicButton("muteButton");
                 objectMenu.addButton(muteButton);
-                muteButton.text = "Mute";
+                muteButton.text = "Muta";
                 muteButton.imageUrl = "icon/volume.png";
 
                 muteButton.onPointerDownObservable.add(() => {
@@ -1174,14 +871,14 @@ export class GuiUtils {
                         // se è mutato, lo smuto
                         animComp.video.video.volume = 1;
 
-                        muteButton.text = "Mute";
+                        muteButton.text = "Muta";
                         muteButton.imageUrl = "icon/volume.png";
 
                     } else {
                         // se è smutato, lo muto
                         animComp.video.video.volume = 0;
 
-                        muteButton.text = "Unmute";
+                        muteButton.text = "Smuta";
                         muteButton.imageUrl = "icon/mute.png";
                     }
 
@@ -1196,7 +893,7 @@ export class GuiUtils {
 
         let removeButton = new TouchHolographicButton("removeButton");
         objectMenu.addButton(removeButton);
-        removeButton.text = "Delete Object";
+        removeButton.text = "Cancella oggetto";
         removeButton.imageUrl = "icon/recycle-bin.png";
         removeButton.onPointerDownObservable.add(() => {
             if (GuiUtils.switchEdit) {
@@ -1219,7 +916,7 @@ export class GuiUtils {
 
         let closeButton = new TouchHolographicButton("closeButton");
         objectMenu.addButton(closeButton);
-        closeButton.text = "Close Menu";
+        closeButton.text = "Chiudi menu";
         closeButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
         closeButton.onPointerDownObservable.add(() => {
             //chiudo la modalità di edit se non è stata chiusa prima

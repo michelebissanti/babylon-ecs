@@ -156,7 +156,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                 let entityServer = entity.get(EntityMultiplayerComponent);
 
                 //se l'entità non è stata mai inviata al server, invio il segnale di creazione
-                if (meshMultiComponent.id == undefined && entityServer.serverId != undefined) {
+                if (meshMultiComponent.id == null && entityServer.serverId != null) {
                     Utils.room.send("attachMeshComponent", {
                         id: "" + entityServer.serverId,
                         location: meshMultiComponent.location,
