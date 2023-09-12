@@ -2,12 +2,14 @@ import { Scene } from "@babylonjs/core";
 import { Entity, IterativeSystem, Query } from "tick-knock";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
 import { Utils } from "../utils";
+import { MeshArrayComponent } from "../components/MeshArrayComponent";
+import { MeshComponent } from "../components/MeshComponent";
 
 // MultiplayerSystem: gestisce l'entità che possiede EntityMultiplayerComponent
 // in generale serve a sincronizzare con il server le entità ecs
 export class MultiplayerSystem extends IterativeSystem {
     scene: Scene;
-    private entityCodeResponse: string = undefined;
+    private entityCodeResponse: string = null;
     private init = true;
 
     constructor(scene: Scene) {
@@ -37,14 +39,14 @@ export class MultiplayerSystem extends IterativeSystem {
             if (entity.has(EntityMultiplayerComponent)) {
 
                 //caso del player che joina la stanza
-                if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined) {
+                if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined && entity.get(EntityMultiplayerComponent).loading == false) {
 
                     await Utils.waitForConditionAsync(_ => {
-                        return this.entityCodeResponse != undefined;
+                        return this.entityCodeResponse != null;
                     }).then(_ => {
                         entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
                         Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
-                        this.entityCodeResponse = undefined;
+                        this.entityCodeResponse = null;
                     });
 
 
@@ -55,30 +57,55 @@ export class MultiplayerSystem extends IterativeSystem {
                 //caso della entità locale da sincronizzare
                 if (entity.get(EntityMultiplayerComponent).send == false && entity.get(EntityMultiplayerComponent).serverId == undefined) {
                     entity.get(EntityMultiplayerComponent).send = true;
+                    entity.get(EntityMultiplayerComponent).loading = true;
 
                     Utils.room.send("createEntity", {
                     });
 
-                    await Utils.waitForConditionAsync(_ => {
-                        return this.entityCodeResponse != undefined;
-                    }).then(_ => {
+                    /*  await Utils.waitForConditionAsync(_ => {
+                         return this.entityCodeResponse != null;
+                     }); */
 
-                        entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
-                        Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
-                        this.entityCodeResponse = undefined;
 
-                    });
 
-                    //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
+
+                if (entity.get(EntityMultiplayerComponent).loading == true && this.entityCodeResponse != null) {
+                    entity.get(EntityMultiplayerComponent).loading = false;
+                    console.log(this.entityCodeResponse);
+                    entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
+                    Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
+                    this.entityCodeResponse = null;
+                }
+
+
 
                 //per rimuovere un entità
                 if (entity.get(EntityMultiplayerComponent).delete == "true") {
+
+                    entity.get(EntityMultiplayerComponent).delete = "done";
+
+                    // se ha una mesh la distruggo
+                    if (entity.has(MeshArrayComponent)) {
+                        entity.get(MeshArrayComponent).meshes[0].dispose();
+                    }
+
+                    if (entity.has(MeshComponent)) {
+                        entity.get(MeshComponent).mesh.dispose();
+                    }
+
+                    Utils.savedEntities.delete(entity.get(EntityMultiplayerComponent).serverId);
+
+
+
+                    // tutte le componenti vengono rimosse quando rimuovo dall'engine
+                    this.engine.removeEntity(entity);
+
+
+
                     Utils.room.send("removeEntity", {
                         id: "" + entity.get(EntityMultiplayerComponent).serverId,
                     });
-
-                    entity.get(EntityMultiplayerComponent).delete = "done";
                 }
 
                 //per occupare un entità

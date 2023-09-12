@@ -415,6 +415,8 @@ export class GuiUtils {
 
                 newObject.add(new EntityMultiplayerComponent(false));
 
+                Utils.engineEcs.addEntity(newObject);
+
                 newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
 
                 // posiziono l'oggetto difronte al player
@@ -422,10 +424,14 @@ export class GuiUtils {
 
                 newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
 
-                Utils.engineEcs.addEntity(newObject);
+
 
                 listSlate.dispose();
                 this.objectListShow = false;
+
+
+
+
             });
 
             var textButton = Button.CreateSimpleButton("", objectAvaible[i].nome);

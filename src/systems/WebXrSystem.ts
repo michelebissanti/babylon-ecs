@@ -1,4 +1,4 @@
-import { AbstractMesh, BoundingBoxGizmo, Color3, FreeCamera, Mesh, PointerEventTypes, Quaternion, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
+import { AbstractMesh, BoundingBoxGizmo, Color3, FollowBehavior, FreeCamera, Mesh, MeshBuilder, PointerEventTypes, Quaternion, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
 import { TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { GuiUtils } from "../GuiUtils";
@@ -10,6 +10,7 @@ import { TransformComponent } from "../components/TransformComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
 import { Utils } from "../utils";
 import { FollowComponent } from "../components/FollowComponent";
+import { util } from "webpack";
 
 // WebXrSystem: gestisce l'entità che possiede WebXrComponent
 // dovrebbe gestire solo il player locale nelle sue interazioni con la webxr
@@ -239,8 +240,18 @@ export class WebXrSystem extends IterativeSystem {
                         this.followerObj = new Mesh("followerObj");
 
 
-                        this.controllerMenu.mesh.parent = this.followerObj;
-                        this.controllerMenu.mesh.position = new Vector3(0.1, 0, 0.1);
+                        if (this.followerObj != null) {
+
+                            this.controllerMenu.mesh.parent = this.followerObj;
+                            this.controllerMenu.mesh.position = new Vector3(0.1, 0, 0.15);
+
+                            this.controllerMenu.mesh.billboardMode = Mesh.BILLBOARDMODE_ALL;
+
+                        }
+
+                        /* let cubo = MeshBuilder.CreateBox("cubotest", { size: 0.1 });
+                        cubo.position = this.usedController.pointer.position;
+                        cubo.rotation = this.usedController.pointer.rotation; */
 
 
 
@@ -302,7 +313,7 @@ export class WebXrSystem extends IterativeSystem {
                 });
 
                 // posiziono il menu sul controller destro se non sono riuscito a farlo sul sinistro
-                if (found == false) {
+                /* if (found == false) {
 
                     // giro tutti i controller collegati
                     this.inputSourceArray.forEach(controller => {
@@ -363,7 +374,7 @@ export class WebXrSystem extends IterativeSystem {
 
                     });
 
-                }
+                } */
 
             }
         }
@@ -372,15 +383,21 @@ export class WebXrSystem extends IterativeSystem {
         if (this.followerObj != null && this.usedController != null) {
             //comportamento per gestire il menu sul controller
             this.followerObj.position = this.usedController.pointer.position;
+
+            //this.followerObj.rotation.y = entity.get(PlayerCameraComponent).camera.rotation.y + Math.PI;
             //this.followerObj.lookAt(Utils.scene.activeCamera.position);
             //this.followerObj.rotationQuaternion = new Quaternion(this.usedController._lastXRPose.transform.orientation.x, this.usedController._lastXRPose.transform.orientation.y, this.usedController._lastXRPose.transform.orientation.z, this.usedController._lastXRPose.transform.orientation.w);
 
+            //console.log(this.usedController.pointer.rotationQuaternion.toEulerAngles());
+
+            if (this.controllerMenu != null && this.usedController.pointer.rotationQuaternion.toEulerAngles().y <= 0.5 && this.usedController.pointer.rotationQuaternion.toEulerAngles().y >= -0.5) {
+                this.controllerMenu.isVisible = true;
+            } else {
+                this.controllerMenu.isVisible = false;
+            }
         }
 
-        if (this.controllerMenu != null) {
 
-            this.controllerMenu.mesh.getChildMeshes()[0].lookAt(new Vector3(0, 0, 0));
-        }
 
 
 

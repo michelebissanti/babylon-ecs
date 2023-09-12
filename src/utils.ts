@@ -192,19 +192,25 @@ export class Utils {
             Utils.room.state.entities.onRemove((serverEntity) => {
                 let localEntity = engine.getEntityById(this.savedEntities.get(serverEntity.id));
 
-                // se ha una mesh la distruggo
-                if (localEntity.has(MeshArrayComponent)) {
-                    localEntity.get(MeshArrayComponent).meshes[0].dispose();
+                if (localEntity != null) {
+
+                    // se ha una mesh la distruggo
+                    if (localEntity.has(MeshArrayComponent)) {
+                        localEntity.get(MeshArrayComponent).meshes[0].dispose();
+                    }
+
+                    if (localEntity.has(MeshComponent)) {
+                        localEntity.get(MeshComponent).mesh.dispose();
+                    }
+
+                    Utils.savedEntities.delete(serverEntity.id);
+
+                    // tutte le componenti vengono rimosse quando rimuovo dall'engine
+                    engine.removeEntity(localEntity);
+
                 }
 
-                if (localEntity.has(MeshComponent)) {
-                    localEntity.get(MeshComponent).mesh.dispose();
-                }
 
-                Utils.savedEntities.delete(serverEntity.id);
-
-                // tutte le componenti vengono rimosse quando rimuovo dall'engine
-                engine.removeEntity(localEntity);
 
             });
 

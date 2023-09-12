@@ -2,6 +2,7 @@
 export class EntityMultiplayerComponent {
     serverId: string;
     send: boolean = false;
+    loading: boolean = false;
     delete: string = "";
     busy: string = undefined;
     isPlayer: boolean = false;
