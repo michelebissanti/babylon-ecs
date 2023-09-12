@@ -8,6 +8,7 @@ import { Utils } from "../utils";
 // in generale si occupa di sincronizzare le animazioni con il server
 export class AnimationSystem extends IterativeSystem {
     scene: Scene;
+    lastDt: number = 0;
 
     constructor(scene: Scene) {
         //entra nel loop del sistema solo se ha AnimationComponent o EntityMultiplayerComponent
@@ -16,6 +17,8 @@ export class AnimationSystem extends IterativeSystem {
     }
 
     protected async updateEntity(entity: Entity, dt: number): Promise<void> {
+
+        this.lastDt += dt;
 
         if (Utils.room != null) {
 
@@ -46,14 +49,19 @@ export class AnimationSystem extends IterativeSystem {
                         animComponent.currentFrame = animComponent.video.video.currentTime;
                     }
 
-                    if (Number.isInteger(animComponent.currentFrame)) {
-
+                    if (this.lastDt >= 1) {
                         Utils.room.send("updateAnimationComponent", {
                             id: "" + entityServer.serverId,
                             state: animComponent.state,
                             currentFrame: animComponent.currentFrame
                         });
+
+                        this.lastDt = 0;
+
                     }
+
+
+
 
 
                     animComponent.isStoppable = true;

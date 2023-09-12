@@ -1,4 +1,4 @@
-import { AbstractMesh, BoundingBoxGizmo, Color3, FreeCamera, PointerEventTypes, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
+import { AbstractMesh, BoundingBoxGizmo, Color3, FreeCamera, Mesh, PointerEventTypes, Quaternion, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
 import { TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { GuiUtils } from "../GuiUtils";
@@ -18,6 +18,8 @@ export class WebXrSystem extends IterativeSystem {
     init = true;
     initRoom = true;
     initSession = true;
+    followerObj: Mesh;
+    usedController: WebXRInputSource;
 
     // array con tutti i dispositivi di input webxr
     inputSourceArray: WebXRInputSource[] = new Array<WebXRInputSource>();
@@ -193,12 +195,14 @@ export class WebXrSystem extends IterativeSystem {
                 this.inputSourceArray.forEach(controller => {
 
                     // se è un controller sinistro e non è una mano
-                    if (controller.motionController.handedness == 'left' && controller.inputSource.hand == null) {
+                    if (controller?.motionController?.handedness == 'left' && controller.inputSource.hand == null) {
+
+                        this.usedController = controller;
 
                         this.controllerMenu.isVisible = true;
 
                         // creo l'entità per il menu
-                        let controllerMenuEntity = new Entity();
+                        /* let controllerMenuEntity = new Entity();
                         controllerMenuEntity.add(new MeshComponent(this.controllerMenu.mesh, controllerMenuEntity.id, false));
                         controllerMenuEntity.add(new TransformComponent(false, 1, 1, 1));
                         controllerMenuEntity.get(TransformComponent).scale_x = 0.05;
@@ -209,14 +213,63 @@ export class WebXrSystem extends IterativeSystem {
                         // creo l'entità per il controller
                         let controllerEntity = new Entity();
                         controllerEntity.add(new TransformComponent(false, 1, 1, 1));
-                        controllerEntity.add(new MeshComponent(controller.pointer, controllerEntity.id, false));
+                        controllerEntity.add(new MeshComponent(controller.grip, controllerEntity.id, false));
                         controllerEntity.get(TransformComponent).revertLogic = true;
                         Utils.engineEcs.addEntity(controllerEntity);
 
                         // lego le due entità
                         controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(0.15, 0, 0.1), true));
 
-                        controllerMenuState = true;
+                        controllerMenuState = true; */
+
+
+
+                        /* this.controllerMenu.mesh.setParent(controller.grip);
+
+                        this.controllerMenu.mesh.position = Vector3.ZeroReadOnly;
+                        this.controllerMenu.mesh.rotationQuaternion = Quaternion.Identity();
+
+                        this.controllerMenu.mesh.locallyTranslate(new Vector3(1, 0, 0));
+
+                        console.log(this.controllerMenu.mesh.scaling);
+
+                        console.log(controller.grip.scaling); */
+
+
+                        this.followerObj = new Mesh("followerObj");
+
+
+                        this.controllerMenu.mesh.parent = this.followerObj;
+                        this.controllerMenu.mesh.position = new Vector3(0.1, 0, 0.1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         // console.log("entrato nel controller");
 
@@ -255,7 +308,7 @@ export class WebXrSystem extends IterativeSystem {
                     this.inputSourceArray.forEach(controller => {
 
                         // se è un controller sinistro e non è una mano
-                        if (controller.motionController?.handedness == 'right' && controller.inputSource.hand == null) {
+                        if (controller?.motionController?.handedness == 'right' && controller.inputSource.hand == null) {
 
                             this.controllerMenu.isVisible = true;
 
@@ -314,6 +367,24 @@ export class WebXrSystem extends IterativeSystem {
 
             }
         }
+
+
+        if (this.followerObj != null && this.usedController != null) {
+            //comportamento per gestire il menu sul controller
+            this.followerObj.position = this.usedController.pointer.position;
+            //this.followerObj.lookAt(Utils.scene.activeCamera.position);
+            //this.followerObj.rotationQuaternion = new Quaternion(this.usedController._lastXRPose.transform.orientation.x, this.usedController._lastXRPose.transform.orientation.y, this.usedController._lastXRPose.transform.orientation.z, this.usedController._lastXRPose.transform.orientation.w);
+
+        }
+
+        if (this.controllerMenu != null) {
+
+            this.controllerMenu.mesh.getChildMeshes()[0].lookAt(new Vector3(0, 0, 0));
+        }
+
+
+
+
 
     }
 }

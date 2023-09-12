@@ -8,7 +8,7 @@ export class ClientComponent {
 
     constructor(local?: boolean) {
         const ENDPOINT_LOCAL = "ws://localhost:2567";
-        const ENDPOINT = "wss://test-webxr-multi.onrender.com/";
+        const ENDPOINT = "wss://xroom-server.azurewebsites.net";
 
         if (local) {
             this.client = new Client(ENDPOINT_LOCAL);

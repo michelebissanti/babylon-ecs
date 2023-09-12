@@ -89,6 +89,7 @@ export class Utils {
         let objects: Array<CustomVideo> = [];
 
         objects[0] = new CustomVideo("Train", "video_thumb/train.png", "video", "train.mp4");
+        objects[1] = new CustomVideo("Music", "video_thumb/music.png", "video", "music.mp4");
 
         return objects;
 

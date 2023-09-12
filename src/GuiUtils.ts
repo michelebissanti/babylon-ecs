@@ -1,4 +1,4 @@
-import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
+import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, Mesh, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Button, Control, GUI3DManager, Grid, HandMenu, HolographicSlate, InputText, NearMenu, ScrollViewer, TextBlock, TextWrapping, TouchHolographicButton, TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity } from "tick-knock";
 import { AnimationComponent } from "./components/AnimationComponent";
@@ -9,6 +9,7 @@ import { PlayerCameraComponent } from "./components/PlayerCameraComponent";
 import { TransformComponent } from "./components/TransformComponent";
 import { WebXrComponent } from "./components/WebXrComponent";
 import { CustomImage, CustomVideo, Object3d, Utils } from "./utils";
+import { util } from "webpack";
 
 // questa classe serve a contenere tutti i metodi statici che riguardano l'interfaccia utente
 export class GuiUtils {
@@ -183,7 +184,7 @@ export class GuiUtils {
                 } else {
                     //spawn slate con elenco
                     listObject = GuiUtils.createListObject(player);
-                    addObject.text = "Hide 3d Object List";
+                    //addObject.text = "Hide 3d Object List";
                     this.objectListShow = true;
                     listObject.defaultBehavior.followBehaviorEnabled = true;
                 }
@@ -206,7 +207,7 @@ export class GuiUtils {
                 } else {
                     //spawn slate con elenco
                     listVideo = GuiUtils.createListVideo(player);
-                    addVideo.text = "Hide Video List";
+                    //addVideo.text = "Hide Video List";
                     this.videoListShow = true;
                     listVideo.defaultBehavior.followBehaviorEnabled = true;
                 }
@@ -229,7 +230,7 @@ export class GuiUtils {
                 } else {
                     //spawn slate con elenco
                     listImage = GuiUtils.createListImage(player);
-                    addImage.text = "Hide Image List";
+                    //addImage.text = "Hide Image List";
                     this.imageListShow = true;
                     listImage.defaultBehavior.followBehaviorEnabled = true;
                 }
@@ -295,7 +296,7 @@ export class GuiUtils {
             } else {
                 //spawn slate con elenco
                 listObject = GuiUtils.createListObject(player);
-                addObject.text = "Hide 3d Object List";
+                //addObject.text = "Hide 3d Object List";
                 this.objectListShow = true;
                 listObject.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -318,7 +319,7 @@ export class GuiUtils {
             } else {
                 //spawn slate con elenco
                 listVideo = GuiUtils.createListVideo(player);
-                addVideo.text = "Hide Video List";
+                //addVideo.text = "Hide Video List";
                 this.videoListShow = true;
                 listVideo.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -341,7 +342,7 @@ export class GuiUtils {
             } else {
                 //spawn slate con elenco
                 listImage = GuiUtils.createListImage(player);
-                addImage.text = "Hide Image List";
+                //addImage.text = "Hide Image List";
                 this.imageListShow = true;
                 listImage.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -379,7 +380,7 @@ export class GuiUtils {
 
         //creo la lastra olografica dove inserirò la gui 2d
         let listSlate = new HolographicSlate("listSlate");
-        listSlate.titleBarHeight = 1;
+        listSlate.titleBarHeight = 0;
         listSlate.dimensions = new Vector2(1, 1);
         listSlate.position = new Vector3(0, 0, 0);
         listSlate.title = "Add Object";
@@ -508,7 +509,7 @@ export class GuiUtils {
                 Utils.engineEcs.addEntity(video);
 
                 listSlate.dispose();
-                this.objectListShow = false;
+                this.videoListShow = false;
             });
 
             var textButton = Button.CreateSimpleButton("", videoAvaible[i].nome);
@@ -532,7 +533,7 @@ export class GuiUtils {
                 Utils.engineEcs.addEntity(video);
 
                 listSlate.dispose();
-                this.objectListShow = false;
+                this.videoListShow = false;
             });
         }
 
@@ -592,7 +593,7 @@ export class GuiUtils {
                 Utils.engineEcs.addEntity(video);
 
                 listSlate.dispose();
-                this.objectListShow = false;
+                this.imageListShow = false;
             });
 
             var textButton = Button.CreateSimpleButton("", imagesAvaible[i].nome);
@@ -616,7 +617,7 @@ export class GuiUtils {
                 Utils.engineEcs.addEntity(video);
 
                 listSlate.dispose();
-                this.objectListShow = false;
+                this.imageListShow = false;
             });
         }
 
@@ -638,12 +639,19 @@ export class GuiUtils {
         let manager = GuiUtils.gui3dmanager;
 
         let controllerMenu = new TouchHolographicMenu("objectMenu");
+        console.log("maring is " + controllerMenu.margin);
         controllerMenu.columns = 1;
         manager.addControl(controllerMenu);
         controllerMenu.isVisible = false;
 
+
+
+
+
+
+
         //controllerMenu.mesh.rotate(new Vector3(1, 0, 0), -30);
-        controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
+        //controllerMenu.mesh.position = new Vector3(0.10, 0, -0.1);
 
         let addObject = new TouchHolographicButton();
         controllerMenu.addButton(addObject);
@@ -661,7 +669,7 @@ export class GuiUtils {
             } else {
                 //spawn slate con elenco
                 listObject = GuiUtils.createListObject(player);
-                addObject.text = "Hide 3d Object List";
+                //addObject.text = "Hide 3d Object List";
                 this.objectListShow = true;
                 listObject.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -684,7 +692,7 @@ export class GuiUtils {
             } else {
                 //spawn slate con elenco
                 listVideo = GuiUtils.createListVideo(player);
-                addVideo.text = "Hide Video List";
+                //addVideo.text = "Hide Video List";
                 this.videoListShow = true;
                 listVideo.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -707,7 +715,7 @@ export class GuiUtils {
             } else {
                 //spawn slate con elenco
                 listImage = GuiUtils.createListImage(player);
-                addImage.text = "Hide Image List";
+                //addImage.text = "Hide Image List";
                 this.imageListShow = true;
                 listImage.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -994,6 +1002,7 @@ export class GuiUtils {
 
             let animComp = entityPicked.get(AnimationComponent);
 
+            // se è un oggetto animato
             if (animComp.isVideo == false) {
 
                 for (let i = 0; i < animComp.animGroup.length; i++) {
@@ -1014,7 +1023,7 @@ export class GuiUtils {
                             animComp.animGroup[i].stop();
                             animComp.state = "pause";
 
-                            playButton.text = "Play";
+                            playButton.text = "Play " + animComp.animGroup[i].name;
                             playButton.imageUrl = "icon/play-button.png";
                         }
 
