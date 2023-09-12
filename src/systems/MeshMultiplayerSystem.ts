@@ -141,6 +141,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                             mesh.isPickable = false;
                             mesh.visibility = 0;
                         });
+
                     }
 
                 }

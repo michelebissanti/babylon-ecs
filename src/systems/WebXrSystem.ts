@@ -1,4 +1,4 @@
-import { AbstractMesh, BoundingBoxGizmo, Color3, FollowBehavior, FreeCamera, Mesh, MeshBuilder, PointerEventTypes, Quaternion, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
+import { AbstractMesh, BoundingBoxGizmo, Color3, FollowBehavior, FreeCamera, Mesh, MeshBuilder, PointerEventTypes, Quaternion, RayHelper, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
 import { TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { GuiUtils } from "../GuiUtils";
@@ -21,6 +21,8 @@ export class WebXrSystem extends IterativeSystem {
     initSession = true;
     followerObj: Mesh;
     usedController: WebXRInputSource;
+    sphereController: Mesh;
+    lastDt = 0;
 
     // array con tutti i dispositivi di input webxr
     inputSourceArray: WebXRInputSource[] = new Array<WebXRInputSource>();
@@ -41,6 +43,7 @@ export class WebXrSystem extends IterativeSystem {
     }
 
     protected updateEntity(entity: Entity, dt: number): void {
+        this.lastDt += dt;
         let defExp = entity.get(WebXrComponent).exp;
 
         // al primo giro setto i parametri della sessione e alcuni listener
@@ -90,11 +93,11 @@ export class WebXrSystem extends IterativeSystem {
                 this.inputSourceArray.push(inputSource);
                 this.controllerUpdate = true;
 
-                inputSource.onMotionControllerInitObservable.add(motionController => {
+                /* inputSource.onMotionControllerInitObservable.add(motionController => {
                     motionController.onModelLoadedObservable.add(mc => {
                         this.motionControllersArray.push(motionController);
                     })
-                })
+                }) */
             });
 
             // listener per rimuovere i riferimenti ai controller collegati
@@ -202,45 +205,16 @@ export class WebXrSystem extends IterativeSystem {
 
                         this.controllerMenu.isVisible = true;
 
-                        // creo l'entità per il menu
-                        /* let controllerMenuEntity = new Entity();
-                        controllerMenuEntity.add(new MeshComponent(this.controllerMenu.mesh, controllerMenuEntity.id, false));
-                        controllerMenuEntity.add(new TransformComponent(false, 1, 1, 1));
-                        controllerMenuEntity.get(TransformComponent).scale_x = 0.05;
-                        controllerMenuEntity.get(TransformComponent).scale_y = 0.05;
-                        controllerMenuEntity.get(TransformComponent).scale_z = 0.05;
-                        Utils.engineEcs.addEntity(controllerMenuEntity);
-
-                        // creo l'entità per il controller
-                        let controllerEntity = new Entity();
-                        controllerEntity.add(new TransformComponent(false, 1, 1, 1));
-                        controllerEntity.add(new MeshComponent(controller.grip, controllerEntity.id, false));
-                        controllerEntity.get(TransformComponent).revertLogic = true;
-                        Utils.engineEcs.addEntity(controllerEntity);
-
-                        // lego le due entità
-                        controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(0.15, 0, 0.1), true));
-
-                        controllerMenuState = true; */
-
-
-
-                        /* this.controllerMenu.mesh.setParent(controller.grip);
-
-                        this.controllerMenu.mesh.position = Vector3.ZeroReadOnly;
-                        this.controllerMenu.mesh.rotationQuaternion = Quaternion.Identity();
-
-                        this.controllerMenu.mesh.locallyTranslate(new Vector3(1, 0, 0));
-
-                        console.log(this.controllerMenu.mesh.scaling);
-
-                        console.log(controller.grip.scaling); */
-
-
                         this.followerObj = new Mesh("followerObj");
+
+                        this.sphereController = MeshBuilder.CreateSphere("controllerSphere", { diameter: 0.4 });
+
+                        this.sphereController.isVisible = false;
 
 
                         if (this.followerObj != null) {
+
+                            this.sphereController.parent = this.followerObj;
 
                             this.controllerMenu.mesh.parent = this.followerObj;
                             this.controllerMenu.mesh.position = new Vector3(0.1, 0, 0.15);
@@ -248,60 +222,6 @@ export class WebXrSystem extends IterativeSystem {
                             this.controllerMenu.mesh.billboardMode = Mesh.BILLBOARDMODE_ALL;
 
                         }
-
-                        /* let cubo = MeshBuilder.CreateBox("cubotest", { size: 0.1 });
-                        cubo.position = this.usedController.pointer.position;
-                        cubo.rotation = this.usedController.pointer.rotation; */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        // console.log("entrato nel controller");
-
-                        const xr_ids = controller.motionController.getComponentIds();
-
-                        // prendo la componente uguale al "x-button"
-                        let xbuttonComponent = controller.motionController.getComponent(xr_ids[3]);
-
-                        // setto il listener sul bottone x per aprire e chiudere il menu
-                        xbuttonComponent?.onButtonStateChangedObservable.add(() => {
-                            if (xbuttonComponent.pressed) {
-                                if (controllerMenuState) {
-                                    this.controllerMenu.isVisible = false;
-                                    controllerMenuState = false;
-                                } else {
-                                    this.controllerMenu.isVisible = true;
-                                    controllerMenuState = true;
-                                }
-
-                            }
-                        });
 
                         found = true;
 
@@ -313,95 +233,74 @@ export class WebXrSystem extends IterativeSystem {
                 });
 
                 // posiziono il menu sul controller destro se non sono riuscito a farlo sul sinistro
-                /* if (found == false) {
+                if (found == false) {
 
                     // giro tutti i controller collegati
                     this.inputSourceArray.forEach(controller => {
 
-                        // se è un controller sinistro e non è una mano
+                        // se è un controller destro e non è una mano
                         if (controller?.motionController?.handedness == 'right' && controller.inputSource.hand == null) {
+
+                            this.usedController = controller;
 
                             this.controllerMenu.isVisible = true;
 
-                            // creo l'entità per il menu
-                            let controllerMenuEntity = new Entity();
-                            controllerMenuEntity.add(new MeshComponent(this.controllerMenu.mesh, controllerMenuEntity.id, false));
-                            controllerMenuEntity.add(new TransformComponent(false, 1, 1, 1));
-                            controllerMenuEntity.get(TransformComponent).scale_x = 0.05;
-                            controllerMenuEntity.get(TransformComponent).scale_y = 0.05;
-                            controllerMenuEntity.get(TransformComponent).scale_z = 0.05;
-                            Utils.engineEcs.addEntity(controllerMenuEntity);
+                            this.followerObj = new Mesh("followerObj");
 
-                            // creo l'entità per il controller
-                            let controllerEntity = new Entity();
-                            controllerEntity.add(new TransformComponent(false, 1, 1, 1));
-                            controllerEntity.add(new MeshComponent(controller.pointer, controllerEntity.id, false));
-                            controllerEntity.get(TransformComponent).revertLogic = true;
-                            Utils.engineEcs.addEntity(controllerEntity);
+                            this.sphereController = MeshBuilder.CreateSphere("controllerSphere", { diameter: 0.4 });
 
-                            // lego le due entità
-                            controllerMenuEntity.add(new FollowComponent(controllerEntity.get(TransformComponent), new Vector3(-0.20, 0, -0.1), true));
+                            this.sphereController.isVisible = false;
 
-                            controllerMenuState = true;
 
-                            // console.log("entrato nel controller");
+                            if (this.followerObj != null) {
 
-                            const xr_ids = controller.motionController.getComponentIds();
+                                this.sphereController.parent = this.followerObj;
 
-                            // prendo la componente uguale al "a-button"
-                            let xbuttonComponent = controller.motionController.getComponent(xr_ids[4]);
+                                this.controllerMenu.mesh.parent = this.followerObj;
+                                this.controllerMenu.mesh.position = new Vector3(0.1, 0, 0.15);
 
-                            // setto il listener sul bottone a per aprire e chiudere il menu
-                            xbuttonComponent?.onButtonStateChangedObservable.add(() => {
-                                if (xbuttonComponent.pressed) {
-                                    if (controllerMenuState) {
-                                        this.controllerMenu.isVisible = false;
-                                        controllerMenuState = false;
-                                    } else {
-                                        this.controllerMenu.isVisible = true;
-                                        controllerMenuState = true;
-                                    }
+                                this.controllerMenu.mesh.billboardMode = Mesh.BILLBOARDMODE_ALL;
 
-                                }
-                            });
+                            }
 
                             found = true;
 
                         }
-
-
-
-
                     });
 
-                } */
+
+                }
 
             }
         }
 
 
+        // comportamento per gestire il menu sul controller
         if (this.followerObj != null && this.usedController != null) {
-            //comportamento per gestire il menu sul controller
+            //il menu è figlio di questo oggetto nullo che segue la posizione del controller
             this.followerObj.position = this.usedController.pointer.position;
 
-            //this.followerObj.rotation.y = entity.get(PlayerCameraComponent).camera.rotation.y + Math.PI;
-            //this.followerObj.lookAt(Utils.scene.activeCamera.position);
-            //this.followerObj.rotationQuaternion = new Quaternion(this.usedController._lastXRPose.transform.orientation.x, this.usedController._lastXRPose.transform.orientation.y, this.usedController._lastXRPose.transform.orientation.z, this.usedController._lastXRPose.transform.orientation.w);
+            // controllo che l'utente stia guardando il controller
+            if (this.lastDt >= 1) {
+                let ray = Utils.scene.activeCamera.getForwardRay(20);
 
-            //console.log(this.usedController.pointer.rotationQuaternion.toEulerAngles());
+                let isWatching = ray.intersectsMesh(this.sphereController).hit;
 
-            if (this.controllerMenu != null && this.usedController.pointer.rotationQuaternion.toEulerAngles().y <= 0.5 && this.usedController.pointer.rotationQuaternion.toEulerAngles().y >= -0.5) {
-                this.controllerMenu.isVisible = true;
-            } else {
-                this.controllerMenu.isVisible = false;
+                // vecchia condizione
+                //this.usedController.pointer.rotationQuaternion.toEulerAngles().y <= 0.5 && this.usedController.pointer.rotationQuaternion.toEulerAngles().y >= -0.5
+
+                if (this.controllerMenu != null && isWatching) {
+                    // se l'utente sta guardando il controller allora rendo visibile il menu
+                    this.controllerMenu.isVisible = true;
+                } else {
+                    this.controllerMenu.isVisible = false;
+                }
+
+                this.lastDt = 0;
             }
+
+
         }
-
-
-
-
-
-
 
     }
 }

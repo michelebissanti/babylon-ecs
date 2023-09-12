@@ -145,6 +145,98 @@ export class GuiUtils {
 
     }
 
+    static buttonMenu(menu, player) {
+
+        let addObject = new TouchHolographicButton();
+        menu.addButton(addObject);
+        addObject.text = "Add 3d Object";
+        addObject.imageUrl = "icon/object.png";
+
+        let listObject: HolographicSlate;
+
+        addObject.onPointerDownObservable.add(async () => {
+
+            if (this.objectListShow == true) {
+                listObject.dispose();
+                this.objectListShow = false;
+                addObject.text = "Add 3d Object";
+            } else {
+                //spawn slate con elenco
+                listObject = GuiUtils.createListObject(player);
+                //addObject.text = "Hide 3d Object List";
+                this.objectListShow = true;
+                listObject.defaultBehavior.followBehaviorEnabled = true;
+            }
+
+        });
+
+        let addVideo = new TouchHolographicButton();
+        menu.addButton(addVideo);
+        addVideo.text = "Add Video";
+        addVideo.imageUrl = "icon/video.png";
+
+        let listVideo: HolographicSlate;
+
+        addVideo.onPointerDownObservable.add(async () => {
+
+            if (this.videoListShow == true) {
+                listVideo.dispose();
+                this.videoListShow = false;
+                addVideo.text = "Add Video";
+            } else {
+                //spawn slate con elenco
+                listVideo = GuiUtils.createListVideo(player);
+                //addVideo.text = "Hide Video List";
+                this.videoListShow = true;
+                listVideo.defaultBehavior.followBehaviorEnabled = true;
+            }
+
+        });
+
+        let addImage = new TouchHolographicButton();
+        menu.addButton(addImage);
+        addImage.text = "Add Image";
+        addImage.imageUrl = "icon/image.png";
+
+        let listImage: HolographicSlate;
+
+        addImage.onPointerDownObservable.add(async () => {
+
+            if (this.imageListShow == true) {
+                listImage.dispose();
+                this.imageListShow = false;
+                addImage.text = "Add Image";
+            } else {
+                //spawn slate con elenco
+                listImage = GuiUtils.createListImage(player);
+                //addImage.text = "Hide Image List";
+                this.imageListShow = true;
+                listImage.defaultBehavior.followBehaviorEnabled = true;
+            }
+
+        });
+
+        var roomInfo = new TouchHolographicButton();
+        menu.addButton(roomInfo);
+        roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
+        console.log(player.get(ClientComponent).room.id.toString());
+
+        roomInfo.onPointerDownObservable.add(async () => {
+            Utils.copyMessage(player.get(ClientComponent).room.id.toString());
+
+        });
+
+        var leaveRoomBtn = new TouchHolographicButton();
+        menu.addButton(leaveRoomBtn);
+        leaveRoomBtn.text = "Leave Room";
+        leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
+
+        leaveRoomBtn.onPointerDownObservable.add(async () => {
+            player.get(ClientComponent).room.leave();
+            window.location.reload();
+        });
+    }
+
     // questo metodo crea il near menu principale della stanza se non sono in webxr, opzioni disponibili:
     //  - Add 3d object (visualizzazione elenco di oggetti)
     //  - Add video (visualizzazione elenco video)

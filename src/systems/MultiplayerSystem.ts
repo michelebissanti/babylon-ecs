@@ -4,6 +4,7 @@ import { EntityMultiplayerComponent } from "../components/EntityMultiplayerCompo
 import { Utils } from "../utils";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";
 import { MeshComponent } from "../components/MeshComponent";
+import { AnimationComponent } from "../components/AnimationComponent";
 
 // MultiplayerSystem: gestisce l'entità che possiede EntityMultiplayerComponent
 // in generale serve a sincronizzare con il server le entità ecs
@@ -92,6 +93,12 @@ export class MultiplayerSystem extends IterativeSystem {
 
                     if (entity.has(MeshComponent)) {
                         entity.get(MeshComponent).mesh.dispose();
+                    }
+
+                    if (entity.has(AnimationComponent)) {
+                        if (entity.get(AnimationComponent).isVideo) {
+                            entity.get(AnimationComponent).video.dispose();
+                        }
                     }
 
                     Utils.savedEntities.delete(entity.get(EntityMultiplayerComponent).serverId);

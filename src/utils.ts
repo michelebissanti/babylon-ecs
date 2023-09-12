@@ -89,7 +89,7 @@ export class Utils {
         let objects: Array<CustomVideo> = [];
 
         objects[0] = new CustomVideo("Train", "video_thumb/train.png", "video", "train.mp4");
-        objects[1] = new CustomVideo("Music", "video_thumb/music.png", "video", "music.mp4");
+        objects[1] = new CustomVideo("Magic", "video_thumb/magic.jpg", "video", "magic.mp4");
 
         return objects;
 
@@ -201,6 +201,12 @@ export class Utils {
 
                     if (localEntity.has(MeshComponent)) {
                         localEntity.get(MeshComponent).mesh.dispose();
+                    }
+
+                    if (localEntity.has(AnimationComponent)) {
+                        if (localEntity.get(AnimationComponent).isVideo) {
+                            localEntity.get(AnimationComponent).video.dispose();
+                        }
                     }
 
                     Utils.savedEntities.delete(serverEntity.id);
@@ -328,7 +334,7 @@ export class Utils {
 
 
             // quando si aggiunge un componente di animazione
-            Utils.room.state.animationComponents.onAdd(async (entityServer) => {
+            Utils.room.state.animationComponents.onAdd((entityServer) => {
 
                 if (Utils.savedEntities.has(entityServer.id)) {
                     // se non sono stato io ad inviarla
@@ -345,7 +351,7 @@ export class Utils {
 
                     }
 
-                    entityServer.onChange(async () => {
+                    entityServer.onChange(() => {
                         // aggiorno la componente prendendo la sua entità
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
@@ -356,7 +362,9 @@ export class Utils {
                             let animations = animComponent.animGroup;
 
                             // aggiorno solo se non sono io a mandare l'update
-                            if (entityServer.sender != Utils.room.sessionId) {
+                            // il messaggio in questo listener non viene mai aggiornato !!!
+                            // per rendere il tutto usabile uso il componente di entity che almeno mi permette di utilizzare l'oggetto localmente
+                            if (localEntity.get(EntityMultiplayerComponent).busy != Utils.room.sessionId) {
 
                                 // se l'animazione era in pausa la avvio
                                 if (animComponent.state == "pause" && entityServer.state != "pause") {

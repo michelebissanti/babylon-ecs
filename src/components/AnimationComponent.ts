@@ -13,6 +13,7 @@ export class AnimationComponent {
     currentFrame: number = 0;
     video: VideoTexture;
     isVideo: boolean = false;
+    sender: string;
 
     constructor(animGroup?: AnimationGroup[], video?: VideoTexture, isVideo?: boolean) {
         this.animGroup = animGroup;
