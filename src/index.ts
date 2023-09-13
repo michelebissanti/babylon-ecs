@@ -38,7 +38,7 @@ class App {
         this.engine = new Engine(document.getElementById('renderCanvas') as HTMLCanvasElement);
         this.scene = new Scene(this.engine);
         Utils.scene = this.scene;
-        this.scene.debugLayer.show();
+        //this.scene.debugLayer.show();
 
         // set up libreria ECS
         this.ecs = new EngineECS();
