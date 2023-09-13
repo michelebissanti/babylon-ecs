@@ -56,8 +56,11 @@ export class WebXrSystem extends IterativeSystem {
                 // aggiorno la telecamera dell'entità player
                 entity.get(PlayerCameraComponent).camera = defExp.baseExperience.camera;
 
-                // nascondo il menu fluttuante utile in ambiente desktop
-                GuiUtils.nearMainMenu.isVisible = false;
+                if (GuiUtils.nearMainMenu != null) {
+                    // nascondo il menu fluttuante utile in ambiente desktop
+                    GuiUtils.nearMainMenu.isVisible = false;
+                }
+
 
                 if (defExp.baseExperience.sessionManager.sessionMode == "immersive-ar") {
                     // nascondo la mesh del terreno
@@ -94,7 +97,7 @@ export class WebXrSystem extends IterativeSystem {
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
 
                 // faccio tornare visibile il menu fluttuante
-                if (GuiUtils.objectMenuShow == false) {
+                if (GuiUtils.nearMainMenu != null && GuiUtils.objectMenuShow == false) {
                     GuiUtils.nearMainMenu.isVisible = true;
                 }
 
