@@ -372,7 +372,7 @@ export class Utils {
                                 }
 
                                 // se l'animazione è diversa da quella nuova (caso unico del modello 3d)
-                                if (animComponent.state != "pause" && entityServer.state != "pause" && animComponent.state != entityServer.state && animComponent.isVideo == false) {
+                                if (animComponent.state != "pause" && entityServer.state != "pause" && animComponent.state != entityServer.state && !(animComponent.isVideo)) {
                                     animations[+animComponent.state].pause();
                                     animComponent.isStoppable = false;
 

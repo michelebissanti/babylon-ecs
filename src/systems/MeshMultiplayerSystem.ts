@@ -1,4 +1,4 @@
-import { Color3, DynamicTexture, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, Texture, Vector3, VideoTexture } from "@babylonjs/core";
+import { Color3, DynamicTexture, Matrix, Mesh, MeshBuilder, Scene, SceneLoader, StandardMaterial, VideoTexture } from "@babylonjs/core";
 import { Entity, IterativeSystem, Query } from "tick-knock";
 import { AnimationComponent } from "../components/AnimationComponent";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";

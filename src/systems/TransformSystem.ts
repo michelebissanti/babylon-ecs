@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh, Quaternion, Scene } from "@babylonjs/core";
+import { AbstractMesh, Scene } from "@babylonjs/core";
 import { Entity, IterativeSystem, Query } from "tick-knock";
 import { EntityMultiplayerComponent } from "../components/EntityMultiplayerComponent";
 import { MeshArrayComponent } from "../components/MeshArrayComponent";

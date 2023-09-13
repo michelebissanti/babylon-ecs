@@ -74,9 +74,6 @@ export class WebXrSystem extends IterativeSystem {
 
             });
 
-
-
-
             // abilito se possibile l'hand tracking
             let handTracking = featureManager.enableFeature(WebXRFeatureName.HAND_TRACKING, "latest", {
                 xrInput: defExp.input,
@@ -107,12 +104,6 @@ export class WebXrSystem extends IterativeSystem {
             defExp.input.onControllerAddedObservable.add(inputSource => {
                 this.inputSourceArray.push(inputSource);
                 this.controllerUpdate = true;
-
-                /* inputSource.onMotionControllerInitObservable.add(motionController => {
-                    motionController.onModelLoadedObservable.add(mc => {
-                        this.motionControllersArray.push(motionController);
-                    })
-                }) */
             });
 
             // listener per rimuovere i riferimenti ai controller collegati
@@ -126,13 +117,11 @@ export class WebXrSystem extends IterativeSystem {
 
             });
 
-
-            let objectMenu: TouchHolographicMenu;
             // listener per quando tocco un oggetto
             this.scene.onPointerObservable.add((pointerInfo) => {
                 switch (pointerInfo?.type) {
                     case PointerEventTypes.POINTERDOWN:
-                        if (GuiUtils.objectMenuShow == false && pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+                        if (!(GuiUtils.objectMenuShow) && pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
 
                             // se ci sono dei metadati
                             if (pointerInfo.pickInfo.pickedMesh.metadata != null) {
@@ -162,11 +151,9 @@ export class WebXrSystem extends IterativeSystem {
                                             }
 
                                             // menu sull'oggetto
-                                            if (GuiUtils.objectMenuShow == false) {
+                                            if (!(GuiUtils.objectMenuShow)) {
                                                 // istanzio il menu
-                                                objectMenu = GuiUtils.objectMenu(entityPicked, entityMesh);
-                                            } else {
-
+                                                GuiUtils.objectMenu(entityPicked, entityMesh);
                                             }
 
                                         } else {
@@ -174,12 +161,7 @@ export class WebXrSystem extends IterativeSystem {
                                             GuiUtils.warningSlate("Attenzione", "Questo oggetto è occupato da un altro utente.");
                                         }
 
-
-                                    } else {
-                                        console.log("ancora non ci siamo");
                                     }
-                                } else {
-                                    console.log("nessuna entità");
                                 }
 
 
@@ -213,7 +195,7 @@ export class WebXrSystem extends IterativeSystem {
                 this.inputSourceArray.forEach(controller => {
 
                     // se è un controller sinistro e non è una mano
-                    if (controller?.motionController?.handedness == 'left' && controller.inputSource.hand == null) {
+                    if (controller != null && controller.inputSource.handedness == 'left' && controller.inputSource.hand == null) {
 
                         this.usedController = controller;
 
@@ -247,13 +229,13 @@ export class WebXrSystem extends IterativeSystem {
                 });
 
                 // posiziono il menu sul controller destro se non sono riuscito a farlo sul sinistro
-                if (found == false) {
+                if (!found) {
 
                     // giro tutti i controller collegati
                     this.inputSourceArray.forEach(controller => {
 
                         // se è un controller destro e non è una mano
-                        if (controller?.motionController?.handedness == 'right' && controller.inputSource.hand == null) {
+                        if (controller != null && controller.inputSource.handedness == 'left' && controller.inputSource.hand == null) {
 
                             this.usedController = controller;
 

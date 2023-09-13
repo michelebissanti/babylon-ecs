@@ -1,9 +1,9 @@
-import { Quaternion, Scene } from "@babylonjs/core";
+import { Scene } from "@babylonjs/core";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { FollowComponent } from "../components/FollowComponent";
 import { TransformComponent } from "../components/TransformComponent";
 
-// FollowSystem: 
+// FollowSystem: serve a realizzare il comportamento di follow
 export class FollowSystem extends IterativeSystem {
     scene: Scene;
 

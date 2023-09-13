@@ -1,6 +1,5 @@
 import { KeyboardEventTypes, Scene, Vector3 } from "@babylonjs/core";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
-import { MeshArrayComponent } from "../components/MeshArrayComponent";
 import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { TransformComponent } from "../components/TransformComponent";
 import { Utils } from "../utils";
