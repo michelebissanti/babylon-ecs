@@ -108,7 +108,7 @@ export class Utils {
 
 
     static waitForConditionAsync(conditionFunction, timerInMs?: number, timeout?: number) {
-        var isExpired = false;
+        let isExpired = false;
         const poll = async resolve => {
             if (isExpired || await conditionFunction()) resolve();
             else setTimeout(_ => poll(resolve), timerInMs ? timerInMs : 100);
@@ -119,34 +119,6 @@ export class Utils {
         }
 
         return new Promise(poll);
-    }
-
-    static async importModel(baseUrl: string, modelName: string, animGroup?: AnimationGroup[]): Promise<AbstractMesh[]> {
-
-        let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
-            null,
-            baseUrl,
-            modelName
-        );
-
-        animGroup = animationGroups;
-
-        return meshes;
-    }
-
-    // questa funzione serve a copiare negli appunti una stringa
-    static copyMessage(val: string) {
-        const selBox = document.createElement('textarea');
-        selBox.style.position = 'fixed';
-        selBox.style.left = '0';
-        selBox.style.top = '0';
-        selBox.style.opacity = '0';
-        selBox.value = val;
-        document.body.appendChild(selBox);
-        selBox.focus();
-        selBox.select();
-        document.execCommand('copy');
-        document.body.removeChild(selBox);
     }
 
     // questa funzione inizializza tutti i listener che servono per la gestione multiplayer
@@ -233,7 +205,6 @@ export class Utils {
                 // cercare se esiste un entità con quel server id
                 if (Utils.savedEntities.has(entityServer.id)) {
                     if (entityServer.sender != Utils.room.sessionId) {
-                        //console.log("nuova comp transform");
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
                         localEntity.add(new TransformComponent());
                         localEntity.get(TransformComponent).id = entityServer.id;
@@ -294,8 +265,6 @@ export class Utils {
 
                 if (Utils.savedEntities.has(entityServer.id)) {
                     if (entityServer.sender != Utils.room.sessionId) {
-                        //console.log("nuova comp mesh");
-
                         let localEntity = engine.getEntityById(Utils.savedEntities.get(entityServer.id));
 
                         localEntity.add(new MeshMultiComponent(entityServer.location, entityServer.name, false));
@@ -325,10 +294,6 @@ export class Utils {
             });
 
             Utils.room.state.meshComponents.onRemove((serverEntity) => {
-                /* let localEntity = engine.getEntityById(this.savedEntities.get(serverEntity.id));
-                if (localEntity != null && localEntity.has(MeshArrayComponent)) {
-                    localEntity.get(MeshArrayComponent).meshes[0].dispose();
-                } */
             });
 
 
@@ -372,7 +337,7 @@ export class Utils {
                                     animComponent.state = entityServer.state;
                                     animComponent.currentFrame = entityServer.currentFrame;
 
-                                    if (animComponent.isVideo == false) {
+                                    if (!(animComponent.isVideo)) {
                                         // se devo aggiornare un modello 3d
                                         animations[+animComponent.state].goToFrame(animComponent.currentFrame);
                                         animations[+animComponent.state].play(true);
@@ -391,7 +356,7 @@ export class Utils {
                                 // se l'animazione è in play e la devo stoppare
                                 if (animComponent.state != "pause" && entityServer.state == "pause") {
 
-                                    if (animComponent.isVideo == false) {
+                                    if (!(animComponent.isVideo)) {
                                         // se devo aggiornare un modello 3d
                                         animations[+animComponent.state].pause();
                                     } else {
@@ -447,7 +412,7 @@ export class Utils {
     }
 
     public static async createBackgroundScene() {
-        let { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+        let { meshes } = await SceneLoader.ImportMeshAsync(
             null,
             "background/",
             "mesh.gltf",

@@ -17,7 +17,7 @@ export class MeshArrayComponent {
         });
 
         if (collision) {
-            this.meshes.map(mesh => {
+            this.meshes.forEach(mesh => {
                 mesh.checkCollisions = true;
             });
         }
