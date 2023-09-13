@@ -665,8 +665,6 @@ export class GuiUtils {
         return listSlate;
     }
 
-
-
     // crea una holographic slate con un warning dato in input
     static warningSlate(titleString: string, textString: string) {
         let dialogSlate = new HolographicSlate("dialogSlate");
@@ -828,11 +826,12 @@ export class GuiUtils {
 
         let editButton = new TouchHolographicButton("editButton");
         objectMenu.addButton(editButton);
-        editButton.text = "Modifica e sposta";
+        editButton.text = "Scala e Ruota";
         editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
         editButton.onPointerDownObservable.add(() => {
 
-            if (GuiUtils.switchEdit == false) {
+            if (!(GuiUtils.switchEdit)) {
+                editButton.text = "Esci da Scala e Ruota";
                 // Create bounding box gizmo
                 utilLayer = new UtilityLayerRenderer(Utils.scene)
                 utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
@@ -840,22 +839,57 @@ export class GuiUtils {
                 gizmo.rotationSphereSize = 0.05;
                 gizmo.scaleBoxSize = 0.05;
 
-
                 gizmo.attachedMesh = entityMesh;
 
                 entityMesh.addBehavior(multiPointerScaleBehavior);
-                entityMesh.addBehavior(sixDofDragBehavior);
+
                 entityPicked.get(TransformComponent).revertLogic = true;
                 entityPicked.get(TransformComponent).update = true;
                 GuiUtils.switchEdit = true;
+
             } else {
+                editButton.text = "Scala e Ruota";
                 utilLayer.dispose();
                 gizmo.dispose();
                 entityMesh.removeBehavior(multiPointerScaleBehavior);
-                entityMesh.removeBehavior(sixDofDragBehavior);
-                entityPicked.get(TransformComponent).revertLogic = false;
-                entityPicked.get(TransformComponent).update = false;
+
+                if (!(GuiUtils.switchMove)) {
+                    entityPicked.get(TransformComponent).revertLogic = false;
+                    entityPicked.get(TransformComponent).update = false;
+                }
+
                 GuiUtils.switchEdit = false;
+            }
+
+
+        });
+
+        let moveButton = new TouchHolographicButton("moveButton");
+        objectMenu.addButton(moveButton);
+        moveButton.text = "Sposta";
+        moveButton.imageUrl = "icon/move.png";
+        moveButton.onPointerDownObservable.add(() => {
+
+            if (!(GuiUtils.switchMove)) {
+                moveButton.text = "Esci da Sposta";
+                entityMesh.addBehavior(sixDofDragBehavior);
+
+
+                entityPicked.get(TransformComponent).revertLogic = true;
+                entityPicked.get(TransformComponent).update = true;
+                GuiUtils.switchMove = true;
+            } else {
+                moveButton.text = "Sposta";
+                entityMesh.removeBehavior(sixDofDragBehavior);
+
+                if (!(GuiUtils.switchEdit)) {
+                    entityPicked.get(TransformComponent).revertLogic = false;
+                    entityPicked.get(TransformComponent).update = false;
+                }
+
+                GuiUtils.switchMove = false;
+
+
             }
 
 
@@ -964,7 +998,7 @@ export class GuiUtils {
                 GuiUtils.switchEdit = false;
             }
             objectMenu.dispose();
-            if (this.nearMainMenu != null) {
+            if (!Utils.inWebXR) {
                 //faccio riapparire il near menu per gli utenti non in webxr
                 this.nearMainMenu.isVisible = true;
             }
@@ -989,7 +1023,7 @@ export class GuiUtils {
 
             }
             objectMenu.dispose();
-            if (Utils.inWebXR == false) {
+            if (!Utils.inWebXR) {
                 //faccio riapparire il near menu per gli utenti non in webxr
                 this.nearMainMenu.isVisible = true;
             }

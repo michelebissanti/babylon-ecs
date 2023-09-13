@@ -1,4 +1,4 @@
-import { AbstractMesh, AnimationGroup, Quaternion, Scene, SceneLoader } from "@babylonjs/core";
+import { Quaternion, Scene, SceneLoader, WebXRDefaultExperience } from "@babylonjs/core";
 
 import { Room } from "colyseus.js";
 import { Engine, Entity } from "tick-knock";
@@ -64,6 +64,7 @@ export class Utils {
     public static scene: Scene;
     public static savedEntities = new Map<string, number>();
     public static inWebXR: boolean = false;
+    public static webXRSession: WebXRDefaultExperience;
 
     /** Returns a new Quaternion set from the passed Euler float angles (y, x, z). */
     static euler(eulerX: number, eulerY: number, eulerZ: number): Quaternion {

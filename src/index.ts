@@ -65,23 +65,7 @@ class App {
         ground.get(MeshComponent).mesh.isPickable = false;
         ground.get(MeshComponent).mesh.isVisible = false;
         ground.get(MeshComponent).mesh.position.z = 4;
-        /* let groundMat = new StandardMaterial("groundMat", this.scene);
-        let groundTexture = new Texture("materials/floor/laminate_floor_02_diff_1k.jpg");
-        groundTexture.uScale = 10;
-        groundTexture.vScale = 10;
-        groundMat.diffuseTexture = groundTexture;
 
-        let groundNormal = new Texture("materials/floor/laminate_floor_02_nor_gl_1k.jpg");
-        groundMat.bumpTexture = groundNormal;
-        groundNormal.uScale = 10;
-        groundNormal.vScale = 10;
-
-        let groundAO = new Texture("materials/floor/laminate_floor_02_ao_1k.jpg");
-        groundMat.bumpTexture = groundAO;
-        groundAO.uScale = 10;
-        groundAO.vScale = 10;
-
-        ground.get(MeshComponent).mesh.material = groundMat; */
         this.ecs.addEntity(ground);
 
         Utils.createBackgroundScene();
@@ -110,26 +94,11 @@ class App {
             },
         })));
 
+        Utils.webXRSession = player.get(WebXrComponent).exp;
+
         this.ecs.addEntity(player);
 
         GuiUtils.gui3dmanager = new GUI3DManager(this.scene);
-
-        //test per le animazioni del player
-
-        /* SceneLoader.LoadAssetContainer("https://models.readyplayer.me/", "64521b1a0fc89d09fcdc8c79.glb", this.scene, assets => {
-            const rpmMesh = assets.meshes[0];
-            assets.addAllToScene();
-
-            // Mixamo animation
-            const hiphop = SceneLoader.ImportAnimations("animation/player/", "cards.fbx", this.scene, false, SceneLoaderAnimationGroupLoadingMode.Clean, null, () => {
-                // Get Animation Group
-                const dancing = this.scene.getAnimationGroupByName("Armature|mixamo.com|Layer0");
-
-                //Start Anim
-                dancing.start(true, 1.0, dancing.from, dancing.to, false);
-
-            });
-        }); */
 
         // faccio partire tutti i sistemi ECS
         this.ecs.addSystem(new MovementSystem(this.scene));
