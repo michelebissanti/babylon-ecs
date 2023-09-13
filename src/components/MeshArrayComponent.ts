@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh } from '@babylonjs/core';
+import { AbstractMesh } from '@babylonjs/core';
 
 // questa componente serve ad associare un array di AbstractMesh ad una entità
 export class MeshArrayComponent {

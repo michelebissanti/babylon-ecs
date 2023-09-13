@@ -130,7 +130,7 @@ export class GuiUtils {
 
         listButton.onPointerDownObservable.add(async () => {
 
-            if (displayList == true) {
+            if (displayList) {
                 roomListSlate.dispose();
                 displayList = false;
                 listButton.text = "Lista delle stanze";
@@ -212,7 +212,7 @@ export class GuiUtils {
 
         addVideo.onPointerDownObservable.add(() => {
 
-            if (this.objectListShow == true) {
+            if (this.objectListShow) {
                 listObject.dispose();
                 this.objectListShow = false;
 
@@ -221,11 +221,11 @@ export class GuiUtils {
                 this.videoListShow = true;
                 listVideo.defaultBehavior.followBehaviorEnabled = true;
 
-            } else if (this.videoListShow == true) {
+            } else if (this.videoListShow) {
                 listVideo.dispose();
                 this.videoListShow = false;
 
-            } else if (this.imageListShow == true) {
+            } else if (this.imageListShow) {
                 listImage.dispose();
                 this.imageListShow = false;
 
@@ -252,7 +252,7 @@ export class GuiUtils {
 
         addImage.onPointerDownObservable.add(() => {
 
-            if (this.objectListShow == true) {
+            if (this.objectListShow) {
                 listObject.dispose();
                 this.objectListShow = false;
 
@@ -261,7 +261,7 @@ export class GuiUtils {
                 this.imageListShow = true;
                 listImage.defaultBehavior.followBehaviorEnabled = true;
 
-            } else if (this.videoListShow == true) {
+            } else if (this.videoListShow) {
                 listVideo.dispose();
                 this.videoListShow = false;
 
@@ -270,7 +270,7 @@ export class GuiUtils {
                 this.imageListShow = true;
                 listImage.defaultBehavior.followBehaviorEnabled = true;
 
-            } else if (this.imageListShow == true) {
+            } else if (this.imageListShow) {
                 listImage.dispose();
                 this.imageListShow = false;
 
@@ -333,7 +333,7 @@ export class GuiUtils {
 
         GuiUtils.nearMainMenu.isVisible = false;
 
-        if (player.get(WebXrComponent).exp.baseExperience.sessionManager.inXRSession == false) {
+        if (!(player.get(WebXrComponent).exp.baseExperience.sessionManager.inXRSession)) {
             GuiUtils.nearMainMenu.isVisible = true;
         }
     }

@@ -24,7 +24,7 @@ export class TransformSystem extends IterativeSystem {
 
             // se l'entità ha settato il componente con la logica normale
             // aggiorno la trasformata della mesh con le informazioni derivate dal TransformComponent
-            if (transformComponent.revertLogic == false) {
+            if (!(transformComponent.revertLogic)) {
 
                 //caso con MeshComponent
                 if (entity.has(MeshComponent)) {

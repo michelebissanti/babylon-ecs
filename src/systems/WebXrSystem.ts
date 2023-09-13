@@ -94,7 +94,7 @@ export class WebXrSystem extends IterativeSystem {
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
 
                 // faccio tornare visibile il menu fluttuante
-                if (GuiUtils.nearMainMenu != null && GuiUtils.objectMenuShow == false) {
+                if (GuiUtils.nearMainMenu != null && !(GuiUtils.objectMenuShow)) {
                     GuiUtils.nearMainMenu.isVisible = true;
                 }
 

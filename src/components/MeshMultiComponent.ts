@@ -1,4 +1,3 @@
-import { Client, Room } from "colyseus.js";
 
 // questa componente serve a sincronizzare con il server la componente di Mesh
 export class MeshMultiComponent {
