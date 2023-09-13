@@ -121,7 +121,7 @@ export class WebXrSystem extends IterativeSystem {
                 this.inputSourceArray[index] = null;
 
                 if (this.controllerMenu != null) {
-                    this.controllerMenu.dispose();
+                    this.controllerMenu.isVisible = false;
                 }
 
             });

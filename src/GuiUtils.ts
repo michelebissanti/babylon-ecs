@@ -71,7 +71,7 @@ export class GuiUtils {
 
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
-                if (roomListSlate != undefined) {
+                if (roomListSlate != null) {
                     roomListSlate.dispose();
                 }
                 Utils.setServerTrigger(Utils.engineEcs);
@@ -91,7 +91,7 @@ export class GuiUtils {
 
             if (player.get(ClientComponent).room != null) {
                 nearMenu.dispose();
-                if (roomListSlate != undefined) {
+                if (roomListSlate != null) {
                     roomListSlate.dispose();
                 }
                 Utils.setServerTrigger(Utils.engineEcs);
@@ -137,6 +137,7 @@ export class GuiUtils {
             } else {
                 //spawn slate con elenco
                 roomListSlate = await GuiUtils.createListRoom(player, nearMenu);
+                roomListSlate.defaultBehavior.followBehaviorEnabled = true;
                 listButton.text = "Nascondi lista delle stanze";
                 displayList = true;
             }
@@ -171,11 +172,11 @@ export class GuiUtils {
 
         addObject.onPointerDownObservable.add(() => {
 
-            if (this.objectListShow == true) {
+            if (this.objectListShow) {
                 listObject.dispose();
                 this.objectListShow = false;
 
-            } else if (this.videoListShow == true) {
+            } else if (this.videoListShow) {
                 listVideo.dispose();
                 this.videoListShow = false;
 
@@ -184,7 +185,7 @@ export class GuiUtils {
                 this.objectListShow = true;
                 listObject.defaultBehavior.followBehaviorEnabled = true;
 
-            } else if (this.imageListShow == true) {
+            } else if (this.imageListShow) {
                 listImage.dispose();
                 this.imageListShow = false;
 
@@ -900,7 +901,7 @@ export class GuiUtils {
             let animComp = entityPicked.get(AnimationComponent);
 
             // se è un oggetto animato
-            if (animComp.isVideo == false) {
+            if (!(animComp.isVideo)) {
 
                 for (let i = 0; i < animComp.animGroup.length; i++) {
                     let playButton = new TouchHolographicButton("playButton");

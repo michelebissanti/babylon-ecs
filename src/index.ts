@@ -46,8 +46,6 @@ class App {
     }
 
     async setup() {
-        //this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin(true, await HavokPhysics()));
-
         // settaggio dell'ambiente
         let envTexture = CubeTexture.CreateFromPrefilteredData("sky/sky.env", this.scene);
         this.scene.environmentTexture = envTexture;
