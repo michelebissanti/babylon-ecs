@@ -9,7 +9,6 @@ import { PlayerCameraComponent } from "./components/PlayerCameraComponent";
 import { TransformComponent } from "./components/TransformComponent";
 import { WebXrComponent } from "./components/WebXrComponent";
 import { CustomImage, CustomVideo, Object3d, Utils } from "./utils";
-import { util } from "webpack";
 
 // questa classe serve a contenere tutti i metodi statici che riguardano l'interfaccia utente
 export class GuiUtils {
@@ -160,17 +159,36 @@ export class GuiUtils {
         addObject.imageUrl = "icon/object.png";
 
         let listObject: HolographicSlate;
+        let listVideo: HolographicSlate;
+        let listImage: HolographicSlate;
 
         addObject.onPointerDownObservable.add(async () => {
 
             if (this.objectListShow == true) {
                 listObject.dispose();
                 this.objectListShow = false;
-                addObject.text = "Aggiungi un oggetto 3d";
+
+            } else if (this.videoListShow == true) {
+                listVideo.dispose();
+                this.videoListShow = false;
+
+                //spawn slate con elenco
+                listObject = GuiUtils.createListObject(player);
+                this.objectListShow = true;
+                listObject.defaultBehavior.followBehaviorEnabled = true;
+
+            } else if (this.imageListShow == true) {
+                listImage.dispose();
+                this.imageListShow = false;
+
+                //spawn slate con elenco
+                listObject = GuiUtils.createListObject(player);
+                this.objectListShow = true;
+                listObject.defaultBehavior.followBehaviorEnabled = true;
+
             } else {
                 //spawn slate con elenco
                 listObject = GuiUtils.createListObject(player);
-                //addObject.text = "Hide 3d Object List";
                 this.objectListShow = true;
                 listObject.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -182,18 +200,35 @@ export class GuiUtils {
         addVideo.text = "Aggiungi un video";
         addVideo.imageUrl = "icon/video.png";
 
-        let listVideo: HolographicSlate;
+
 
         addVideo.onPointerDownObservable.add(async () => {
 
-            if (this.videoListShow == true) {
+            if (this.objectListShow == true) {
+                listObject.dispose();
+                this.objectListShow = false;
+
+                //spawn slate con elenco
+                listVideo = GuiUtils.createListVideo(player);
+                this.videoListShow = true;
+                listVideo.defaultBehavior.followBehaviorEnabled = true;
+
+            } else if (this.videoListShow == true) {
                 listVideo.dispose();
                 this.videoListShow = false;
-                addVideo.text = "Aggiungi un video";
+
+            } else if (this.imageListShow == true) {
+                listImage.dispose();
+                this.imageListShow = false;
+
+                //spawn slate con elenco
+                listVideo = GuiUtils.createListVideo(player);
+                this.videoListShow = true;
+                listVideo.defaultBehavior.followBehaviorEnabled = true;
+
             } else {
                 //spawn slate con elenco
                 listVideo = GuiUtils.createListVideo(player);
-                //addVideo.text = "Hide Video List";
                 this.videoListShow = true;
                 listVideo.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -205,18 +240,35 @@ export class GuiUtils {
         addImage.text = "Aggiungi un immagine";
         addImage.imageUrl = "icon/image.png";
 
-        let listImage: HolographicSlate;
+
 
         addImage.onPointerDownObservable.add(async () => {
 
-            if (this.imageListShow == true) {
+            if (this.objectListShow == true) {
+                listObject.dispose();
+                this.objectListShow = false;
+
+                //spawn slate con elenco
+                listImage = GuiUtils.createListImage(player);
+                this.imageListShow = true;
+                listImage.defaultBehavior.followBehaviorEnabled = true;
+
+            } else if (this.videoListShow == true) {
+                listVideo.dispose();
+                this.videoListShow = false;
+
+                //spawn slate con elenco
+                listImage = GuiUtils.createListImage(player);
+                this.imageListShow = true;
+                listImage.defaultBehavior.followBehaviorEnabled = true;
+
+            } else if (this.imageListShow == true) {
                 listImage.dispose();
                 this.imageListShow = false;
-                addImage.text = "Aggiungi un immagine";
+
             } else {
                 //spawn slate con elenco
                 listImage = GuiUtils.createListImage(player);
-                //addImage.text = "Hide Image List";
                 this.imageListShow = true;
                 listImage.defaultBehavior.followBehaviorEnabled = true;
             }
@@ -255,28 +307,27 @@ export class GuiUtils {
         // istanzio l'hand menu uguale a quello creato in questo metodo
         this.createHandMenu(player);
 
+        const manager = GuiUtils.gui3dmanager;
+
+        var nearMenu = new NearMenu("NearMenu");
+        nearMenu.rows = 1;
+        manager.addControl(nearMenu);
+        nearMenu.isPinned = false;
+        nearMenu.position.y = 2;
+
+        nearMenu.defaultBehavior.followBehavior.defaultDistance = 1;
+
+        this.buttonMenu(nearMenu, player);
+
+        nearMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
+
+        this.nearMainMenu = nearMenu;
+
+        GuiUtils.nearMainMenu.isVisible = false;
+
         if (player.get(WebXrComponent).exp.baseExperience.sessionManager.inXRSession == false) {
-
-            const manager = GuiUtils.gui3dmanager;
-
-            var nearMenu = new NearMenu("NearMenu");
-            nearMenu.rows = 1;
-            manager.addControl(nearMenu);
-            nearMenu.isPinned = false;
-            nearMenu.position.y = 2;
-
-            nearMenu.defaultBehavior.followBehavior.defaultDistance = 1;
-
-            this.buttonMenu(nearMenu, player);
-
-            nearMenu.scaling.addInPlace(new Vector3(0.02, 0.02, 0.02));
-
-            this.nearMainMenu = nearMenu;
-
+            GuiUtils.nearMainMenu.isVisible = true;
         }
-
-
-
     }
 
     // questo metodo crea l'hand menu principale della stanza, opzioni disponibili:
@@ -931,7 +982,7 @@ export class GuiUtils {
 
             }
             objectMenu.dispose();
-            if (this.nearMainMenu != null) {
+            if (Utils.inWebXR == false) {
                 //faccio riapparire il near menu per gli utenti non in webxr
                 this.nearMainMenu.isVisible = true;
             }

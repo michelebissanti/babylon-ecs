@@ -63,6 +63,7 @@ export class Utils {
     public static engineEcs: Engine;
     public static scene: Scene;
     public static savedEntities = new Map<string, number>();
+    public static inWebXR: boolean = false;
 
     /** Returns a new Quaternion set from the passed Euler float angles (y, x, z). */
     static euler(eulerX: number, eulerY: number, eulerZ: number): Quaternion {

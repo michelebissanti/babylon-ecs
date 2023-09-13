@@ -9,8 +9,6 @@ import { PlayerCameraComponent } from "../components/PlayerCameraComponent";
 import { TransformComponent } from "../components/TransformComponent";
 import { WebXrComponent } from "../components/WebXrComponent";
 import { Utils } from "../utils";
-import { FollowComponent } from "../components/FollowComponent";
-import { util } from "webpack";
 
 // WebXrSystem: gestisce l'entità che possiede WebXrComponent
 // dovrebbe gestire solo il player locale nelle sue interazioni con la webxr
@@ -52,9 +50,14 @@ export class WebXrSystem extends IterativeSystem {
 
             // quando entro nella sessione webxr
             defExp.baseExperience.sessionManager.onXRSessionInit.add(() => {
+                // aggiorno questa variabile di utilità
+                Utils.inWebXR = true;
+
                 // aggiorno la telecamera dell'entità player
                 entity.get(PlayerCameraComponent).camera = defExp.baseExperience.camera;
 
+                // nascondo il menu fluttuante utile in ambiente desktop
+                GuiUtils.nearMainMenu.isVisible = false;
 
                 if (defExp.baseExperience.sessionManager.sessionMode == "immersive-ar") {
                     // nascondo la mesh del terreno
@@ -84,8 +87,17 @@ export class WebXrSystem extends IterativeSystem {
 
             // quando esco dalla sessione webxr
             defExp.baseExperience.sessionManager.onXRSessionEnded.add(() => {
+                // aggiorno questa variabile di utilità
+                Utils.inWebXR = false;
+
                 // aggiorno la telecamera dell'entità player
                 entity.get(PlayerCameraComponent).camera = this.scene.getCameraById("cameraPlayer") as FreeCamera;
+
+                // faccio tornare visibile il menu fluttuante
+                if (GuiUtils.objectMenuShow == false) {
+                    GuiUtils.nearMainMenu.isVisible = true;
+                }
+
             });
 
             // listener per ottenere i riferimenti ai controller collegati
@@ -156,8 +168,7 @@ export class WebXrSystem extends IterativeSystem {
 
                                         } else {
                                             // l'entità è occupata quindi panel di warning
-                                            GuiUtils.warningSlate("Warning", "This object is busy by another user.");
-
+                                            GuiUtils.warningSlate("Attenzione", "Questo oggetto è occupato da un altro utente.");
                                         }
 
 
