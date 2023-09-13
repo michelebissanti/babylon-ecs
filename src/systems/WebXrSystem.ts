@@ -1,4 +1,4 @@
-import { AbstractMesh, BoundingBoxGizmo, Color3, FollowBehavior, FreeCamera, Mesh, MeshBuilder, PointerEventTypes, Quaternion, RayHelper, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
+import { FreeCamera, Mesh, MeshBuilder, PointerEventTypes, Scene, Vector3, WebXRAbstractMotionController, WebXRFeatureName, WebXRInputSource } from "@babylonjs/core";
 import { TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity, IterativeSystem, QueryBuilder } from "tick-knock";
 import { GuiUtils } from "../GuiUtils";
