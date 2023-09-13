@@ -1,5 +1,5 @@
 import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
-import { AdvancedDynamicTexture, Button, Control, GUI3DManager, Grid, HandMenu, HolographicSlate, InputText, NearMenu, ScrollViewer, TextBlock, TextWrapping, TouchHolographicButton, TouchHolographicMenu } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, Button, Control, GUI3DManager, Grid, HandMenu, HolographicSlate, InputText, NearMenu, ScrollViewer, TextBlock, TextWrapping, TouchHolographicButton, TouchHolographicMenu, VirtualKeyboard } from "@babylonjs/gui";
 import { Entity } from "tick-knock";
 import { AnimationComponent } from "./components/AnimationComponent";
 import { ClientComponent } from "./components/ClientComponent";
@@ -57,7 +57,7 @@ export class GuiUtils {
         let roomListSlate: HolographicSlate;
 
 
-        nearMenu.scaling = new Vector3(0.1, 0.1, 0.1);
+        nearMenu.scaling = new Vector3(0.05, 0.05, 0.05);
 
 
         let createButton = new TouchHolographicButton();
@@ -99,9 +99,9 @@ export class GuiUtils {
             }
         });
 
-        let textArea = CreatePlane("textArea", { width: 2, height: 1 }, Utils.scene);
+        let textArea = CreatePlane("textArea", { width: 3, height: 2 }, Utils.scene);
         textArea.parent = nearMenu.mesh;
-        textArea.position.y = 1.5;
+        textArea.position.y = -1.7;
 
         let advancedTexture = AdvancedDynamicTexture.CreateForMesh(textArea);
 
@@ -112,6 +112,13 @@ export class GuiUtils {
         inputText.fontSize = 150;
         inputText.background = "green";
         advancedTexture.addControl(inputText);
+
+        let kb = VirtualKeyboard.CreateDefaultLayout();
+        kb.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        advancedTexture.addControl(kb);
+        kb.connect(inputText);
+        kb.scaleX = 2;
+        kb.scaleY = 2;
 
 
         let listButton = new TouchHolographicButton();
