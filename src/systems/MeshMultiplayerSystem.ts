@@ -24,7 +24,7 @@ export class MeshMultiplayerSystem extends IterativeSystem {
             let meshMultiComponent = entity.get(MeshMultiComponent);
 
             // se la mesh non è stata istanziata, la istanzio
-            if (meshMultiComponent.render == false) {
+            if (!meshMultiComponent.render) {
                 meshMultiComponent.render = true;
 
 
@@ -52,7 +52,6 @@ export class MeshMultiplayerSystem extends IterativeSystem {
                         videoMat.diffuseTexture = videoTex;
                         videoMat.roughness = 1;
                         videoMat.emissiveColor = Color3.White();
-                        //videoTex.video.volume = 0;
                         videoTex.video.pause();
                         plane.material = videoMat;
 

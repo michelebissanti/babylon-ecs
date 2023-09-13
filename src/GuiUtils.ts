@@ -1,4 +1,4 @@
-import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, Mesh, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
+import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Button, Control, GUI3DManager, Grid, HandMenu, HolographicSlate, InputText, NearMenu, ScrollViewer, TextBlock, TextWrapping, TouchHolographicButton, TouchHolographicMenu } from "@babylonjs/gui";
 import { Entity } from "tick-knock";
 import { AnimationComponent } from "./components/AnimationComponent";
@@ -57,10 +57,10 @@ export class GuiUtils {
         let roomListSlate: HolographicSlate;
 
 
-        //nearMenu.scaling = new Vector3(0.1, 0.1, 0.1);
+        nearMenu.scaling = new Vector3(0.1, 0.1, 0.1);
 
 
-        var createButton = new TouchHolographicButton();
+        let createButton = new TouchHolographicButton();
         nearMenu.addButton(createButton);
         createButton.text = "Crea una stanza";
         createButton.imageUrl = "icon/create-room.png";
@@ -80,7 +80,7 @@ export class GuiUtils {
         });
 
 
-        var joinButton = new TouchHolographicButton();
+        let joinButton = new TouchHolographicButton();
         nearMenu.addButton(joinButton);
         joinButton.text = "Entra in una stanza";
         joinButton.imageUrl = "icon/join.png";
@@ -99,11 +99,11 @@ export class GuiUtils {
             }
         });
 
-        var textArea = CreatePlane("textArea", { width: 2, height: 1 }, Utils.scene);
+        let textArea = CreatePlane("textArea", { width: 2, height: 1 }, Utils.scene);
         textArea.parent = nearMenu.mesh;
         textArea.position.y = 1.5;
 
-        var advancedTexture = AdvancedDynamicTexture.CreateForMesh(textArea);
+        let advancedTexture = AdvancedDynamicTexture.CreateForMesh(textArea);
 
         let inputText = new InputText("inputRoom", "");
         inputText.width = 1;
@@ -114,7 +114,7 @@ export class GuiUtils {
         advancedTexture.addControl(inputText);
 
 
-        var listButton = new TouchHolographicButton();
+        let listButton = new TouchHolographicButton();
         nearMenu.addButton(listButton);
         listButton.text = "Lista delle stanze";
         listButton.imageUrl = "icon/join.png";
@@ -162,7 +162,7 @@ export class GuiUtils {
         let listVideo: HolographicSlate;
         let listImage: HolographicSlate;
 
-        addObject.onPointerDownObservable.add(async () => {
+        addObject.onPointerDownObservable.add(() => {
 
             if (this.objectListShow == true) {
                 listObject.dispose();
@@ -202,7 +202,7 @@ export class GuiUtils {
 
 
 
-        addVideo.onPointerDownObservable.add(async () => {
+        addVideo.onPointerDownObservable.add(() => {
 
             if (this.objectListShow == true) {
                 listObject.dispose();
@@ -242,7 +242,7 @@ export class GuiUtils {
 
 
 
-        addImage.onPointerDownObservable.add(async () => {
+        addImage.onPointerDownObservable.add(() => {
 
             if (this.objectListShow == true) {
                 listObject.dispose();
@@ -275,22 +275,22 @@ export class GuiUtils {
 
         });
 
-        var roomInfo = new TouchHolographicButton();
+        let roomInfo = new TouchHolographicButton();
         menu.addButton(roomInfo);
         roomInfo.text = "Room id: " + player.get(ClientComponent).room.id.toString();
         console.log(player.get(ClientComponent).room.id.toString());
 
-        roomInfo.onPointerDownObservable.add(async () => {
-            //Utils.copyMessage(player.get(ClientComponent).room.id.toString());
+        roomInfo.onPointerDownObservable.add(() => {
+
 
         });
 
-        var leaveRoomBtn = new TouchHolographicButton();
+        let leaveRoomBtn = new TouchHolographicButton();
         menu.addButton(leaveRoomBtn);
         leaveRoomBtn.text = "Lascia la stanza";
         leaveRoomBtn.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconClose.png";
 
-        leaveRoomBtn.onPointerDownObservable.add(async () => {
+        leaveRoomBtn.onPointerDownObservable.add(() => {
             player.get(ClientComponent).room.leave();
             window.location.reload();
         });
@@ -309,7 +309,7 @@ export class GuiUtils {
 
         const manager = GuiUtils.gui3dmanager;
 
-        var nearMenu = new NearMenu("NearMenu");
+        let nearMenu = new NearMenu("NearMenu");
         nearMenu.rows = 1;
         manager.addControl(nearMenu);
         nearMenu.isPinned = false;
@@ -406,7 +406,7 @@ export class GuiUtils {
 
         for (let i = 0; i < elementSize; i++) {
             grid.addRowDefinition(200, true);
-            var imgButton = Button.CreateImageOnlyButton("", objectAvaible[i].urlIcona);
+            let imgButton = Button.CreateImageOnlyButton("", objectAvaible[i].urlIcona);
             grid.addControl(imgButton, i, 0);
 
             imgButton.onPointerClickObservable.add(async () => {
@@ -434,7 +434,7 @@ export class GuiUtils {
 
             });
 
-            var textButton = Button.CreateSimpleButton("", objectAvaible[i].nome);
+            let textButton = Button.CreateSimpleButton("", objectAvaible[i].nome);
             textButton.color = "white";
             textButton.background = "green";
             grid.addControl(textButton, i, 1);
@@ -501,7 +501,7 @@ export class GuiUtils {
 
         for (let i = 0; i < elementSize; i++) {
             grid.addRowDefinition(200, true);
-            var imgButton = Button.CreateImageOnlyButton("", videoAvaible[i].urlIcona);
+            let imgButton = Button.CreateImageOnlyButton("", videoAvaible[i].urlIcona);
             grid.addControl(imgButton, i, 0);
 
             imgButton.onPointerClickObservable.add(async () => {
@@ -528,7 +528,7 @@ export class GuiUtils {
                 this.videoListShow = false;
             });
 
-            var textButton = Button.CreateSimpleButton("", videoAvaible[i].nome);
+            let textButton = Button.CreateSimpleButton("", videoAvaible[i].nome);
             textButton.color = "white";
             textButton.background = "green";
             grid.addControl(textButton, i, 1);
@@ -595,7 +595,7 @@ export class GuiUtils {
 
         for (let i = 0; i < elementSize; i++) {
             grid.addRowDefinition(200, true);
-            var imgButton = Button.CreateImageOnlyButton("", imagesAvaible[i].urlIcona);
+            let imgButton = Button.CreateImageOnlyButton("", imagesAvaible[i].urlIcona);
             grid.addControl(imgButton, i, 0);
 
             imgButton.onPointerClickObservable.add(async () => {
@@ -622,7 +622,7 @@ export class GuiUtils {
                 this.imageListShow = false;
             });
 
-            var textButton = Button.CreateSimpleButton("", imagesAvaible[i].nome);
+            let textButton = Button.CreateSimpleButton("", imagesAvaible[i].nome);
             textButton.color = "white";
             textButton.background = "green";
             grid.addControl(textButton, i, 1);
@@ -662,7 +662,7 @@ export class GuiUtils {
 
     // crea una holographic slate con un warning dato in input
     static warningSlate(titleString: string, textString: string) {
-        var dialogSlate = new HolographicSlate("dialogSlate");
+        let dialogSlate = new HolographicSlate("dialogSlate");
 
         dialogSlate.titleBarHeight = 0; // Hides default slate controls and title bar
         dialogSlate.dimensions = new Vector2(1, 1);
@@ -670,10 +670,10 @@ export class GuiUtils {
 
         GuiUtils.gui3dmanager.addControl(dialogSlate);
 
-        var contentGrid = new Grid("grid");
-        var buttonLeft = Button.CreateSimpleButton("left", "Okay");
-        var title = new TextBlock("title");
-        var text = new TextBlock("text");
+        let contentGrid = new Grid("grid");
+        let buttonLeft = Button.CreateSimpleButton("left", "Okay");
+        let title = new TextBlock("title");
+        let text = new TextBlock("text");
 
         buttonLeft.width = 1;
         buttonLeft.height = 0.2;
@@ -738,7 +738,7 @@ export class GuiUtils {
             for (let i = 0; i < elementSize; i++) {
                 grid.addRowDefinition(200, true);
 
-                var textButton = Button.CreateSimpleButton("", roomAvaible[i].roomId);
+                let textButton = Button.CreateSimpleButton("", roomAvaible[i].roomId);
                 textButton.color = "white";
                 textButton.background = "green";
                 grid.addControl(textButton, i, 0);
@@ -762,7 +762,7 @@ export class GuiUtils {
 
         } else {
 
-            var title = new TextBlock("title");
+            let title = new TextBlock("title");
             grid.addControl(title);
             title.height = 0.2;
             title.color = "white";
@@ -800,11 +800,11 @@ export class GuiUtils {
         objectMenu.rows = 1;
         GuiUtils.gui3dmanager.addControl(objectMenu);
 
-        var textName = CreatePlane("textName", { width: 4, height: 2 }, Utils.scene);
+        let textName = CreatePlane("textName", { width: 4, height: 2 }, Utils.scene);
         textName.parent = objectMenu.mesh;
         textName.position.y = 1.5;
 
-        var advancedTexture = AdvancedDynamicTexture.CreateForMesh(textName);
+        let advancedTexture = AdvancedDynamicTexture.CreateForMesh(textName);
 
         let objectName = entityPicked.get(MeshMultiComponent).name;
 

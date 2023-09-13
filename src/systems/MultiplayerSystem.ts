@@ -41,17 +41,15 @@ export class MultiplayerSystem extends IterativeSystem {
             if (entity.has(EntityMultiplayerComponent)) {
 
                 //caso del player che joina la stanza
-                if (entity.get(EntityMultiplayerComponent).send == true && entity.get(EntityMultiplayerComponent).serverId == undefined && entity.get(EntityMultiplayerComponent).loading == false && this.entityPlayerCodeResponse != null) {
+                if (entity.get(EntityMultiplayerComponent).send && entity.get(EntityMultiplayerComponent).serverId == undefined && !(entity.get(EntityMultiplayerComponent).loading) && this.entityPlayerCodeResponse != null) {
 
                     entity.get(EntityMultiplayerComponent).serverId = this.entityPlayerCodeResponse;
                     Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
                     this.entityPlayerCodeResponse = null;
-
-                    //console.log(entity.get(EntityMultiplayerComponent).serverId);
                 }
 
                 //caso della entità locale da sincronizzare
-                if (entity.get(EntityMultiplayerComponent).send == false && entity.get(EntityMultiplayerComponent).serverId == undefined) {
+                if (!(entity.get(EntityMultiplayerComponent).send) && entity.get(EntityMultiplayerComponent).serverId == undefined) {
                     entity.get(EntityMultiplayerComponent).send = true;
                     entity.get(EntityMultiplayerComponent).loading = true;
 
@@ -62,9 +60,8 @@ export class MultiplayerSystem extends IterativeSystem {
 
 
                 // se sto aspettando il codice dal server
-                if (entity.get(EntityMultiplayerComponent).loading == true && this.entityCodeResponse != null) {
+                if (entity.get(EntityMultiplayerComponent).loading && this.entityCodeResponse != null) {
                     entity.get(EntityMultiplayerComponent).loading = false;
-                    //console.log(this.entityCodeResponse);
                     entity.get(EntityMultiplayerComponent).serverId = this.entityCodeResponse;
 
                     Utils.savedEntities.set(entity.get(EntityMultiplayerComponent).serverId, entity.id);
