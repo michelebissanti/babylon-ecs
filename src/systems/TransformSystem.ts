@@ -17,6 +17,32 @@ export class TransformSystem extends IterativeSystem {
         this.scene = scene;
     }
 
+    private static meshEqualsTransform(mesh: AbstractMesh, transformComponent: TransformComponent): void {
+        mesh.position.x = transformComponent.x;
+        mesh.position.y = transformComponent.y;
+        mesh.position.z = transformComponent.z;
+        mesh.rotationQuaternion.x = transformComponent.rotation_x;
+        mesh.rotationQuaternion.y = transformComponent.rotation_y;
+        mesh.rotationQuaternion.z = transformComponent.rotation_z;
+        mesh.rotationQuaternion.w = transformComponent.rotation_w;
+        mesh.scaling.x = transformComponent.scale_x;
+        mesh.scaling.y = transformComponent.scale_y;
+        mesh.scaling.z = transformComponent.scale_z;
+    }
+
+    private static transformEqualsMesh(mesh: AbstractMesh, transformComponent: TransformComponent): void {
+        transformComponent.x = mesh.position.x;
+        transformComponent.y = mesh.position.y;
+        transformComponent.z = mesh.position.z;
+        transformComponent.rotation_x = mesh.rotationQuaternion.x;
+        transformComponent.rotation_y = mesh.rotationQuaternion.y;
+        transformComponent.rotation_z = mesh.rotationQuaternion.z;
+        transformComponent.rotation_w = mesh.rotationQuaternion.w;
+        transformComponent.scale_x = mesh.scaling.x;
+        transformComponent.scale_y = mesh.scaling.y;
+        transformComponent.scale_z = mesh.scaling.z;
+    }
+
     protected updateEntity(entity: Entity, dt: number): void {
 
         if (entity.has(TransformComponent)) {
@@ -35,16 +61,7 @@ export class TransformSystem extends IterativeSystem {
                         mesh.rotationQuaternion = mesh.rotation.toQuaternion();
                     }
 
-                    mesh.position.x = transformComponent.x;
-                    mesh.position.y = transformComponent.y;
-                    mesh.position.z = transformComponent.z;
-                    mesh.rotationQuaternion.x = transformComponent.rotation_x;
-                    mesh.rotationQuaternion.y = transformComponent.rotation_y;
-                    mesh.rotationQuaternion.z = transformComponent.rotation_z;
-                    mesh.rotationQuaternion.w = transformComponent.rotation_w;
-                    mesh.scaling.x = transformComponent.scale_x;
-                    mesh.scaling.y = transformComponent.scale_y;
-                    mesh.scaling.z = transformComponent.scale_z;
+                    TransformSystem.meshEqualsTransform(mesh, transformComponent);
                 }
 
                 //caso con MeshArrayComponent
@@ -56,16 +73,7 @@ export class TransformSystem extends IterativeSystem {
                         mesh.rotationQuaternion = mesh.rotation.toQuaternion();
                     }
 
-                    mesh.position.x = transformComponent.x;
-                    mesh.position.y = transformComponent.y;
-                    mesh.position.z = transformComponent.z;
-                    mesh.rotationQuaternion.x = transformComponent.rotation_x;
-                    mesh.rotationQuaternion.y = transformComponent.rotation_y;
-                    mesh.rotationQuaternion.z = transformComponent.rotation_z;
-                    mesh.rotationQuaternion.w = transformComponent.rotation_w;
-                    mesh.scaling.x = transformComponent.scale_x;
-                    mesh.scaling.y = transformComponent.scale_y;
-                    mesh.scaling.z = transformComponent.scale_z;
+                    TransformSystem.meshEqualsTransform(mesh, transformComponent);
                 }
             } else {
                 // se l'entità ha settato il componente con la logica inversa
@@ -79,16 +87,7 @@ export class TransformSystem extends IterativeSystem {
                         mesh.rotationQuaternion = mesh.rotation.toQuaternion();
                     }
 
-                    transformComponent.x = mesh.position.x;
-                    transformComponent.y = mesh.position.y;
-                    transformComponent.z = mesh.position.z;
-                    transformComponent.rotation_x = mesh.rotationQuaternion.x;
-                    transformComponent.rotation_y = mesh.rotationQuaternion.y;
-                    transformComponent.rotation_z = mesh.rotationQuaternion.z;
-                    transformComponent.rotation_w = mesh.rotationQuaternion.w;
-                    transformComponent.scale_x = mesh.scaling.x;
-                    transformComponent.scale_y = mesh.scaling.y;
-                    transformComponent.scale_z = mesh.scaling.z;
+                    TransformSystem.transformEqualsMesh(mesh, transformComponent);
                 }
 
                 //caso con MeshArrayComponent
@@ -100,16 +99,7 @@ export class TransformSystem extends IterativeSystem {
                         mesh.rotationQuaternion = mesh.rotation.toQuaternion();
                     }
 
-                    transformComponent.x = mesh.position.x;
-                    transformComponent.y = mesh.position.y;
-                    transformComponent.z = mesh.position.z;
-                    transformComponent.rotation_x = mesh.rotationQuaternion.x;
-                    transformComponent.rotation_y = mesh.rotationQuaternion.y;
-                    transformComponent.rotation_z = mesh.rotationQuaternion.z;
-                    transformComponent.rotation_w = mesh.rotationQuaternion.w;
-                    transformComponent.scale_x = mesh.scaling.x;
-                    transformComponent.scale_y = mesh.scaling.y;
-                    transformComponent.scale_z = mesh.scaling.z;
+                    TransformSystem.transformEqualsMesh(mesh, transformComponent);
                 }
 
             }
