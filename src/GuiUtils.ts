@@ -1,4 +1,4 @@
-import { BoundingBoxGizmo, Color3, CreatePlane, HandConstraintVisibility, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
+import { BoundingBoxGizmo, Color3, CreatePlane, Engine, HandConstraintVisibility, MultiPointerScaleBehavior, SixDofDragBehavior, UtilityLayerRenderer, Vector2, Vector3 } from "@babylonjs/core";
 import { AdvancedDynamicTexture, Button, Control, GUI3DManager, Grid, HandMenu, HolographicSlate, InputText, NearMenu, ScrollViewer, TextBlock, TextWrapping, TouchHolographicButton, TouchHolographicMenu, VirtualKeyboard } from "@babylonjs/gui";
 import { Entity } from "tick-knock";
 import { AnimationComponent } from "./components/AnimationComponent";
@@ -825,14 +825,20 @@ export class GuiUtils {
         const multiPointerScaleBehavior = new MultiPointerScaleBehavior();
         let utilLayer, gizmo;
 
-        let editButton = new TouchHolographicButton("editButton");
+        let editButton = new TouchHolographicButton("editButton", false);
         objectMenu.addButton(editButton);
         editButton.text = "Scala e Ruota";
         editButton.imageUrl = "https://raw.githubusercontent.com/microsoft/MixedRealityToolkit-Unity/main/Assets/MRTK/SDK/StandardAssets/Textures/IconAdjust.png";
+
         editButton.onPointerDownObservable.add(() => {
 
             if (!(GuiUtils.switchEdit)) {
                 editButton.text = "Esci da Scala e Ruota";
+                // cambio il colore del pulsante in rosso
+                editButton.plateMaterial.alphaMode = Engine.ALPHA_ONEONE;
+                editButton.plateMaterial.diffuseColor = Color3.Red();
+                editButton.backMaterial.albedoColor = new Color3(0.67, 0.29, 0.29);
+
                 // Create bounding box gizmo
                 utilLayer = new UtilityLayerRenderer(Utils.scene)
                 utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
@@ -849,7 +855,12 @@ export class GuiUtils {
                 GuiUtils.switchEdit = true;
 
             } else {
+                // ripristino il pulsante blu
                 editButton.text = "Scala e Ruota";
+                editButton.plateMaterial.alphaMode = Engine.ALPHA_COMBINE;
+                editButton.plateMaterial.diffuseColor = new Color3(0.4, 0.4, 0.4);
+                editButton.backMaterial.albedoColor = new Color3(0.08, 0.15, 0.55);
+
                 utilLayer.dispose();
                 gizmo.dispose();
                 entityMesh.removeBehavior(multiPointerScaleBehavior);
@@ -873,6 +884,10 @@ export class GuiUtils {
 
             if (!(GuiUtils.switchMove)) {
                 moveButton.text = "Esci da Sposta";
+                // cambio il colore del pulsante in rosso
+                moveButton.plateMaterial.alphaMode = Engine.ALPHA_ONEONE;
+                moveButton.plateMaterial.diffuseColor = Color3.Red();
+                moveButton.backMaterial.albedoColor = new Color3(0.67, 0.29, 0.29);
                 entityMesh.addBehavior(sixDofDragBehavior);
 
 
@@ -880,7 +895,12 @@ export class GuiUtils {
                 entityPicked.get(TransformComponent).update = true;
                 GuiUtils.switchMove = true;
             } else {
+                // ripristino il pulsante in blu
                 moveButton.text = "Sposta";
+                moveButton.plateMaterial.alphaMode = Engine.ALPHA_COMBINE;
+                moveButton.plateMaterial.diffuseColor = new Color3(0.4, 0.4, 0.4);
+                moveButton.backMaterial.albedoColor = new Color3(0.08, 0.15, 0.55);
+
                 entityMesh.removeBehavior(sixDofDragBehavior);
 
                 if (!(GuiUtils.switchEdit)) {
