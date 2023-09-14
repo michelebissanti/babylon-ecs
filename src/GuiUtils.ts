@@ -381,6 +381,32 @@ export class GuiUtils {
         return controllerMenu;
     }
 
+
+    // questo è il metodo chiamato al momento del click su un pulsante di oggetto nella lista di oggetti
+    static async spawnObject(objectAvaible, i, player, listSlate) {
+        //piazzo una nuovo oggetto selezionato nella scena
+        let newObject = new Entity();
+
+        newObject.add(new EntityMultiplayerComponent(false));
+        Utils.engineEcs.addEntity(newObject);
+
+        await Utils.waitForConditionAsync(() => {
+            return newObject.get(EntityMultiplayerComponent).serverId != null;
+        });
+
+        newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
+
+        // posiziono l'oggetto difronte al player
+        let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
+
+        newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
+
+
+
+        listSlate.dispose();
+        this.objectListShow = false;
+    }
+
     // questo metodo crea una list slate con tutti gli oggetti disponibili
     // è possibile cliccare sugli oggetti per farli spawnare davanti al player
     static createListObject(player: Entity): HolographicSlate {
@@ -418,28 +444,7 @@ export class GuiUtils {
             grid.addControl(imgButton, i, 0);
 
             imgButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo oggetto selezionato nella scena
-                let newObject = new Entity();
-
-                newObject.add(new EntityMultiplayerComponent(false));
-                Utils.engineEcs.addEntity(newObject);
-
-                await Utils.waitForConditionAsync(() => {
-                    return newObject.get(EntityMultiplayerComponent).serverId != null;
-                });
-
-                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
-
-                // posiziono l'oggetto difronte al player
-                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
-
-                newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
-
-
-
-                listSlate.dispose();
-                this.objectListShow = false;
-
+                this.spawnObject(objectAvaible, i, player, listSlate);
             });
 
             let textButton = Button.CreateSimpleButton("", objectAvaible[i].nome);
@@ -448,27 +453,7 @@ export class GuiUtils {
             grid.addControl(textButton, i, 1);
 
             textButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo oggetto selezionato nella scena
-                let newObject = new Entity();
-
-                newObject.add(new EntityMultiplayerComponent(false));
-                Utils.engineEcs.addEntity(newObject);
-
-                await Utils.waitForConditionAsync(() => {
-                    return newObject.get(EntityMultiplayerComponent).serverId != null;
-                });
-
-                newObject.add(new MeshMultiComponent(objectAvaible[i].percorso, objectAvaible[i].nomeFile, false));
-
-                // posiziono l'oggetto difronte al player
-                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
-
-                newObject.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
-
-
-
-                listSlate.dispose();
-                this.objectListShow = false;
+                this.spawnObject(objectAvaible, i, player, listSlate);
             });
         }
 
@@ -476,6 +461,31 @@ export class GuiUtils {
         listSlate.content = sv;
 
         return listSlate;
+    }
+
+    // questo è il metodo chiamato al momento del click su un pulsante di video nella lista di video
+    static async spawnVideo(videoAvaible, i, player, listSlate) {
+        //piazzo una nuovo video selezionato nella scena
+        let video = new Entity();
+
+        video.add(new EntityMultiplayerComponent(false));
+        Utils.engineEcs.addEntity(video);
+
+        await Utils.waitForConditionAsync(() => {
+            return video.get(EntityMultiplayerComponent).serverId != null;
+        });
+
+        video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
+
+        // posiziono l'oggetto difronte al player
+        let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
+
+        video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
+
+
+
+        listSlate.dispose();
+        this.videoListShow = false;
     }
 
     // questo metodo crea una list slate con tutti i video disponibili
@@ -513,27 +523,8 @@ export class GuiUtils {
             grid.addControl(imgButton, i, 0);
 
             imgButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo video selezionato nella scena
-                let video = new Entity();
+                this.spawnVideo(videoAvaible, i, player, listSlate);
 
-                video.add(new EntityMultiplayerComponent(false));
-                Utils.engineEcs.addEntity(video);
-
-                await Utils.waitForConditionAsync(() => {
-                    return video.get(EntityMultiplayerComponent).serverId != null;
-                });
-
-                video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
-
-                // posiziono l'oggetto difronte al player
-                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
-
-                video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
-
-
-
-                listSlate.dispose();
-                this.videoListShow = false;
             });
 
             let textButton = Button.CreateSimpleButton("", videoAvaible[i].nome);
@@ -542,27 +533,7 @@ export class GuiUtils {
             grid.addControl(textButton, i, 1);
 
             textButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuovo video selezionato nella scena
-                let video = new Entity();
-
-                video.add(new EntityMultiplayerComponent(false));
-                Utils.engineEcs.addEntity(video);
-
-                await Utils.waitForConditionAsync(() => {
-                    return video.get(EntityMultiplayerComponent).serverId != null;
-                });
-
-                video.add(new MeshMultiComponent(videoAvaible[i].percorso, videoAvaible[i].nomeFile, false));
-
-                // posiziono l'oggetto difronte al player
-                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
-
-                video.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
-
-
-
-                listSlate.dispose();
-                this.videoListShow = false;
+                this.spawnVideo(videoAvaible, i, player, listSlate);
             });
         }
 
@@ -570,6 +541,31 @@ export class GuiUtils {
         listSlate.content = sv;
 
         return listSlate;
+    }
+
+    // questo è il metodo chiamato al momento del click su un pulsante di immagine nella lista di immagini
+    static async spawnImage(imagesAvaible, i, player, listSlate) {
+        //piazzo una nuova immagine selezionata nella scena
+        let newImage = new Entity();
+
+        newImage.add(new EntityMultiplayerComponent(false));
+        Utils.engineEcs.addEntity(newImage);
+
+        await Utils.waitForConditionAsync(() => {
+            return newImage.get(EntityMultiplayerComponent).serverId != null;
+        });
+
+        newImage.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
+
+        // posiziono l'oggetto difronte al player
+        let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
+
+        newImage.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
+
+
+
+        listSlate.dispose();
+        this.imageListShow = false;
     }
 
     // questo metodo crea una list slate con tutte le immagini disponibili
@@ -607,27 +603,7 @@ export class GuiUtils {
             grid.addControl(imgButton, i, 0);
 
             imgButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuova immagine selezionata nella scena
-                let newImage = new Entity();
-
-                newImage.add(new EntityMultiplayerComponent(false));
-                Utils.engineEcs.addEntity(newImage);
-
-                await Utils.waitForConditionAsync(() => {
-                    return newImage.get(EntityMultiplayerComponent).serverId != null;
-                });
-
-                newImage.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
-
-                // posiziono l'oggetto difronte al player
-                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
-
-                newImage.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
-
-
-
-                listSlate.dispose();
-                this.imageListShow = false;
+                this.spawnImage(imagesAvaible, i, player, listSlate);
             });
 
             let textButton = Button.CreateSimpleButton("", imagesAvaible[i].nome);
@@ -636,27 +612,7 @@ export class GuiUtils {
             grid.addControl(textButton, i, 1);
 
             textButton.onPointerClickObservable.add(async () => {
-                //piazzo una nuova immagine selezionata nella scena
-                let newImage = new Entity();
-
-                newImage.add(new EntityMultiplayerComponent(false));
-                Utils.engineEcs.addEntity(newImage);
-
-                await Utils.waitForConditionAsync(() => {
-                    return newImage.get(EntityMultiplayerComponent).serverId != null;
-                });
-
-                newImage.add(new MeshMultiComponent(imagesAvaible[i].percorso, imagesAvaible[i].nomeFile, false));
-
-                // posiziono l'oggetto difronte al player
-                let positionToSpawn = player.get(PlayerCameraComponent).camera.getFrontPosition(1);
-
-                newImage.add(new TransformComponent(false, positionToSpawn.x, positionToSpawn.y, positionToSpawn.z));
-
-
-
-                listSlate.dispose();
-                this.imageListShow = false;
+                this.spawnImage(imagesAvaible, i, player, listSlate);
             });
         }
 
