@@ -54,7 +54,7 @@ class App {
 
         let light = new Entity();
         light.add(new WorldLightComponent(new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene)));
-        light.get(WorldLightComponent).light.intensity = 1;
+        light.get(WorldLightComponent).light.intensity = 2;
         this.ecs.addEntity(light);
 
         let ground = new Entity();

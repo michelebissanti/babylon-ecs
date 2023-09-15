@@ -79,8 +79,10 @@ export class Utils {
         objects[1] = new Object3d("Wood Chair", "models_image/chair.png", "models/", "chair.glb");
         objects[2] = new Object3d("Lion", "models_image/lion.png", "models/", "lion.glb");
         objects[3] = new Object3d("Table Football", "models_image/table_football.png", "models/", "table_football.glb");
-        objects[4] = new Object3d("Mystery Block", "models_image/mystery_block.png", "models/", "mystery_block.glb");
-        objects[5] = new Object3d("Bee", "models_image/bee.png", "models/", "bee.glb");
+        objects[4] = new Object3d("Bird", "models_image/bird.png", "models/", "bird.glb");
+        objects[5] = new Object3d("Mystery Block", "models_image/mystery_block.png", "models/", "mystery_block.glb");
+        objects[6] = new Object3d("Bee", "models_image/bee.png", "models/", "bee.glb");
+        objects[7] = new Object3d("Shark", "models_image/shark.png", "models/", "shark.glb");
 
         return objects;
 
@@ -102,6 +104,8 @@ export class Utils {
         let objects: Array<CustomImage> = [];
 
         objects[0] = new CustomImage("Future", "image/future.jpeg", "image", "future.jpeg");
+        objects[1] = new CustomImage("Cartina Italia", "image/italia.jpg", "image", "italia.jpg");
+        objects[2] = new CustomImage("Tavola degli elementi", "image/element.jpg", "image", "element.jpg");
 
         return objects;
 
