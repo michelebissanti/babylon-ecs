@@ -82,7 +82,6 @@ export class Utils {
         objects[4] = new Object3d("Bird", "models_image/bird.png", "models/", "bird.glb");
         objects[5] = new Object3d("Mystery Block", "models_image/mystery_block.png", "models/", "mystery_block.glb");
         objects[6] = new Object3d("Bee", "models_image/bee.png", "models/", "bee.glb");
-        objects[7] = new Object3d("Shark", "models_image/shark.png", "models/", "shark.glb");
 
         return objects;
 
